@@ -62,7 +62,7 @@ describe('IpCidrConverter', () => {
 
       expect(screen.getByText('IP Address CIDR Converter')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('192.168.1.0/24')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /convert/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /analyze network/i })).toBeInTheDocument();
     });
 
     it('should render all input fields', () => {
@@ -180,7 +180,7 @@ describe('IpCidrConverter', () => {
       const input = screen.getByPlaceholderText('192.168.1.0/24');
       await user.type(input, '192.168.1.0/24');
 
-      const convertButton = screen.getByRole('button', { name: /convert/i });
+      const convertButton = screen.getByRole('button', { name: /analyze network/i });
       await user.click(convertButton);
 
       expect(mockIpCidrUtils.validateCidr).toHaveBeenCalledWith('192.168.1.0/24');
@@ -290,7 +290,7 @@ describe('IpCidrConverter', () => {
       const input = screen.getByPlaceholderText('192.168.1.0/24');
       await user.type(input, '192.168.1.0/24');
 
-      const convertButton = screen.getByRole('button', { name: /convert/i });
+      const convertButton = screen.getByRole('button', { name: /analyze network/i });
       await user.click(convertButton);
 
       await waitFor(() => {
@@ -318,7 +318,7 @@ describe('IpCidrConverter', () => {
       const input = screen.getByPlaceholderText('192.168.1.0/24');
       await user.type(input, 'invalid-cidr');
 
-      const convertButton = screen.getByRole('button', { name: /convert/i });
+      const convertButton = screen.getByRole('button', { name: /analyze network/i });
       await user.click(convertButton);
 
       await waitFor(() => {
@@ -352,7 +352,7 @@ describe('IpCidrConverter', () => {
       const input = screen.getByPlaceholderText('192.168.1.0/24');
       await user.type(input, '192.168.1.0/24');
 
-      const convertButton = screen.getByRole('button', { name: /convert/i });
+      const convertButton = screen.getByRole('button', { name: /analyze network/i });
       await user.click(convertButton);
 
       await waitFor(() => {
@@ -412,7 +412,7 @@ describe('IpCidrConverter', () => {
       const input = screen.getByPlaceholderText('192.168.1.0/24');
       await user.type(input, '192.168.1.0/24');
 
-      const convertButton = screen.getByRole('button', { name: /convert/i });
+      const convertButton = screen.getByRole('button', { name: /analyze network/i });
       await user.click(convertButton);
 
       // Check that the conversion process completes without errors
@@ -445,7 +445,7 @@ describe('IpCidrConverter', () => {
       const input = screen.getByPlaceholderText('192.168.1.0/24');
       await user.type(input, '192.168.1.1');
 
-      const convertButton = screen.getByRole('button', { name: /convert/i });
+      const convertButton = screen.getByRole('button', { name: /analyze network/i });
       await user.tab();
       expect(convertButton).toHaveFocus();
     });

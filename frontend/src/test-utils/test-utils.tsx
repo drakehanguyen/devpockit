@@ -1,5 +1,6 @@
 import { render, RenderOptions } from '@testing-library/react'
 import React, { ReactElement } from 'react'
+import { ToolStateProvider } from '../components/providers/ToolStateProvider'
 
 // Mock ThemeProvider for tests
 const MockThemeProvider = ({ children }: { children: React.ReactNode }) => {
@@ -9,9 +10,11 @@ const MockThemeProvider = ({ children }: { children: React.ReactNode }) => {
 // Custom render function that includes providers
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
-    <MockThemeProvider>
-      {children}
-    </MockThemeProvider>
+    <ToolStateProvider>
+      <MockThemeProvider>
+        {children}
+      </MockThemeProvider>
+    </ToolStateProvider>
   )
 }
 

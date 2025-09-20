@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '../../../test-utils/test-utils';
 import { UuidGenerator } from '../UuidGenerator';
 
 describe('UuidGenerator Component', () => {

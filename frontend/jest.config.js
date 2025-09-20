@@ -12,9 +12,10 @@ const customJestConfig = {
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^uuid$': '<rootDir>/src/__mocks__/uuid.js',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(uuid|@uuid)/)',
+    '/node_modules/(?!(uuid|@uuid|yaml|ipaddr\\.js)/)',
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
