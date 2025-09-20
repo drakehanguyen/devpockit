@@ -1,5 +1,5 @@
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -7,7 +7,11 @@ export const metadata: Metadata = {
   description: 'A comprehensive collection of developer tools organized by categories. All tools run entirely in your browser for optimal performance and privacy.',
   keywords: ['developer tools', 'json formatter', 'lorem ipsum', 'yaml converter', 'developer utilities'],
   authors: [{ name: 'DevPockit Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({

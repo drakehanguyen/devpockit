@@ -42,7 +42,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
                   className={cn(
                     'flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 min-w-max border-2 transform',
                     isActive
-                      ? 'bg-primary text-primary-foreground border-primary shadow-xl ring-2 ring-primary/30 scale-105 z-10'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                       : 'bg-muted/50 hover:bg-muted border-border hover:scale-102'
                   )}
                 >

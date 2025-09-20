@@ -1,5 +1,6 @@
 'use client';
 
+import { ToolStateProvider, useToolStateContext } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getToolById } from '@/lib/tools-data';
@@ -15,11 +16,14 @@ interface AppLayoutProps {
   children?: React.ReactNode;
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+// Inner component that has access to ToolStateContext
+function AppLayoutInner({ children }: AppLayoutProps) {
+  const { clearToolState, clearAllToolStates, toolStates } = useToolStateContext();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTabs, setActiveTabs] = useState<ActiveTab[]>([]);
   const [selectedTool, setSelectedTool] = useState<string | undefined>();
   const [isMobile, setIsMobile] = useState(false);
+  const [componentKey, setComponentKey] = useState(0);
 
   // Handle responsive behavior
   useEffect(() => {
@@ -103,6 +107,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   };
 
   const handleTabClose = (toolId: string) => {
+    // Clear the tool state when tab is closed (before unmounting)
+    clearToolState(toolId);
+
     const updatedTabs = activeTabs.filter(tab => tab.toolId !== toolId);
     setActiveTabs(updatedTabs);
 
@@ -117,11 +124,18 @@ export function AppLayout({ children }: AppLayoutProps) {
         setSelectedTool(undefined);
       }
     }
+
+    // Force component remount by changing key
+    setComponentKey(prev => prev + 1);
   };
 
   const handleCloseAllTabs = () => {
     setActiveTabs([]);
     setSelectedTool(undefined);
+    // Clear all tool states when closing all tabs
+    clearAllToolStates();
+    // Force component remount by changing key
+    setComponentKey(prev => prev + 1);
   };
 
   const handleHomeClick = () => {
@@ -203,20 +217,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         )}>
           {selectedTool ? (
             <div className="h-full">
-              {/* Tool content will be rendered here */}
-              <div className="h-full flex items-center justify-center bg-muted/20">
-                <div className="text-center space-y-4">
-                  <div className="text-6xl mb-4">🚧</div>
-                  <h2 className="text-2xl font-bold">Tool Under Development</h2>
-                  <p className="text-muted-foreground max-w-md">
-                    The {getToolById(selectedTool)?.name} tool is currently being developed.
-                    It will be available in the next phase.
-                  </p>
-                  <Button variant="outline" onClick={handleHomeClick}>
-                    ← Back to Welcome
-                  </Button>
-                </div>
-              </div>
+              {(() => {
+                const tool = getToolById(selectedTool);
+                if (!tool) return null;
+
+                const ToolComponent = tool.component;
+                return (
+                  <div className="h-full overflow-auto" key={`${selectedTool}-${componentKey}`}>
+                    <ToolComponent />
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <WelcomePage onToolSelect={handleToolSelect} />
@@ -224,5 +235,13 @@ export function AppLayout({ children }: AppLayoutProps) {
         </main>
       </div>
     </div>
+  );
+}
+
+export function AppLayout({ children }: AppLayoutProps) {
+  return (
+    <ToolStateProvider>
+      <AppLayoutInner>{children}</AppLayoutInner>
+    </ToolStateProvider>
   );
 }

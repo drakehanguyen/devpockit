@@ -1,3 +1,5 @@
+import { ComponentType } from 'react';
+
 export interface Tool {
   id: string;
   name: string;
@@ -6,6 +8,8 @@ export interface Tool {
   icon?: string;
   isPopular?: boolean;
   isActive?: boolean;
+  path: string;
+  component: ComponentType<any>;
 }
 
 export interface ToolCategory {
