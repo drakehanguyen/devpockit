@@ -95,20 +95,12 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
 
   return (
     <div className={cn('space-y-6', className)}>
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Lorem Ipsum Generator</h1>
-        <p className="text-muted-foreground">
-          Generate placeholder text in Latin or Bacon Ipsum format
-        </p>
-      </div>
-
-      {/* Controls */}
+      {/* Header and Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Settings</CardTitle>
+          <CardTitle>Lorem Ipsum Generator</CardTitle>
           <CardDescription>
-            Configure your Lorem Ipsum text generation
+            Generate placeholder text in Latin or Bacon Ipsum format
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

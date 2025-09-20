@@ -133,23 +133,15 @@ export function CronParser({ className }: CronParserProps) {
 
   return (
     <div className={cn('space-y-6', className)}>
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Cron Expression Parser</h1>
-        <p className="text-muted-foreground">
-          Parse and validate cron expressions with human-readable descriptions and next execution times.
-        </p>
-      </div>
-
-      {/* Input Section */}
+      {/* Header and Input Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClockIcon className="h-5 w-5" />
-            Cron Expression Input
+            Cron Expression Parser
           </CardTitle>
           <CardDescription>
-            Enter a cron expression to parse and get human-readable description
+            Parse and validate cron expressions with human-readable descriptions and next execution times.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

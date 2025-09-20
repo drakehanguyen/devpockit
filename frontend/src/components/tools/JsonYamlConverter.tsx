@@ -174,23 +174,15 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
 
   return (
     <div className={cn('space-y-6', className)}>
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">JSON ↔ YAML Converter</h1>
-        <p className="text-muted-foreground">
-          Convert between JSON and YAML formats with validation and formatting.
-        </p>
-      </div>
-
-      {/* Input Section */}
+      {/* Header and Input Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CodeBracketIcon className="h-5 w-5" />
-            Input Content
+            JSON ↔ YAML Converter
           </CardTitle>
           <CardDescription>
-            Enter JSON or YAML content to convert between formats
+            Convert between JSON and YAML formats with validation and formatting.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

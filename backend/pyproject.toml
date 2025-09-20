@@ -1,6 +1,6 @@
 [project]
 name = "devpockit-backend"
-version = "1.0.0"
+version = "0.1.0"
 description = "DevPockit Backend API - Essential developer tools"
 authors = [
     {name = "DevPockit Team", email = "team@devpockit.com"}
