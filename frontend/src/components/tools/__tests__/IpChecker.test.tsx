@@ -4,7 +4,7 @@ import React from 'react';
 import { IpChecker } from '../IpChecker';
 
 // Mock the IP checker utility
-jest.mock('@/lib/ip-checker', () => ({
+jest.mock('@/libs/ip-checker', () => ({
   getPublicIpInfo: jest.fn(),
   formatIpInfo: jest.fn(),
   DEFAULT_IP_OPTIONS: {
@@ -17,8 +17,8 @@ jest.mock('@/lib/ip-checker', () => ({
   }
 }));
 
-const mockGetPublicIpInfo = require('@/lib/ip-checker').getPublicIpInfo;
-const mockFormatIpInfo = require('@/lib/ip-checker').formatIpInfo;
+const mockGetPublicIpInfo = require('@/libs/ip-checker').getPublicIpInfo;
+const mockFormatIpInfo = require('@/libs/ip-checker').formatIpInfo;
 
 describe('IpChecker Component', () => {
   const renderWithProvider = (component: React.ReactElement) => {

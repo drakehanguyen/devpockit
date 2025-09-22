@@ -3,7 +3,7 @@ import { fireEvent, screen } from '@testing-library/react';
 import { TopNavTabs } from '../TopNavTabs';
 
 // Mock the tools data
-jest.mock('@/lib/tools-data', () => ({
+jest.mock('@/libs/tools-data', () => ({
   getToolById: jest.fn((id: string) => {
     const tools: Record<string, any> = {
       'lorem-ipsum': {

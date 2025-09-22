@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { JsonYamlConverter } from '../JsonYamlConverter';
 
 // Mock the json-yaml utility functions
-jest.mock('@/lib/json-yaml', () => ({
+jest.mock('@/libs/json-yaml', () => ({
   convertFormat: jest.fn(),
   detectFormat: jest.fn(),
   formatContent: jest.fn(),
@@ -12,10 +12,10 @@ jest.mock('@/lib/json-yaml', () => ({
   yamlToJson: jest.fn()
 }));
 
-const mockConvertFormat = require('@/lib/json-yaml').convertFormat;
-const mockDetectFormat = require('@/lib/json-yaml').detectFormat;
-const mockFormatContent = require('@/lib/json-yaml').formatContent;
-const mockGetConversionStats = require('@/lib/json-yaml').getConversionStats;
+const mockConvertFormat = require('@/libs/json-yaml').convertFormat;
+const mockDetectFormat = require('@/libs/json-yaml').detectFormat;
+const mockFormatContent = require('@/libs/json-yaml').formatContent;
+const mockGetConversionStats = require('@/libs/json-yaml').getConversionStats;
 
 const renderWithProvider = (component: React.ReactElement) => {
   return render(

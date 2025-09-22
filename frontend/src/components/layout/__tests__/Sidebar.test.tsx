@@ -3,7 +3,7 @@ import { fireEvent, screen } from '@testing-library/react';
 import { Sidebar } from '../Sidebar';
 
 // Mock the tools data
-jest.mock('@/lib/tools-data', () => ({
+jest.mock('@/libs/tools-data', () => ({
   toolCategories: [
     {
       id: 'text-tools',

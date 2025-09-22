@@ -4,7 +4,9 @@ import { ToolStateProvider, useToolStateContext } from '@/components/providers/T
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getToolById } from '@/libs/tools-data';
+import { isValidCategoryUrl, isValidToolUrl, parseToolUrl } from '@/libs/url-utils';
 import { cn } from '@/libs/utils';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { WelcomePage } from '../pages/WelcomePage';
 import { MobileMenu } from './MobileMenu';
@@ -23,7 +25,8 @@ function AppLayoutInner({ children }: AppLayoutProps) {
   const [activeTabs, setActiveTabs] = useState<ActiveTab[]>([]);
   const [selectedTool, setSelectedTool] = useState<string | undefined>();
   const [isMobile, setIsMobile] = useState(false);
-  const [componentKey, setComponentKey] = useState(0);
+  const pathname = usePathname();
+  const router = useRouter();
 
   // Handle responsive behavior
   useEffect(() => {
@@ -39,6 +42,57 @@ function AppLayoutInner({ children }: AppLayoutProps) {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Sync URL with selected tool and tabs
+  useEffect(() => {
+    if (isValidToolUrl(pathname)) {
+      const parsed = parseToolUrl(pathname);
+      if (parsed) {
+        // Only update selectedTool if it's different
+        if (selectedTool !== parsed.toolId) {
+          setSelectedTool(parsed.toolId);
+        }
+
+        // Update tabs to reflect the current tool
+        if (!isMobile) {
+          const tool = getToolById(parsed.toolId);
+          if (tool) {
+            setActiveTabs(currentTabs => {
+              const existingTab = currentTabs.find(tab => tab.toolId === parsed.toolId);
+              if (!existingTab) {
+                // Add new tab if it doesn't exist
+                const newTab: ActiveTab = {
+                  toolId: parsed.toolId,
+                  toolName: tool.name,
+                  category: tool.category,
+                  isActive: true,
+                };
+                // Keep existing tabs open but inactive, add new active tab
+                const updatedTabs = currentTabs.map(tab => ({ ...tab, isActive: false }));
+                return [...updatedTabs, newTab];
+              } else {
+                // Just activate the existing tab - don't modify other tabs
+                return currentTabs.map(tab => ({ ...tab, isActive: tab.toolId === parsed.toolId }));
+              }
+            });
+          }
+        }
+      }
+    } else if (isValidCategoryUrl(pathname)) {
+      // Category page - show welcome page for that category
+      if (selectedTool !== undefined) {
+        setSelectedTool(undefined);
+      }
+    } else if (pathname === '/') {
+      // Home page
+      if (selectedTool !== undefined) {
+        setSelectedTool(undefined);
+      }
+    } else {
+      // Invalid URL, redirect to home
+      router.push('/');
+    }
+  }, [pathname, router, isMobile]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -74,33 +128,20 @@ function AppLayoutInner({ children }: AppLayoutProps) {
     const tool = getToolById(toolId);
     if (!tool) return;
 
-    setSelectedTool(toolId);
-
-    // Add to tabs if not mobile and not already open
-    if (!isMobile) {
-      const existingTab = activeTabs.find(tab => tab.toolId === toolId);
-      if (!existingTab) {
-        const newTab: ActiveTab = {
-          toolId: toolId,
-          toolName: tool.name,
-          category: tool.category,
-          isActive: true,
-        };
-
-        // Set all other tabs as inactive
-        const updatedTabs = activeTabs.map(tab => ({ ...tab, isActive: false }));
-        setActiveTabs([...updatedTabs, newTab]);
-      } else {
-        // Just activate the existing tab
-        setActiveTabs(tabs =>
-          tabs.map(tab => ({ ...tab, isActive: tab.toolId === toolId }))
-        );
-      }
-    }
+    // Navigate to the tool URL - the useEffect will handle tab management
+    router.push(`/tools/${tool.category}/${toolId}`);
   };
 
   const handleTabSelect = (toolId: string) => {
-    setSelectedTool(toolId);
+    const tool = getToolById(toolId);
+    if (!tool) return;
+
+    // Only navigate if we're not already on this tool's URL
+    const currentToolUrl = `/tools/${tool.category}/${toolId}`;
+    if (pathname !== currentToolUrl) {
+      router.push(currentToolUrl);
+    }
+
     setActiveTabs(tabs =>
       tabs.map(tab => ({ ...tab, isActive: tab.toolId === toolId }))
     );
@@ -120,13 +161,17 @@ function AppLayoutInner({ children }: AppLayoutProps) {
         setActiveTabs(tabs =>
           tabs.map(tab => ({ ...tab, isActive: tab.toolId === lastTab.toolId }))
         );
+        // Navigate to the last tab's URL
+        const tool = getToolById(lastTab.toolId);
+        if (tool) {
+          router.push(`/tools/${tool.category}/${lastTab.toolId}`);
+        }
       } else {
         setSelectedTool(undefined);
+        // Navigate to home when no tabs are left
+        router.push('/');
       }
     }
-
-    // Force component remount by changing key
-    setComponentKey(prev => prev + 1);
   };
 
   const handleCloseAllTabs = () => {
@@ -134,12 +179,12 @@ function AppLayoutInner({ children }: AppLayoutProps) {
     setSelectedTool(undefined);
     // Clear all tool states when closing all tabs
     clearAllToolStates();
-    // Force component remount by changing key
-    setComponentKey(prev => prev + 1);
+    // Navigate to home when closing all tabs
+    router.push('/');
   };
 
   const handleHomeClick = () => {
-    setSelectedTool(undefined);
+    router.push('/');
     if (!isMobile) {
       setActiveTabs(tabs => tabs.map(tab => ({ ...tab, isActive: false })));
     }
@@ -223,7 +268,7 @@ function AppLayoutInner({ children }: AppLayoutProps) {
 
                 const ToolComponent = tool.component;
                 return (
-                  <div className="h-full overflow-auto" key={`${selectedTool}-${componentKey}`}>
+                  <div className="h-full overflow-auto">
                     <ToolComponent />
                   </div>
                 );

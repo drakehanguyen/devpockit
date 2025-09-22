@@ -162,7 +162,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
   };
 
   const handleAutoDetect = () => {
-    const { detectFormat } = require('@/lib/json-yaml');
+    const { detectFormat } = require('@/libs/json-yaml');
     const detectedFormat = detectFormat(options.input);
 
     if (detectedFormat === 'json') {

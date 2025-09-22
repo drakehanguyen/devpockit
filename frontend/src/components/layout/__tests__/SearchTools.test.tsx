@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { SearchTools } from '../SearchTools';
 
 // Mock the tools data
-jest.mock('@/lib/tools-data', () => ({
+jest.mock('@/libs/tools-data', () => ({
   searchTools: jest.fn((query: string) => {
     if (query === 'lorem') {
       return [

@@ -3,15 +3,15 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { CronParser } from '../CronParser';
 
 // Mock the cron-parser utility functions
-jest.mock('@/lib/cron-parser', () => ({
+jest.mock('@/libs/cron-parser', () => ({
   parseCronExpression: jest.fn(),
   validateCronExpression: jest.fn(),
   getCronStats: jest.fn()
 }));
 
-const mockParseCronExpression = require('@/lib/cron-parser').parseCronExpression;
-const mockValidateCronExpression = require('@/lib/cron-parser').validateCronExpression;
-const mockGetCronStats = require('@/lib/cron-parser').getCronStats;
+const mockParseCronExpression = require('@/libs/cron-parser').parseCronExpression;
+const mockValidateCronExpression = require('@/libs/cron-parser').validateCronExpression;
+const mockGetCronStats = require('@/libs/cron-parser').getCronStats;
 
 const renderWithProvider = (component: React.ReactElement) => {
   return render(
