@@ -493,7 +493,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Customization Options</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Size */}
               <div className="space-y-2">
                 <Label htmlFor="size">Size (px)</Label>
@@ -552,31 +552,42 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Color Theme */}
+              <div className="space-y-2">
+                <Label>Color Theme</Label>
+                <Select
+                  value={QR_CODE_COLOR_PRESETS.find(preset =>
+                    preset.dark === options.color.dark && preset.light === options.color.light
+                  )?.name || 'Default'}
+                  onValueChange={(value) => {
+                    const preset = QR_CODE_COLOR_PRESETS.find(p => p.name === value);
+                    if (preset) {
+                      handleColorPreset(preset);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {QR_CODE_COLOR_PRESETS.map((preset) => (
+                      <SelectItem key={preset.name} value={preset.name}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-4 h-4 rounded border"
+                            style={{ backgroundColor: preset.dark }}
+                          />
+                          <span>{preset.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
             </div>
 
-            {/* Color Presets */}
-            <div className="space-y-2">
-              <Label>Color Theme</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {QR_CODE_COLOR_PRESETS.map((preset) => (
-                  <Button
-                    key={preset.name}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleColorPreset(preset)}
-                    className="justify-start"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-4 h-4 rounded border"
-                        style={{ backgroundColor: preset.dark }}
-                      />
-                      <span>{preset.name}</span>
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            </div>
           </div>
 
           <Separator />
