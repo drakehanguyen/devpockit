@@ -70,7 +70,18 @@ devpockit/
    cd devpockit
    ```
 
-2. **Frontend Setup**
+2. **Environment Setup**
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+
+   # Generate secure JWT secret
+   python3 -c "import secrets; print('JWT_SECRET_KEY=' + secrets.token_urlsafe(32))"
+   ```
+   - Update your `.env` file with the generated secret and other values
+   - See [SECURITY.md](./SECURITY.md) for detailed security setup
+
+3. **Frontend Setup**
    ```bash
    cd frontend
    pnpm install
@@ -78,7 +89,7 @@ devpockit/
    ```
    - Frontend will be available at: http://localhost:3000 (or 3001 if 3000 is busy)
 
-3. **Backend Setup**
+4. **Backend Setup**
    ```bash
    cd backend
    uv sync
@@ -87,7 +98,7 @@ devpockit/
    - Backend API will be available at: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 
-4. **Access the application**
+5. **Access the application**
    - **Frontend**: http://localhost:3000 (or 3001)
    - **Backend API**: http://localhost:8000
    - **API Documentation**: http://localhost:8000/docs
@@ -188,7 +199,7 @@ The application is deployed on Vercel with automatic deployments from the main b
 ## 📚 Documentation
 
 - [Project Plan](./PROJECT_PLAN.md) - Detailed development phases
-- [Project Rules](./PROJECT_RULES.md) - Development guidelines
+- [Security Guide](./SECURITY.md) - Security setup and best practices
 - [API Documentation](./docs/api.md) - Backend API reference
 
 ## 🤝 Contributing
