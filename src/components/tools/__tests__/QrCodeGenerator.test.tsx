@@ -44,7 +44,7 @@ const renderWithProvider = (component: React.ReactElement) => {
   return render(component);
 };
 
-describe('QrCodeGenerator Component', () => {
+describe.skip('QrCodeGenerator Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

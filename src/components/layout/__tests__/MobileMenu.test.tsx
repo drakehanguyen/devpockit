@@ -35,7 +35,7 @@ describe('MobileMenu', () => {
   it('should render mobile menu trigger button', () => {
     render(
       <MobileMenu
-        selectedTool={null}
+        selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
       />
     );
@@ -46,7 +46,7 @@ describe('MobileMenu', () => {
   it('should not show menu content by default', () => {
     render(
       <MobileMenu
-        selectedTool={null}
+        selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
       />
     );
@@ -57,7 +57,7 @@ describe('MobileMenu', () => {
   it('should expand category when clicked', () => {
     render(
       <MobileMenu
-        selectedTool={null}
+        selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
       />
     );
@@ -76,7 +76,7 @@ describe('MobileMenu', () => {
   it('should call onToolSelect when tool is clicked', () => {
     render(
       <MobileMenu
-        selectedTool={null}
+        selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
       />
     );
@@ -119,7 +119,7 @@ describe('MobileMenu', () => {
   it('should close menu when tool is selected', () => {
     render(
       <MobileMenu
-        selectedTool={null}
+        selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
       />
     );

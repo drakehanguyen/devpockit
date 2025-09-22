@@ -152,17 +152,17 @@ describe('QR Code Generator Utility Functions', () => {
     });
 
     it('should reject contact without name', () => {
-      const input = { contact: {} };
+      const input = { contact: { name: '' } };
       expect(() => validateQrCodeInput(input, 'contact')).toThrow('Contact name is required');
     });
 
     it('should validate WiFi input with SSID', () => {
-      const input = { wifi: { ssid: 'MyWiFi' } };
+      const input = { wifi: { ssid: 'MyWiFi', password: 'password123', security: 'WPA' as const } };
       expect(() => validateQrCodeInput(input, 'wifi')).not.toThrow();
     });
 
     it('should reject WiFi without SSID', () => {
-      const input = { wifi: {} };
+      const input = { wifi: { ssid: '', password: 'password123', security: 'WPA' as const } };
       expect(() => validateQrCodeInput(input, 'wifi')).toThrow('WiFi SSID is required');
     });
 
@@ -172,12 +172,12 @@ describe('QR Code Generator Utility Functions', () => {
     });
 
     it('should reject SMS without phone', () => {
-      const input = { sms: { message: 'Hello' } };
+      const input = { sms: { phone: '', message: 'Hello' } };
       expect(() => validateQrCodeInput(input, 'sms')).toThrow('Phone number is required for SMS QR codes');
     });
 
     it('should reject SMS without message', () => {
-      const input = { sms: { phone: '+1-555-123-4567' } };
+      const input = { sms: { phone: '+1-555-123-4567', message: '' } };
       expect(() => validateQrCodeInput(input, 'sms')).toThrow('Message is required for SMS QR codes');
     });
 
@@ -187,7 +187,7 @@ describe('QR Code Generator Utility Functions', () => {
     });
 
     it('should reject email without to address', () => {
-      const input = { email: {} };
+      const input = { email: { to: '' } };
       expect(() => validateQrCodeInput(input, 'email')).toThrow('Email address is required for email QR codes');
     });
   });
@@ -335,8 +335,8 @@ describe('QR Code Generator Utility Functions', () => {
       },
       input: { text: 'Hello, World!' },
       size: 256,
-      errorCorrection: 'M',
-      format: 'png'
+      errorCorrection: 'M' as const,
+      format: 'png' as const
     };
 
     it('should return correct stats', () => {
