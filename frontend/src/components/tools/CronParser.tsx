@@ -11,8 +11,8 @@ import {
     CRON_EXAMPLES,
     DEFAULT_CRON_OPTIONS
 } from '@/config/cron-parser-config';
-import { parseCronExpression, type CronParseResult } from '@/lib/cron-parser';
-import { cn } from '@/lib/utils';
+import { parseCronExpression, type CronParseResult } from '@/libs/cron-parser';
+import { cn } from '@/libs/utils';
 import { ArrowPathIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 

@@ -8,16 +8,16 @@ import { Label } from '@/components/ui/label';
 import { OutputDisplay } from '@/components/ui/OutputDisplay';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  DEFAULT_UUID_OPTIONS,
-  UUID_EXAMPLE_SETS,
-  UUID_FORMATS,
-  UUID_HYPHENS,
-  UUID_NAMESPACE_OPTIONS,
-  UUID_QUANTITY_LIMITS,
-  UUID_VERSIONS
+    DEFAULT_UUID_OPTIONS,
+    UUID_EXAMPLE_SETS,
+    UUID_FORMATS,
+    UUID_HYPHENS,
+    UUID_NAMESPACE_OPTIONS,
+    UUID_QUANTITY_LIMITS,
+    UUID_VERSIONS
 } from '@/config/uuid-generator-config';
-import { cn } from '@/lib/utils';
-import { generateUuids, getUuidStats, type UuidGenerationOptions } from '@/lib/uuid-generator';
+import { cn } from '@/libs/utils';
+import { generateUuids, getUuidStats, type UuidGenerationOptions } from '@/libs/uuid-generator';
 import { ArrowPathIcon, ClipboardDocumentIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 

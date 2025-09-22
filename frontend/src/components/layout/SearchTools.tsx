@@ -3,8 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { getCategoryById, searchTools } from '@/lib/tools-data';
-import { cn } from '@/lib/utils';
+import { getCategoryById, searchTools } from '@/libs/tools-data';
+import { cn } from '@/libs/utils';
 import { type Tool } from '@/types/tools';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';

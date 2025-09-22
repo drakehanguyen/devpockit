@@ -1,4 +1,4 @@
-import { UuidFormat, UuidHyphens, UuidVersion } from '@/lib/uuid-generator';
+import { UuidFormat, UuidHyphens, UuidVersion } from '@/libs/uuid-generator';
 
 export const UUID_VERSIONS: { value: UuidVersion; label: string; symbol: string; description: string }[] = [
   {

@@ -8,8 +8,8 @@ import { OutputDisplay } from '@/components/ui/OutputDisplay';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DEFAULT_JSON_OPTIONS, JSON_EXAMPLES, JSON_FORMAT_OPTIONS } from '@/config/json-formatter-config';
-import { formatJson, getJsonStats, type JsonFormatOptions, type JsonFormatResult } from '@/lib/json-formatter';
-import { cn } from '@/lib/utils';
+import { formatJson, getJsonStats, type JsonFormatOptions, type JsonFormatResult } from '@/libs/json-formatter';
+import { cn } from '@/libs/utils';
 import { ArrowPathIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 

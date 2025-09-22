@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { getToolById } from '@/lib/tools-data';
-import { cn } from '@/lib/utils';
+import { getToolById } from '@/libs/tools-data';
+import { cn } from '@/libs/utils';
 import { XCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export interface ActiveTab {

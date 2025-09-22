@@ -1,4 +1,4 @@
-import { QrCodeErrorCorrection, QrCodeOutputFormat, QrCodeType } from '@/lib/qr-code-generator';
+import { QrCodeErrorCorrection, QrCodeOutputFormat, QrCodeType } from '@/libs/qr-code-generator';
 
 export const QR_CODE_TYPES: { value: QrCodeType; label: string; symbol: string; description: string }[] = [
   {

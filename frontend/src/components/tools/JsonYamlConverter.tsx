@@ -19,8 +19,8 @@ import {
     getConversionStats,
     type JsonYamlConversionResult,
     type JsonYamlOptions
-} from '@/lib/json-yaml';
-import { cn } from '@/lib/utils';
+} from '@/libs/json-yaml';
+import { cn } from '@/libs/utils';
 import { ArrowPathIcon, CodeBracketIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
@@ -89,10 +89,10 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
       } else {
         // Manual conversion based on selected format
         if (options.outputFormat === 'yaml') {
-          const { jsonToYaml } = await import('@/lib/json-yaml');
+          const { jsonToYaml } = await import('@/libs/json-yaml');
           result = jsonToYaml(options.input);
         } else {
-          const { yamlToJson } = await import('@/lib/json-yaml');
+          const { yamlToJson } = await import('@/libs/json-yaml');
           result = yamlToJson(options.input);
         }
       }
@@ -126,7 +126,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
     setError('');
 
     try {
-      const { formatContent } = await import('@/lib/json-yaml');
+      const { formatContent } = await import('@/libs/json-yaml');
       const result = formatContent(options.input, options.outputFormat);
 
       if (result.success) {

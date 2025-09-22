@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getAllTools, getCategoryById, getPopularTools } from '@/lib/tools-data';
-import { cn } from '@/lib/utils';
+import { getAllTools, getCategoryById, getPopularTools } from '@/libs/tools-data';
+import { cn } from '@/libs/utils';
 
 interface WelcomePageProps {
   onToolSelect: (toolId: string) => void;

@@ -3,8 +3,8 @@
 import { ToolStateProvider, useToolStateContext } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { getToolById } from '@/lib/tools-data';
-import { cn } from '@/lib/utils';
+import { getToolById } from '@/libs/tools-data';
+import { cn } from '@/libs/utils';
 import { useEffect, useState } from 'react';
 import { WelcomePage } from '../pages/WelcomePage';
 import { MobileMenu } from './MobileMenu';

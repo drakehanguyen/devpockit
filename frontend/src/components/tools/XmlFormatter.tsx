@@ -8,8 +8,8 @@ import { OutputDisplay } from '@/components/ui/OutputDisplay';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DEFAULT_XML_OPTIONS, XML_EXAMPLES, XML_FORMAT_OPTIONS } from '@/config/xml-formatter-config';
-import { cn } from '@/lib/utils';
-import { formatXml, getXmlStats, type XmlFormatOptions, type XmlFormatResult } from '@/lib/xml-formatter';
+import { cn } from '@/libs/utils';
+import { formatXml, getXmlStats, type XmlFormatOptions, type XmlFormatResult } from '@/libs/xml-formatter';
 import { ArrowPathIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 

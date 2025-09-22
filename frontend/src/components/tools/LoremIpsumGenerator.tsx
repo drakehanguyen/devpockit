@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label';
 import { OutputDisplay } from '@/components/ui/OutputDisplay';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
-import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/lib/lorem-ipsum';
-import { cn } from '@/lib/utils';
+import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
+import { cn } from '@/libs/utils';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 

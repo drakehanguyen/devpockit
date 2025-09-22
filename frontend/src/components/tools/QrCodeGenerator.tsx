@@ -27,7 +27,7 @@ import {
     type QrCodeInput,
     type QrCodeOptions,
     type QrCodeResult
-} from '@/lib/qr-code-generator';
+} from '@/libs/qr-code-generator';
 import { ArrowDownTrayIcon, ArrowPathIcon, ClipboardDocumentIcon, QrCodeIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 

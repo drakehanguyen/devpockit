@@ -9,15 +9,15 @@ import { Label } from '@/components/ui/label';
 import { OutputDisplay } from '@/components/ui/OutputDisplay';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  analyzeNetwork,
-  calculateSubnets,
-  getCidrSuggestions,
-  getNetworkStats,
-  ipToCidrAuto,
-  parseCidr,
-  validateCidr,
-  validateIpAddress
-} from '@/lib/ip-cidr';
+    analyzeNetwork,
+    calculateSubnets,
+    getCidrSuggestions,
+    getNetworkStats,
+    ipToCidrAuto,
+    parseCidr,
+    validateCidr,
+    validateIpAddress
+} from '@/libs/ip-cidr';
 import { ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
 

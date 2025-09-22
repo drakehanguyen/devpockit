@@ -11,7 +11,7 @@ import {
   decodeQrFromImage,
   getErrorMessage,
   validateImageFile
-} from '@/lib/qr-code-decoder';
+} from '@/libs/qr-code-decoder';
 import {
   QrDecoderOptions,
   QrDecoderResult

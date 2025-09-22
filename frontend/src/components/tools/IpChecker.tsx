@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { DEFAULT_IP_OPTIONS, IpCheckerOptions, IpInfo, formatIpInfo, getPublicIpInfo } from '@/lib/ip-checker';
+import { DEFAULT_IP_OPTIONS, IpCheckerOptions, IpInfo, formatIpInfo, getPublicIpInfo } from '@/libs/ip-checker';
 import { Building, Clock, Globe, Loader2, MapPin, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 

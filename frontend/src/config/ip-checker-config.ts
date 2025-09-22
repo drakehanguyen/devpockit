@@ -1,4 +1,4 @@
-import { IpCheckerOptions } from '@/lib/ip-checker';
+import { IpCheckerOptions } from '@/libs/ip-checker';
 
 export const DEFAULT_IP_OPTIONS: IpCheckerOptions = {
   showLocation: true,

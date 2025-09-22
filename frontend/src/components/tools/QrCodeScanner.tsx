@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CameraManager
-} from '@/lib/qr-code-decoder';
+} from '@/libs/qr-code-decoder';
 import {
   QrDecoderOptions,
   QrDecoderResult

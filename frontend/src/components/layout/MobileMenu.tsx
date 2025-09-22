@@ -3,8 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { toolCategories } from '@/lib/tools-data';
-import { cn } from '@/lib/utils';
+import { toolCategories } from '@/libs/tools-data';
+import { cn } from '@/libs/utils';
 import { Bars3Icon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 

@@ -36,7 +36,7 @@ jest.mock('../../../config/ip-cidr-config', () => ({
 }));
 
 // Import the mocked functions
-import * as ipCidrUtils from '../../../lib/ip-cidr';
+import * as ipCidrUtils from '../../../libs/ip-cidr';
 
 const mockIpCidrUtils = ipCidrUtils as jest.Mocked<typeof ipCidrUtils>;
 
