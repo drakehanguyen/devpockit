@@ -166,26 +166,6 @@ export function WelcomePage({ onToolSelect }: WelcomePageProps) {
         </div>
       )}
 
-      {/* All Tools Section */}
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">All Tools</h2>
-          <p className="text-muted-foreground">
-            Browse all available developer tools by category
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {allTools.map((tool) => (
-            <ToolCard
-              key={tool.id}
-              tool={tool}
-              onSelect={onToolSelect}
-            />
-          ))}
-        </div>
-      </div>
-
       {/* Features Section */}
       <div className="bg-muted/50 rounded-2xl p-8 space-y-6">
         <div className="text-center">
@@ -225,29 +205,6 @@ export function WelcomePage({ onToolSelect }: WelcomePageProps) {
               Responsive design that works perfectly on all devices
             </p>
           </div>
-        </div>
-      </div>
-
-      {/* Getting Started */}
-      <div className="text-center space-y-4">
-        <h2 className="text-xl font-semibold">Ready to get started?</h2>
-        <p className="text-muted-foreground">
-          Select a tool from the sidebar or use the search function to find what you need
-        </p>
-        <div className="flex items-center justify-center space-x-4">
-          <Button
-            onClick={() => onToolSelect('lorem-ipsum')}
-            className="px-6"
-          >
-            Try Lorem Ipsum Generator
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => onToolSelect('json-formatter')}
-            className="px-6"
-          >
-            Explore All Tools
-          </Button>
         </div>
       </div>
     </div>
