@@ -9,7 +9,7 @@ import { ToolStateProvider } from '../../providers/ToolStateProvider';
 import { IpCidrConverter } from '../IpCidrConverter';
 
 // Mock the utility functions
-jest.mock('../../../lib/ip-cidr', () => ({
+jest.mock('../../../libs/ip-cidr', () => ({
   validateIpAddress: jest.fn(),
   validateCidr: jest.fn(),
   parseCidr: jest.fn(),
@@ -142,6 +142,9 @@ describe('IpCidrConverter', () => {
 
       mockIpCidrUtils.parseCidr.mockReturnValue({
         isValid: true,
+        ip: '192.168.1.0',
+        prefixLength: 24,
+        version: 'ipv4',
         networkAddress: '192.168.1.0',
         broadcastAddress: '192.168.1.255',
         subnetMask: '255.255.255.0',
@@ -167,6 +170,8 @@ describe('IpCidrConverter', () => {
         networkClass: 'C',
         isPrivate: true,
         isLoopback: false,
+        isMulticast: false,
+        isLinkLocal: false,
         hostBits: 8,
         networkBits: 24
       });
@@ -252,6 +257,9 @@ describe('IpCidrConverter', () => {
 
       mockIpCidrUtils.parseCidr.mockReturnValue({
         isValid: true,
+        ip: '192.168.1.0',
+        prefixLength: 24,
+        version: 'ipv4',
         networkAddress: '192.168.1.0',
         broadcastAddress: '192.168.1.255',
         subnetMask: '255.255.255.0',
@@ -277,6 +285,8 @@ describe('IpCidrConverter', () => {
         networkClass: 'C',
         isPrivate: true,
         isLoopback: false,
+        isMulticast: false,
+        isLinkLocal: false,
         hostBits: 8,
         networkBits: 24
       });
@@ -340,6 +350,16 @@ describe('IpCidrConverter', () => {
 
       mockIpCidrUtils.parseCidr.mockReturnValue({
         isValid: false,
+        ip: '',
+        prefixLength: 0,
+        version: null,
+        networkAddress: '',
+        broadcastAddress: '',
+        subnetMask: '',
+        totalHosts: 0,
+        usableHosts: 0,
+        firstUsable: '',
+        lastUsable: '',
         error: 'Failed to parse CIDR'
       });
 
@@ -374,6 +394,9 @@ describe('IpCidrConverter', () => {
 
       mockIpCidrUtils.parseCidr.mockReturnValue({
         isValid: true,
+        ip: '192.168.1.0',
+        prefixLength: 24,
+        version: 'ipv4',
         networkAddress: '192.168.1.0',
         broadcastAddress: '192.168.1.255',
         subnetMask: '255.255.255.0',
@@ -399,6 +422,8 @@ describe('IpCidrConverter', () => {
         networkClass: 'C',
         isPrivate: true,
         isLoopback: false,
+        isMulticast: false,
+        isLinkLocal: false,
         hostBits: 8,
         networkBits: 24
       });

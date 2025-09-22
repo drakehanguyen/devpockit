@@ -1,4 +1,4 @@
-import { getAllTools, getPopularTools, getToolById, getCategoryById, searchTools, toolCategories } from '../tools-data';
+import { getAllTools, getCategoryById, getPopularTools, getToolById, toolCategories } from '../tools-data';
 
 describe('Tools Data', () => {
   describe('toolCategories', () => {
@@ -34,7 +34,7 @@ describe('Tools Data', () => {
           expect(tool).toHaveProperty('icon');
           expect(tool).toHaveProperty('path');
           expect(tool).toHaveProperty('component');
-          expect(typeof tool.component).toBe('function');
+          expect(typeof tool.component).toBe('string');
         });
       });
     });

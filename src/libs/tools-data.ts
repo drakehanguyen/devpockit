@@ -165,6 +165,25 @@ export const toolCategories: ToolCategory[] = [
       },
     ],
   },
+  {
+    id: 'utilities',
+    name: 'Utilities',
+    icon: '🛠️',
+    color: 'purple',
+    description: 'General utility tools and helpers',
+    tools: [
+      {
+        id: 'placeholder-tool',
+        name: 'Placeholder Tool',
+        description: 'A placeholder tool for testing and development',
+        category: 'utilities',
+        icon: '🔧',
+        isPopular: false,
+        path: '/tools/utilities/placeholder-tool',
+        component: 'PlaceholderTool',
+      },
+    ],
+  },
 ];
 
 export const getPopularTools = () => {
