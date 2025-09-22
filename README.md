@@ -1,6 +1,6 @@
 # DevPockit - Developer Tools Web App
 
-A modern web application providing essential developer tools with a clean, responsive interface. Built with Next.js 15, featuring 11 powerful tools that run entirely client-side for optimal performance.
+A modern web application providing essential developer tools with a clean, responsive interface. Built with Next.js 15, featuring 12 powerful tools that run entirely client-side for optimal performance.
 
 ## 🚀 Quick Start
 
@@ -350,6 +350,9 @@ export function ErrorBoundary({ children }: { children: React.ReactNode }) {
 6. **JWT Encoder/Decoder**: HS256 algorithm, header/payload editing
 7. **Cron Parser**: Human-readable descriptions, next execution times
 8. **Regex Tester**: JavaScript/Python flavors, match highlighting
+
+#### **Encoder/Decoder Tools**
+9. **URL Encoder/Decoder**: Encode and decode URLs with multiple encoding types including URL, URI, and custom character sets
 
 ### UI/UX Features
 

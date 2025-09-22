@@ -105,6 +105,16 @@ export const toolCategories: ToolCategory[] = [
         path: '/tools/encoders/qr-code-scanner',
         component: 'QrCodeScanner',
       },
+      {
+        id: 'url-encoder',
+        name: 'URL Encoder/Decoder',
+        description: 'Encode and decode URLs with multiple encoding types including URL, URI, and custom character sets',
+        category: 'encoders',
+        icon: '🔗',
+        isPopular: true,
+        path: '/tools/encoders/url-encoder',
+        component: 'UrlEncoder',
+      },
     ],
   },
   {
