@@ -114,7 +114,7 @@ DATABASE_URL=sqlite:///./devpockit.db
 
 # Application
 PROJECT_NAME=DevPockit
-VERSION=1.0.0
+VERSION=0.1.0
 ENVIRONMENT=development
 DEBUG=true
 
@@ -294,7 +294,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "DevPockit"
-    VERSION: str = "1.0.0"
+    VERSION: str = "0.1.0"
     # ... other settings
 
     class Config:

@@ -11,22 +11,22 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    DEFAULT_QR_OPTIONS,
-    QR_CODE_COLOR_PRESETS,
-    QR_CODE_ERROR_CORRECTIONS,
-    QR_CODE_EXAMPLES,
-    QR_CODE_FORMATS,
-    QR_CODE_SIZE_LIMITS,
-    QR_CODE_TYPES
+  DEFAULT_QR_OPTIONS,
+  QR_CODE_COLOR_PRESETS,
+  QR_CODE_ERROR_CORRECTIONS,
+  QR_CODE_EXAMPLES,
+  QR_CODE_FORMATS,
+  QR_CODE_SIZE_LIMITS,
+  QR_CODE_TYPES
 } from '@/config/qr-code-generator-config';
 import {
-    copyQrCodeToClipboard,
-    downloadQrCode,
-    generateQrCode,
-    getQrCodeStats,
-    type QrCodeInput,
-    type QrCodeOptions,
-    type QrCodeResult
+  copyQrCodeToClipboard,
+  downloadQrCode,
+  generateQrCode,
+  getQrCodeStats,
+  type QrCodeInput,
+  type QrCodeOptions,
+  type QrCodeResult
 } from '@/libs/qr-code-generator';
 import { ArrowDownTrayIcon, ArrowPathIcon, ClipboardDocumentIcon, QrCodeIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
@@ -175,28 +175,47 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
   const handleContactChange = (key: string, value: string) => {
     setInput(prev => ({
       ...prev,
-      contact: { ...prev.contact, [key]: value }
+      contact: {
+        name: '', // Default required field
+        ...(prev.contact || {}),
+        [key]: value
+      }
     }));
   };
 
   const handleWifiChange = (key: string, value: any) => {
     setInput(prev => ({
       ...prev,
-      wifi: { ...prev.wifi, [key]: value }
+      wifi: {
+        ssid: '', // Default required field
+        password: '', // Default required field
+        security: 'WPA' as const, // Default required field
+        ...(prev.wifi || {}),
+        [key]: value
+      }
     }));
   };
 
   const handleSmsChange = (key: string, value: string) => {
     setInput(prev => ({
       ...prev,
-      sms: { ...prev.sms, [key]: value }
+      sms: {
+        phone: '', // Default required field
+        message: '', // Default required field
+        ...(prev.sms || {}),
+        [key]: value
+      }
     }));
   };
 
   const handleEmailChange = (key: string, value: string) => {
     setInput(prev => ({
       ...prev,
-      email: { ...prev.email, [key]: value }
+      email: {
+        to: '', // Default required field
+        ...(prev.email || {}),
+        [key]: value
+      }
     }));
   };
 

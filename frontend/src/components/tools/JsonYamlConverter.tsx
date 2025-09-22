@@ -8,17 +8,17 @@ import { OutputDisplay } from '@/components/ui/OutputDisplay';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    DEFAULT_JSON_YAML_OPTIONS,
-    JSON_YAML_CATEGORIES,
-    JSON_YAML_EXAMPLES,
-    JSON_YAML_FORMAT_OPTIONS,
-    JSON_YAML_INDENT_OPTIONS
+  DEFAULT_JSON_YAML_OPTIONS,
+  JSON_YAML_CATEGORIES,
+  JSON_YAML_EXAMPLES,
+  JSON_YAML_FORMAT_OPTIONS,
+  JSON_YAML_INDENT_OPTIONS,
+  type JsonYamlOptions
 } from '@/config/json-yaml-config';
 import {
-    convertFormat,
-    getConversionStats,
-    type JsonYamlConversionResult,
-    type JsonYamlOptions
+  convertFormat,
+  getConversionStats,
+  type JsonYamlConversionResult
 } from '@/libs/json-yaml';
 import { cn } from '@/libs/utils';
 import { ArrowPathIcon, CodeBracketIcon } from '@heroicons/react/24/outline';
@@ -322,14 +322,6 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
         content={output}
         error={error}
         isLoading={isConverting}
-        stats={stats ? {
-          'Input Size': `${stats.inputSize} chars`,
-          'Output Size': `${stats.outputSize} chars`,
-          'Input Lines': stats.inputLines.toString(),
-          'Output Lines': stats.outputLines.toString(),
-          'Compression': `${(stats.compressionRatio * 100).toFixed(1)}%`,
-          'Format': stats.format.toUpperCase()
-        } : undefined}
         placeholder="Enter JSON or YAML content and click Convert to see the converted output..."
       />
     </div>

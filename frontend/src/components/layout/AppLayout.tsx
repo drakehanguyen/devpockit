@@ -3,6 +3,7 @@
 import { ToolStateProvider, useToolStateContext } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { getToolComponent } from '@/libs/tool-components';
 import { getToolById } from '@/libs/tools-data';
 import { isValidCategoryUrl, isValidToolUrl, parseToolUrl } from '@/libs/url-utils';
 import { cn } from '@/libs/utils';
@@ -16,6 +17,72 @@ import { TopNavTabs, type ActiveTab } from './TopNavTabs';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
+}
+
+// Dynamic tool renderer component
+function DynamicToolRenderer({ toolId }: { toolId: string }) {
+  const [ToolComponent, setToolComponent] = useState<React.ComponentType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadComponent = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const tool = getToolById(toolId);
+        if (!tool) {
+          setError('Tool not found');
+          return;
+        }
+        const component = await getToolComponent(tool.component);
+        setToolComponent(() => component);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load component');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadComponent();
+  }, [toolId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading tool...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-destructive">Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ToolComponent) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-muted-foreground">Component not found</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full overflow-auto">
+      <ToolComponent />
+    </div>
+  );
 }
 
 // Inner component that has access to ToolStateContext
@@ -262,17 +329,7 @@ function AppLayoutInner({ children }: AppLayoutProps) {
         )}>
           {selectedTool ? (
             <div className="h-full">
-              {(() => {
-                const tool = getToolById(selectedTool);
-                if (!tool) return null;
-
-                const ToolComponent = tool.component;
-                return (
-                  <div className="h-full overflow-auto">
-                    <ToolComponent />
-                  </div>
-                );
-              })()}
+              <DynamicToolRenderer toolId={selectedTool} />
             </div>
           ) : (
             <WelcomePage onToolSelect={handleToolSelect} />

@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label';
 import { OutputDisplay } from '@/components/ui/OutputDisplay';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    CRON_EXAMPLES,
-    DEFAULT_CRON_OPTIONS
+  CRON_EXAMPLES,
+  DEFAULT_CRON_OPTIONS
 } from '@/config/cron-parser-config';
 import { parseCronExpression, type CronParseResult } from '@/libs/cron-parser';
 import { cn } from '@/libs/utils';
@@ -249,11 +249,6 @@ export function CronParser({ className }: CronParserProps) {
         content={output}
         error={error}
         isLoading={isParsing}
-        stats={stats ? {
-          'Valid': stats.isValid ? 'Yes' : 'No',
-          'Next Runs': stats.nextRunCount.toString(),
-          'Description': stats.humanReadable || 'N/A'
-        } : undefined}
         placeholder="Enter a cron expression and click Parse to see the human-readable description and next execution times..."
       />
     </div>

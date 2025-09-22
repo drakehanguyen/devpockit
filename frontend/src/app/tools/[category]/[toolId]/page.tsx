@@ -1,6 +1,4 @@
-'use client';
-
-import { getToolById } from '@/libs/tools-data';
+import { getToolById, getTools } from '@/libs/tools-data';
 import { notFound } from 'next/navigation';
 import { use } from 'react';
 
@@ -9,6 +7,14 @@ interface ToolPageProps {
     category: string;
     toolId: string;
   }>;
+}
+
+export async function generateStaticParams() {
+  const tools = getTools();
+  return tools.map((tool) => ({
+    category: tool.category,
+    toolId: tool.id,
+  }));
 }
 
 export default function ToolPage({ params }: ToolPageProps) {

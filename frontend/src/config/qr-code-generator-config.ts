@@ -111,7 +111,7 @@ export const QR_CODE_EXAMPLES = {
     input: {
       text: 'Hello, World! This is a QR code for text content.'
     },
-    options: { ...DEFAULT_QR_OPTIONS, type: 'text' }
+    options: { ...DEFAULT_QR_OPTIONS, type: 'text' as const }
   },
   url: {
     name: 'Website URL',
@@ -119,7 +119,7 @@ export const QR_CODE_EXAMPLES = {
     input: {
       url: 'https://devpockit.com'
     },
-    options: { ...DEFAULT_QR_OPTIONS, type: 'url' }
+    options: { ...DEFAULT_QR_OPTIONS, type: 'url' as const }
   },
   contact: {
     name: 'Contact Card',
@@ -134,7 +134,7 @@ export const QR_CODE_EXAMPLES = {
         address: '123 Main St, City, State 12345'
       }
     },
-    options: { ...DEFAULT_QR_OPTIONS, type: 'contact' }
+    options: { ...DEFAULT_QR_OPTIONS, type: 'contact' as const }
   },
   wifi: {
     name: 'WiFi Network',
@@ -147,7 +147,7 @@ export const QR_CODE_EXAMPLES = {
         hidden: false
       }
     },
-    options: { ...DEFAULT_QR_OPTIONS, type: 'wifi' }
+    options: { ...DEFAULT_QR_OPTIONS, type: 'wifi' as const }
   },
   sms: {
     name: 'SMS Message',
@@ -158,7 +158,7 @@ export const QR_CODE_EXAMPLES = {
         message: 'Hello! This is a test message.'
       }
     },
-    options: { ...DEFAULT_QR_OPTIONS, type: 'sms' }
+    options: { ...DEFAULT_QR_OPTIONS, type: 'sms' as const }
   },
   email: {
     name: 'Email Message',
@@ -170,7 +170,7 @@ export const QR_CODE_EXAMPLES = {
         body: 'This is a test email generated from a QR code.'
       }
     },
-    options: { ...DEFAULT_QR_OPTIONS, type: 'email' }
+    options: { ...DEFAULT_QR_OPTIONS, type: 'email' as const }
   }
 };
 

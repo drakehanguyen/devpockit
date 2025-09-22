@@ -55,7 +55,7 @@ export function isValidToolUrl(pathname: string): boolean {
   if (!parsed) return false;
 
   const tool = getToolById(parsed.toolId);
-  return tool !== null && tool.category === parsed.category;
+  return tool !== undefined && tool.category === parsed.category;
 }
 
 /**

@@ -1,14 +1,3 @@
-import { CronParser } from '@/components/tools/CronParser';
-import { IpChecker } from '@/components/tools/IpChecker';
-import { IpCidrConverter } from '@/components/tools/IpCidrConverter';
-import { JsonFormatter } from '@/components/tools/JsonFormatter';
-import { JsonYamlConverter } from '@/components/tools/JsonYamlConverter';
-import { LoremIpsumGenerator } from '@/components/tools/LoremIpsumGenerator';
-import { QrCodeDecoder } from '@/components/tools/QrCodeDecoder';
-import { QrCodeGenerator } from '@/components/tools/QrCodeGenerator';
-import { QrCodeScanner } from '@/components/tools/QrCodeScanner';
-import { UuidGenerator } from '@/components/tools/UuidGenerator';
-import { XmlFormatter } from '@/components/tools/XmlFormatter';
 import { ToolCategory } from '@/types/tools';
 
 export const toolCategories: ToolCategory[] = [
@@ -27,7 +16,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '📄',
         isPopular: true,
         path: '/tools/text-tools/lorem-ipsum',
-        component: LoremIpsumGenerator,
+        component: 'LoremIpsumGenerator',
       },
     ],
   },
@@ -46,7 +35,7 @@ export const toolCategories: ToolCategory[] = [
             icon: '{ }',
             isPopular: true,
             path: '/tools/formatters/json-formatter',
-            component: JsonFormatter,
+            component: 'JsonFormatter',
           },
       {
         id: 'xml-formatter',
@@ -56,7 +45,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '< >',
         isPopular: false,
         path: '/tools/formatters/xml-formatter',
-        component: XmlFormatter,
+        component: 'XmlFormatter',
       },
     ],
   },
@@ -75,7 +64,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '🆔',
         isPopular: true,
         path: '/tools/cryptography/uuid-generator',
-        component: UuidGenerator,
+        component: 'UuidGenerator',
       },
     ],
   },
@@ -94,7 +83,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '📱',
         isPopular: true,
         path: '/tools/encoders/qr-code-generator',
-        component: QrCodeGenerator,
+        component: 'QrCodeGenerator',
       },
       {
         id: 'qr-code-decoder',
@@ -104,7 +93,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '🔍',
         isPopular: true,
         path: '/tools/encoders/qr-code-decoder',
-        component: QrCodeDecoder,
+        component: 'QrCodeDecoder',
       },
       {
         id: 'qr-code-scanner',
@@ -114,7 +103,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '📷',
         isPopular: true,
         path: '/tools/encoders/qr-code-scanner',
-        component: QrCodeScanner,
+        component: 'QrCodeScanner',
       },
     ],
   },
@@ -133,7 +122,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '⏰',
         isPopular: true,
         path: '/tools/converters/cron-parser',
-        component: CronParser,
+        component: 'CronParser',
       },
       {
         id: 'json-yaml-converter',
@@ -143,7 +132,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '⚡',
         isPopular: true,
         path: '/tools/converters/json-yaml-converter',
-        component: JsonYamlConverter,
+        component: 'JsonYamlConverter',
       },
     ],
   },
@@ -162,7 +151,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '🔗',
         isPopular: true,
         path: '/tools/network/ip-cidr-converter',
-        component: IpCidrConverter,
+        component: 'IpCidrConverter',
       },
       {
         id: 'ip-checker',
@@ -172,7 +161,7 @@ export const toolCategories: ToolCategory[] = [
         icon: '📡',
         isPopular: true,
         path: '/tools/network/ip-checker',
-        component: IpChecker,
+        component: 'IpChecker',
       },
     ],
   },
@@ -196,6 +185,14 @@ export const getCategoryById = (id: string) => {
   return toolCategories.find(category => category.id === id);
 };
 
+export const getCategories = () => {
+  return toolCategories;
+};
+
+export const getTools = () => {
+  return getAllTools();
+};
+
 export const searchTools = (query: string) => {
   const lowercaseQuery = query.toLowerCase();
   return getAllTools().filter(
@@ -204,5 +201,6 @@ export const searchTools = (query: string) => {
       tool.description.toLowerCase().includes(lowercaseQuery)
   );
 };
+
 
 

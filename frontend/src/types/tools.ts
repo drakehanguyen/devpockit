@@ -9,7 +9,7 @@ export interface Tool {
   isPopular?: boolean;
   isActive?: boolean;
   path: string;
-  component: ComponentType<any>;
+  component: string;
 }
 
 export interface ToolCategory {

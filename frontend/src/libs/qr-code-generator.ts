@@ -84,8 +84,6 @@ export async function generateQrCode(
   // Generate QR code options
   const qrOptions = {
     errorCorrectionLevel: errorCorrection,
-    type: format === 'svg' ? 'svg' : 'png',
-    quality: 0.92,
     margin: margin,
     color: {
       dark: color.dark,

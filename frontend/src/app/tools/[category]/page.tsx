@@ -1,6 +1,4 @@
-'use client';
-
-import { getCategoryById } from '@/libs/tools-data';
+import { getCategories, getCategoryById } from '@/libs/tools-data';
 import { notFound } from 'next/navigation';
 import { use } from 'react';
 
@@ -8,6 +6,13 @@ interface CategoryPageProps {
   params: Promise<{
     category: string;
   }>;
+}
+
+export async function generateStaticParams() {
+  const categories = getCategories();
+  return categories.map((category) => ({
+    category: category.id,
+  }));
 }
 
 export default function CategoryPage({ params }: CategoryPageProps) {
