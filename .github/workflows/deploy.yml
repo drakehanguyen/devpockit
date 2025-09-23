@@ -58,11 +58,40 @@ jobs:
       - name: Run linting
         run: pnpm lint
 
-      # - name: Run tests
-      #   run: pnpm test:ci
+      - name: Run tests
+        run: pnpm test:ci
 
       - name: Build application
         run: pnpm build
+
+      - name: Verify build output
+        run: |
+          if [ ! -d "out" ]; then
+            echo "❌ Build output directory 'out' not found!"
+            exit 1
+          fi
+          if [ ! -f "out/index.html" ]; then
+            echo "❌ Main index.html not found in build output!"
+            exit 1
+          fi
+          if [ ! -d "out/tools" ]; then
+            echo "❌ Tools directory not found in build output!"
+            exit 1
+          fi
+          echo "✅ Build output verification passed"
+
+      - name: Test static file serving
+        run: |
+          python3 -m http.server 8080 --directory out &
+          SERVER_PID=$!
+          sleep 3
+          if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep -q "200"; then
+            echo "✅ Static file serving test passed"
+          else
+            echo "❌ Static file serving test failed"
+            exit 1
+          fi
+          kill $SERVER_PID 2>/dev/null || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
