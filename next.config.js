@@ -2,6 +2,8 @@
 const nextConfig = {
   output: 'export', // Enable static export for GitHub Pages
   trailingSlash: true, // Required for GitHub Pages
+  basePath: '/devpockit', // Required for GitHub Pages subdirectory
+  assetPrefix: '/devpockit/', // Required for GitHub Pages subdirectory
   images: {
     unoptimized: true, // Disable Next.js image optimization for static export
     domains: [],
