@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/devpockit',
   output: 'export', // Enable static export for GitHub Pages
   trailingSlash: true, // Required for GitHub Pages
   images: {
