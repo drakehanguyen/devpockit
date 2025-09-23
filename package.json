@@ -14,7 +14,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --watchAll=false"
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "build:test": "pnpm type-check && pnpm lint && pnpm test:ci && pnpm build",
+    "build:verify": "pnpm build && node scripts/verify-build.js",
+    "serve:build": "python3 -m http.server 8080 --directory out",
+    "test:build": "bash scripts/test-build.sh"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
