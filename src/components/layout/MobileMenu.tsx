@@ -129,7 +129,7 @@ export function MobileMenu({ selectedTool, onToolSelect }: MobileMenuProps) {
           {/* Footer */}
           <div className="p-6 border-t">
             <div className="text-xs text-muted-foreground text-center space-y-1">
-              <p className="font-medium">DevPockit v1.0</p>
+              <p className="font-medium">DevPockit v{process.env.NEXT_PUBLIC_APP_VERSION}</p>
               <p>Built with Next.js & Tailwind CSS</p>
               <p className="text-xs">Frontend-only tools for optimal performance</p>
             </div>

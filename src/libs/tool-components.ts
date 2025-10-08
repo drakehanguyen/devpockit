@@ -13,6 +13,7 @@ export const getToolComponent = async (componentName: string) => {
     'JsonYamlConverter': () => import('@/components/tools/JsonYamlConverter').then(m => m.JsonYamlConverter),
     'IpCidrConverter': () => import('@/components/tools/IpCidrConverter').then(m => m.IpCidrConverter),
     'IpChecker': () => import('@/components/tools/IpChecker').then(m => m.IpChecker),
+    'PlaceholderTool': () => import('@/components/tools/PlaceholderTool').then(m => m.default),
   };
 
   const loader = componentMap[componentName];

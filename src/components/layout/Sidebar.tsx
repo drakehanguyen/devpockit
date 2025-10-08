@@ -165,7 +165,7 @@ export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, cla
         {!isCollapsed && (
           <div className="p-4 border-t">
             <div className="text-xs text-muted-foreground text-center">
-              <p>DevPockit v1.0</p>
+              <p>DevPockit v{process.env.NEXT_PUBLIC_APP_VERSION}</p>
               <p>Built with Next.js</p>
             </div>
           </div>
