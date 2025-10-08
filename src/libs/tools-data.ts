@@ -115,6 +115,16 @@ export const toolCategories: ToolCategory[] = [
         path: '/tools/encoders/url-encoder',
         component: 'UrlEncoder',
       },
+      {
+        id: 'jwt-encoder',
+        name: 'JWT Encoder/Decoder',
+        description: 'Create, decode, and verify JSON Web Tokens with support for multiple algorithms and comprehensive validation',
+        category: 'encoders',
+        icon: '🔐',
+        isPopular: true,
+        path: '/tools/encoders/jwt-encoder',
+        component: 'JwtEncoderDecoder',
+      },
     ],
   },
   {

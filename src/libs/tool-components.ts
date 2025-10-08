@@ -9,6 +9,7 @@ export const getToolComponent = async (componentName: string) => {
     'QrCodeDecoder': () => import('@/components/tools/QrCodeDecoder').then(m => m.QrCodeDecoder),
     'QrCodeScanner': () => import('@/components/tools/QrCodeScanner').then(m => m.QrCodeScanner),
     'UrlEncoder': () => import('@/components/tools/UrlEncoder').then(m => m.UrlEncoder),
+    'JwtEncoderDecoder': () => import('@/components/tools/JwtEncoderDecoder').then(m => m.JwtEncoderDecoder),
     'CronParser': () => import('@/components/tools/CronParser').then(m => m.CronParser),
     'JsonYamlConverter': () => import('@/components/tools/JsonYamlConverter').then(m => m.JsonYamlConverter),
     'IpCidrConverter': () => import('@/components/tools/IpCidrConverter').then(m => m.IpCidrConverter),
