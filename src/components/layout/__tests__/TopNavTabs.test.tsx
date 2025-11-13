@@ -2,27 +2,6 @@ import { render } from '@/test-utils/test-utils';
 import { fireEvent, screen } from '@testing-library/react';
 import { TopNavTabs } from '../TopNavTabs';
 
-// Mock the tools data
-jest.mock('@/libs/tools-data', () => ({
-  getToolById: jest.fn((id: string) => {
-    const tools: Record<string, any> = {
-      'lorem-ipsum': {
-        id: 'lorem-ipsum',
-        name: 'Lorem Ipsum Generator',
-        icon: '📄',
-        color: 'blue',
-      },
-      'json-formatter': {
-        id: 'json-formatter',
-        name: 'JSON Formatter',
-        icon: '{}',
-        color: 'green',
-      },
-    };
-    return tools[id] || null;
-  }),
-}));
-
 describe('TopNavTabs', () => {
   const mockOnTabSelect = jest.fn();
   const mockOnTabClose = jest.fn();
@@ -32,7 +11,7 @@ describe('TopNavTabs', () => {
     jest.clearAllMocks();
   });
 
-  it('should render tabs for active tools', () => {
+  it('should render all tabs horizontally', () => {
     const tabs = [
       { toolId: 'lorem-ipsum', toolName: 'Lorem Ipsum Generator', category: 'Text Tools', isActive: true },
       { toolId: 'json-formatter', toolName: 'JSON Formatter', category: 'Formatters', isActive: false }
@@ -48,11 +27,12 @@ describe('TopNavTabs', () => {
       />
     );
 
+    // All tabs should be visible
     expect(screen.getByText('Lorem Ipsum Generator')).toBeInTheDocument();
     expect(screen.getByText('JSON Formatter')).toBeInTheDocument();
   });
 
-  it('should highlight active tab', () => {
+  it('should apply active styling to selected tab', () => {
     const tabs = [
       { toolId: 'lorem-ipsum', toolName: 'Lorem Ipsum Generator', category: 'Text Tools', isActive: true },
       { toolId: 'json-formatter', toolName: 'JSON Formatter', category: 'Formatters', isActive: false }
@@ -68,8 +48,13 @@ describe('TopNavTabs', () => {
       />
     );
 
-    const activeTab = screen.getByText('Lorem Ipsum Generator');
-    expect(activeTab.closest('div')).toHaveClass('bg-primary');
+    // Active tab should have primary-foreground background
+    const loremTab = screen.getByText('Lorem Ipsum Generator').closest('div');
+    expect(loremTab).toHaveClass('bg-primary-foreground');
+    
+    // Inactive tab should have card background (theme-aware)
+    const jsonTab = screen.getByText('JSON Formatter').closest('div');
+    expect(jsonTab).toHaveClass('bg-card');
   });
 
   it('should call onTabSelect when tab is clicked', () => {
@@ -94,6 +79,74 @@ describe('TopNavTabs', () => {
     expect(mockOnTabSelect).toHaveBeenCalledWith('json-formatter');
   });
 
+  it('should show close icon on selected tab', () => {
+    const tabs = [
+      { toolId: 'lorem-ipsum', toolName: 'Lorem Ipsum Generator', category: 'Text Tools', isActive: true },
+      { toolId: 'json-formatter', toolName: 'JSON Formatter', category: 'Formatters', isActive: false }
+    ];
+
+    render(
+      <TopNavTabs
+        tabs={tabs}
+        activeTab="lorem-ipsum"
+        onTabSelect={mockOnTabSelect}
+        onTabClose={mockOnTabClose}
+        onCloseAll={mockOnCloseAll}
+      />
+    );
+
+    // Find all close buttons
+    const closeButtons = screen.getAllByTitle('Close tool');
+    expect(closeButtons.length).toBe(2); // One for each tab
+    
+    // First close button should be visible (active tab)
+    expect(closeButtons[0]).toHaveClass('opacity-100');
+    
+    // Second close button should be hidden (inactive tab)
+    expect(closeButtons[1]).toHaveClass('opacity-0');
+  });
+
+  it('should show close icon on hover for inactive tab', () => {
+    const tabs = [
+      { toolId: 'lorem-ipsum', toolName: 'Lorem Ipsum Generator', category: 'Text Tools', isActive: true },
+      { toolId: 'json-formatter', toolName: 'JSON Formatter', category: 'Formatters', isActive: false }
+    ];
+
+    render(
+      <TopNavTabs
+        tabs={tabs}
+        activeTab="lorem-ipsum"
+        onTabSelect={mockOnTabSelect}
+        onTabClose={mockOnTabClose}
+        onCloseAll={mockOnCloseAll}
+      />
+    );
+
+    // Find the inactive tab and its close button
+    const jsonTab = screen.getByText('JSON Formatter').closest('div');
+    const closeButtons = screen.getAllByTitle('Close tool');
+    const inactiveCloseButton = closeButtons[1];
+
+    // Initially hidden
+    expect(inactiveCloseButton).toHaveClass('opacity-0');
+
+    // Hover over the inactive tab
+    if (jsonTab) {
+      fireEvent.mouseEnter(jsonTab);
+    }
+
+    // Close button should now be visible
+    expect(inactiveCloseButton).toHaveClass('opacity-100');
+
+    // Mouse leave
+    if (jsonTab) {
+      fireEvent.mouseLeave(jsonTab);
+    }
+
+    // Close button should be hidden again
+    expect(inactiveCloseButton).toHaveClass('opacity-0');
+  });
+
   it('should call onTabClose when close button is clicked', () => {
     const tabs = [
       { toolId: 'lorem-ipsum', toolName: 'Lorem Ipsum Generator', category: 'Text Tools', isActive: true },
@@ -110,10 +163,9 @@ describe('TopNavTabs', () => {
       />
     );
 
-    // Find the close button for the first tab (it's the second button in the first tab)
-    const closeButtons = screen.getAllByRole('button');
-    const closeButton = closeButtons[1]; // Second button is the close button
-    fireEvent.click(closeButton);
+    // Find the close button (first one for active tab)
+    const closeButtons = screen.getAllByTitle('Close tool');
+    fireEvent.click(closeButtons[0]);
 
     expect(mockOnTabClose).toHaveBeenCalledWith('lorem-ipsum');
   });
@@ -138,10 +190,9 @@ describe('TopNavTabs', () => {
     expect(screen.getByText('Close All')).toBeInTheDocument();
   });
 
-  it('should not show close all button when 2 or fewer tabs', () => {
+  it('should not show close all button when only 1 tab', () => {
     const tabs = [
-      { toolId: 'lorem-ipsum', toolName: 'Lorem Ipsum Generator', category: 'Text Tools', isActive: true },
-      { toolId: 'json-formatter', toolName: 'JSON Formatter', category: 'Formatters', isActive: false }
+      { toolId: 'lorem-ipsum', toolName: 'Lorem Ipsum Generator', category: 'Text Tools', isActive: true }
     ];
 
     render(

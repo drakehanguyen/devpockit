@@ -1,21 +1,51 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { SearchTools } from '@/components/layout/SearchTools';
 import { toolCategories } from '@/libs/tools-data';
 import { cn } from '@/libs/utils';
-import { Bars3Icon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { 
+  Menu, 
+  ChevronRight, 
+  Home,
+  Sun,
+  Moon,
+  FileText,
+  Code,
+  Lock,
+  RefreshCw,
+  ArrowLeftRight,
+  Globe,
+  Settings
+} from 'lucide-react';
+import React, { useState } from 'react';
+import { useTheme } from 'next-themes';
 
 interface MobileMenuProps {
   selectedTool?: string;
   onToolSelect: (toolId: string) => void;
+  onHomeClick: () => void;
 }
 
-export function MobileMenu({ selectedTool, onToolSelect }: MobileMenuProps) {
+// Map category IDs to lucide icons
+const getCategoryIcon = (categoryId: string) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    'text-tools': FileText,
+    'formatters': Code,
+    'cryptography': Lock,
+    'encoders': RefreshCw,
+    'converters': ArrowLeftRight,
+    'network': Globe,
+    'utilities': Settings,
+  };
+  return iconMap[categoryId] || FileText;
+};
+
+export function MobileMenu({ selectedTool, onToolSelect, onHomeClick }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const { theme, setTheme } = useTheme();
 
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev =>
@@ -30,93 +60,108 @@ export function MobileMenu({ selectedTool, onToolSelect }: MobileMenuProps) {
     setIsOpen(false);
   };
 
-  const getCategoryColorClasses = (color: string) => {
-    const colorMap = {
-      blue: 'text-category-blue-600 bg-category-blue-50 hover:bg-category-blue-100 hover:text-category-blue-700 dark:text-category-blue-400 dark:bg-category-blue-950/50 dark:hover:bg-category-blue-900/50 dark:hover:text-category-blue-300',
-      green: 'text-category-green-600 bg-category-green-50 hover:bg-category-green-100 hover:text-category-green-700 dark:text-category-green-400 dark:bg-category-green-950/50 dark:hover:bg-category-green-900/50 dark:hover:text-category-green-300',
-      purple: 'text-category-purple-600 bg-category-purple-50 hover:bg-category-purple-100 hover:text-category-purple-700 dark:text-category-purple-400 dark:bg-category-purple-950/50 dark:hover:bg-category-purple-900/50 dark:hover:text-category-purple-300',
-      red: 'text-category-red-600 bg-category-red-50 hover:bg-category-red-100 hover:text-category-red-700 dark:text-category-red-400 dark:bg-category-red-950/50 dark:hover:bg-category-red-900/50 dark:hover:text-category-red-300',
-      orange: 'text-category-orange-600 bg-category-orange-50 hover:bg-category-orange-100 hover:text-category-orange-700 dark:text-category-orange-400 dark:bg-category-orange-950/50 dark:hover:bg-category-orange-900/50 dark:hover:text-category-orange-300',
-      teal: 'text-category-teal-600 bg-category-teal-50 hover:bg-category-teal-100 hover:text-category-teal-700 dark:text-category-teal-400 dark:bg-category-teal-950/50 dark:hover:bg-category-teal-900/50 dark:hover:text-category-teal-300',
-      indigo: 'text-category-indigo-600 bg-category-indigo-50 hover:bg-category-indigo-100 hover:text-category-indigo-700 dark:text-category-indigo-400 dark:bg-category-indigo-950/50 dark:hover:bg-category-indigo-900/50 dark:hover:text-category-indigo-300',
-    };
-    return colorMap[color as keyof typeof colorMap] || colorMap.blue;
+  const handleHomeClick = () => {
+    onHomeClick();
+    setIsOpen(false);
   };
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="p-2">
-          <Bars3Icon className="h-6 w-6" />
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="fixed top-4 left-4 z-50 p-2 bg-card border shadow-sm"
+        >
+          <Menu className="h-6 w-6" />
           <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="w-80 p-0">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <SheetHeader className="p-6 border-b">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold">DP</span>
-              </div>
-              <div>
-                <SheetTitle className="text-xl font-bold">DevPockit</SheetTitle>
-                <p className="text-sm text-muted-foreground">Developer Tools</p>
-              </div>
+      <SheetContent side="left" className="w-80 p-0 flex flex-col">
+        {/* Header */}
+        <SheetHeader className="p-4 border-b shrink-0">
+          <div className="flex items-center gap-0.5">
+            {/* Logo */}
+            <div className="w-10 h-10 bg-[#ccd0da] dark:bg-[#4c4f69] rounded-[10px] flex items-center justify-center shrink-0">
+              <span className="font-bold text-[17.5px] text-[#4c4f69] dark:text-[#ccd0da] leading-[25px]">
+                DP
+              </span>
             </div>
-          </SheetHeader>
-
-          {/* Categories */}
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="mb-6">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Tool Categories
-              </h2>
-              <Separator />
+            {/* Name */}
+            <div className="pl-2">
+              <SheetTitle className="font-semibold text-[18px] leading-[24px] tracking-[-0.36px]">
+                DevPockit
+              </SheetTitle>
+              <p className="font-normal text-[14px] leading-[20px] tracking-[-0.28px] text-[#737373] dark:text-[#a3a3a3]">
+                Developer Tools
+              </p>
             </div>
+          </div>
+        </SheetHeader>
 
-            <div className="space-y-3">
+        {/* Search Bar */}
+        <div className="px-4 py-3 shrink-0">
+          <SearchTools onToolSelect={handleToolSelect} />
+        </div>
+
+        {/* Categories */}
+        <div className="flex-1 overflow-y-auto px-4">
+          <div className="space-y-2">
+            {/* All tools button */}
+            <button
+              onClick={handleHomeClick}
+              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors hover:bg-muted text-[#171717] dark:text-[#e5e5e5]"
+            >
+              <Home className="h-[13.25px] w-[13.25px] shrink-0" />
+              <span className="flex-1 text-left text-sm font-normal">All tools</span>
+            </button>
+            
+            {/* Separator */}
+            <div className="h-px bg-[#f3f4f6] dark:bg-[#262626] my-2" />
+
+            {/* Categories */}
+            <div className="space-y-1">
               {toolCategories.map((category) => {
                 const isExpanded = expandedCategories.includes(category.id);
+                const IconComponent = getCategoryIcon(category.id);
 
                 return (
-                  <div key={category.id} className="space-y-2">
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        'w-full justify-start p-4 h-auto rounded-lg transition-colors',
-                        getCategoryColorClasses(category.color)
-                      )}
+                  <div key={category.id} className="space-y-1">
+                    <button
                       onClick={() => toggleCategory(category.id)}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors hover:bg-muted text-[#171717] dark:text-[#e5e5e5]"
                     >
-                      <span className="text-xl mr-3">{category.icon}</span>
-                      <span className="font-medium flex-1 text-left">{category.name}</span>
+                      <IconComponent className="h-[13.25px] w-[13.25px] shrink-0" />
+                      <span className="flex-1 text-left text-sm font-normal">{category.name}</span>
                       {isExpanded ? (
-                        <ChevronDownIcon className="h-5 w-5" />
+                        <ChevronRight className="h-[9.25px] w-[9.25px] shrink-0 rotate-90 transition-transform" />
                       ) : (
-                        <ChevronRightIcon className="h-5 w-5" />
+                        <ChevronRight className="h-[9.25px] w-[9.25px] shrink-0 transition-transform" />
                       )}
-                    </Button>
+                    </button>
 
                     {isExpanded && (
-                      <div className="space-y-1 pl-4">
+                      <div className="space-y-1">
                         {category.tools.map((tool) => (
-                          <Button
+                          <button
                             key={tool.id}
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                              'w-full justify-start pl-4 py-3 h-auto text-sm transition-colors rounded-lg',
-                              selectedTool === tool.id
-                                ? 'bg-muted text-foreground dark:bg-muted/50'
-                                : 'hover:bg-secondary hover:text-foreground'
-                            )}
                             onClick={() => handleToolSelect(tool.id)}
+                            className={cn(
+                              'w-full flex items-center gap-2 px-2 py-2 rounded-md transition-colors text-[#171717] dark:text-[#e5e5e5]',
+                              selectedTool === tool.id
+                                ? 'bg-muted'
+                                : 'hover:bg-muted/50'
+                            )}
                           >
-                            <span className="text-lg mr-3">{tool.icon}</span>
-                            <span className="flex-1 text-left font-medium">{tool.name}</span>
-                          </Button>
+                            {/* Tree structure */}
+                            <div className="relative w-5 h-5 shrink-0">
+                              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-[#e5e5e5] dark:bg-[#404040] -translate-x-1/2" />
+                            </div>
+                            <span className="flex-1 text-left text-sm font-normal overflow-ellipsis overflow-hidden whitespace-nowrap">
+                              {tool.name}
+                            </span>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -125,14 +170,37 @@ export function MobileMenu({ selectedTool, onToolSelect }: MobileMenuProps) {
               })}
             </div>
           </div>
+        </div>
 
-          {/* Footer */}
-          <div className="p-6 border-t">
-            <div className="text-xs text-muted-foreground text-center space-y-1">
-              <p className="font-medium">DevPockit v1.0</p>
-              <p>Built with Next.js & Tailwind CSS</p>
-              <p className="text-xs">Frontend-only tools for optimal performance</p>
-            </div>
+        {/* Theme Toggle */}
+        <div className="p-4 border-t shrink-0">
+          <div className="bg-[#f5f5f5] dark:bg-[#262626] rounded-[10px] p-[3px] flex items-center">
+            {/* Light mode tab */}
+            <button
+              onClick={() => setTheme('light')}
+              className={cn(
+                'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
+                theme === 'light' 
+                  ? 'bg-white dark:bg-[#171717] shadow-sm' 
+                  : 'bg-transparent'
+              )}
+              title="Light mode"
+            >
+              <Sun className="h-4 w-4 text-[#525252]" />
+            </button>
+            {/* Dark mode tab */}
+            <button
+              onClick={() => setTheme('dark')}
+              className={cn(
+                'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
+                theme === 'dark' 
+                  ? 'bg-white dark:bg-[#171717] shadow-sm' 
+                  : 'bg-transparent'
+              )}
+              title="Dark mode"
+            >
+              <Moon className="h-4 w-4 text-[#525252]" />
+            </button>
           </div>
         </div>
       </SheetContent>

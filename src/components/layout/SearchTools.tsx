@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { getCategoryById, searchTools } from '@/libs/tools-data';
 import { cn } from '@/libs/utils';
 import { type Tool } from '@/types/tools';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface SearchToolsProps {
@@ -23,18 +23,6 @@ interface SearchResultProps {
 const SearchResult = ({ tool, onSelect, onClose }: SearchResultProps) => {
   const category = getCategoryById(tool.category);
 
-  const getCategoryColorClasses = (color: string) => {
-    const colorMap = {
-      blue: 'border-l-category-blue-500',
-      green: 'border-l-category-green-500',
-      purple: 'border-l-category-purple-500',
-      red: 'border-l-category-red-500',
-      orange: 'border-l-category-orange-500',
-      teal: 'border-l-category-teal-500',
-      indigo: 'border-l-category-indigo-500',
-    };
-    return colorMap[color as keyof typeof colorMap] || colorMap.blue;
-  };
 
   const handleSelect = () => {
     onSelect(tool.id);
@@ -44,10 +32,7 @@ const SearchResult = ({ tool, onSelect, onClose }: SearchResultProps) => {
   return (
     <Button
       variant="ghost"
-      className={cn(
-        'w-full justify-start p-4 h-auto text-left hover:bg-muted rounded-lg border-l-4 transition-colors',
-        category && getCategoryColorClasses(category.color)
-      )}
+      className="w-full justify-start p-4 h-auto text-left hover:bg-muted rounded-lg transition-colors"
       onClick={handleSelect}
     >
       <div className="flex items-center space-x-3 w-full">
@@ -99,26 +84,19 @@ export function SearchTools({ onToolSelect, className }: SearchToolsProps) {
 
   return (
     <div className={cn('relative', className)}>
-      <div className="relative">
-        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="relative bg-white dark:bg-[#0a0a0a] border border-[#e5e5e5] dark:border-[#262626] rounded-lg min-h-[36px] flex items-center">
+        <Search className="absolute left-2 h-[15.417px] w-[15.417px] text-[#0a0a0a] dark:text-[#e5e5e5] pointer-events-none" />
         <Input
           type="text"
-          placeholder="Search tools... (Ctrl+K)"
+          placeholder="Search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="pl-10 pr-10"
+          className="pl-8 pr-12 h-[36px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
         />
-        {query && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-            onClick={handleClear}
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </Button>
-        )}
+        <div className="absolute right-2 text-sm font-medium text-[#111827] dark:text-[#e5e5e5] leading-[20px] tracking-[-0.28px]">
+          ⌘K
+        </div>
       </div>
 
       {isOpen && results.length > 0 && (
@@ -142,7 +120,7 @@ export function SearchTools({ onToolSelect, className }: SearchToolsProps) {
       {isOpen && results.length === 0 && query.trim().length > 0 && (
         <Card className="absolute top-full left-0 right-0 mt-2 p-4 bg-popover border shadow-lg z-50">
           <div className="text-center text-muted-foreground">
-            <MagnifyingGlassIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No tools found for &ldquo;{query}&rdquo;</p>
             <p className="text-xs mt-1">Try a different search term</p>
           </div>

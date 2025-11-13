@@ -1,4 +1,37 @@
 import { ToolCategory } from '@/types/tools';
+import { 
+  FileText, 
+  Braces, 
+  Code, 
+  Hash, 
+  QrCode, 
+  ScanSearch, 
+  ScanLine, 
+  Link, 
+  Clock, 
+  ArrowLeftRight, 
+  Network, 
+  MapPin, 
+  Wrench,
+  type LucideIcon
+} from 'lucide-react';
+
+// Icon mapping for tools
+export const toolIcons: Record<string, LucideIcon> = {
+  'lorem-ipsum': FileText,
+  'json-formatter': Braces,
+  'xml-formatter': Code,
+  'uuid-generator': Hash,
+  'qr-code-generator': QrCode,
+  'qr-code-decoder': ScanSearch,
+  'qr-code-scanner': ScanLine,
+  'url-encoder': Link,
+  'cron-parser': Clock,
+  'json-yaml-converter': ArrowLeftRight,
+  'ip-cidr-converter': Network,
+  'ip-checker': MapPin,
+  'placeholder-tool': Wrench,
+};
 
 export const toolCategories: ToolCategory[] = [
   {
