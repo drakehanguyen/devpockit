@@ -54,3 +54,13 @@ global.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}
 }
+
+// Polyfill for pointer capture APIs (jsdom doesn't support these)
+if (typeof Element !== 'undefined') {
+  Element.prototype.hasPointerCapture = Element.prototype.hasPointerCapture || function() {
+    return false
+  }
+  Element.prototype.setPointerCapture = Element.prototype.setPointerCapture || function() {}
+  Element.prototype.releasePointerCapture = Element.prototype.releasePointerCapture || function() {}
+  Element.prototype.scrollIntoView = Element.prototype.scrollIntoView || function() {}
+}

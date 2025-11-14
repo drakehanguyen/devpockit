@@ -1,26 +1,26 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { SearchTools } from '@/components/layout/SearchTools';
+import { Button } from '@/components/ui/button';
 import { toolCategories } from '@/libs/tools-data';
 import { cn } from '@/libs/utils';
 import { type ToolCategory } from '@/types/tools';
-import { 
-  ArrowLeftToLine, 
-  ChevronRight,
-  Home,
-  Sun,
-  Moon,
-  FileText,
-  Code,
-  Lock,
-  RefreshCw,
+import {
   ArrowLeftRight,
+  ArrowLeftToLine,
+  ChevronRight,
+  Code,
+  FileText,
   Globe,
-  Settings
+  Home,
+  Lock,
+  Moon,
+  RefreshCw,
+  Settings,
+  Sun
 } from 'lucide-react';
-import React, { useState } from 'react';
 import { useTheme } from 'next-themes';
+import React, { useState } from 'react';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -98,7 +98,7 @@ const CategoryItem = ({ category, isCollapsed, selectedTool, onToolSelect }: Cat
           <ChevronRight className="h-4 w-4 shrink-0 transition-transform" />
         )}
       </button>
-      
+
       {isExpanded && (
         <div className="mt-1 space-y-1">
           {category.tools.map((tool) => (
@@ -169,6 +169,7 @@ export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, onH
           variant="ghost"
           size="sm"
           onClick={onToggle}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className={cn(
             'p-0 h-4 w-4 hover:bg-transparent',
             isCollapsed && 'w-full'
@@ -202,7 +203,7 @@ export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, onH
                 <Home className="h-4 w-4 shrink-0" />
                 <span className="flex-1 text-left text-sm font-normal">All tools</span>
               </button>
-              
+
               {/* Separator */}
               <div className="h-px bg-[#f3f4f6] dark:bg-[#262626] my-2" />
             </>
@@ -232,8 +233,8 @@ export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, onH
               onClick={() => setTheme('light')}
               className={cn(
                 'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
-                mounted && theme === 'light' 
-                  ? 'bg-white dark:bg-[#171717] shadow-sm' 
+                mounted && theme === 'light'
+                  ? 'bg-white dark:bg-[#171717] shadow-sm'
                   : 'bg-transparent'
               )}
               title="Light mode"
@@ -245,8 +246,8 @@ export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, onH
               onClick={() => setTheme('dark')}
               className={cn(
                 'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
-                mounted && theme === 'dark' 
-                  ? 'bg-white dark:bg-[#171717] shadow-sm' 
+                mounted && theme === 'dark'
+                  ? 'bg-white dark:bg-[#171717] shadow-sm'
                   : 'bg-transparent'
               )}
               title="Dark mode"

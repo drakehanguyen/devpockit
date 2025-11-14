@@ -1,5 +1,5 @@
 import { render } from '@/test-utils/test-utils';
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { Sidebar } from '../Sidebar';
 
 // Mock the tools data
@@ -85,7 +85,7 @@ describe('Sidebar', () => {
     expect(mockOnToolSelect).toHaveBeenCalledWith('lorem-ipsum');
   });
 
-  it('should highlight selected tool', () => {
+  it('should highlight selected tool', async () => {
     render(
       <Sidebar
         isCollapsed={false}
@@ -95,11 +95,12 @@ describe('Sidebar', () => {
       />
     );
 
-    // First expand the category
-    const categoryButton = screen.getByText('Text Tools');
-    fireEvent.click(categoryButton);
+    // Category should auto-expand when tool is selected
+    // Wait for the tool to be visible (auto-expand happens in useEffect)
+    const toolButton = await waitFor(() => {
+      return screen.getByText('Lorem Ipsum Generator');
+    });
 
-    const toolButton = screen.getByText('Lorem Ipsum Generator');
     // Check if the tool button has the selected styling
     expect(toolButton.closest('button')).toHaveClass('bg-muted');
   });
@@ -114,7 +115,7 @@ describe('Sidebar', () => {
       />
     );
 
-    const toggleButton = screen.getByRole('button', { name: /←/ });
+    const toggleButton = screen.getByRole('button', { name: /collapse sidebar/i });
     fireEvent.click(toggleButton);
 
     expect(mockOnToggle).toHaveBeenCalled();

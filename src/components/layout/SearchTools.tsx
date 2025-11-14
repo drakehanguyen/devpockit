@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { getCategoryById, searchTools } from '@/libs/tools-data';
 import { cn } from '@/libs/utils';
 import { type Tool } from '@/types/tools';
-import { Search, X } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface SearchToolsProps {

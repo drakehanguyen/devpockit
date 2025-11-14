@@ -104,7 +104,7 @@ describe('Integration Tests', () => {
       )
 
       // Click toggle button
-      const toggleButton = screen.getByRole('button', { name: /←/ })
+      const toggleButton = screen.getByRole('button', { name: /collapse sidebar/i })
       fireEvent.click(toggleButton)
       expect(mockOnToggle).toHaveBeenCalled()
     })
@@ -117,7 +117,7 @@ describe('Integration Tests', () => {
       render(<SearchTools onToolSelect={mockOnToolSelect} />)
 
       // Type search query
-      const searchInput = screen.getByPlaceholderText(/search tools/i)
+      const searchInput = screen.getByPlaceholderText('Search')
       fireEvent.change(searchInput, { target: { value: 'lorem' } })
 
       // Wait for search results
@@ -138,7 +138,7 @@ describe('Integration Tests', () => {
       render(<SearchTools onToolSelect={mockOnToolSelect} />)
 
       // Type search query with no matches
-      const searchInput = screen.getByPlaceholderText(/search tools/i)
+      const searchInput = screen.getByPlaceholderText('Search')
       fireEvent.change(searchInput, { target: { value: 'nonexistent' } })
 
       // Wait for no results message
@@ -153,7 +153,7 @@ describe('Integration Tests', () => {
       render(<SearchTools onToolSelect={mockOnToolSelect} />)
 
       // Type search query
-      const searchInput = screen.getByPlaceholderText(/search tools/i)
+      const searchInput = screen.getByPlaceholderText('Search')
       fireEvent.change(searchInput, { target: { value: 'json' } })
 
       // Wait for search results
@@ -161,12 +161,18 @@ describe('Integration Tests', () => {
         expect(screen.getByText('JSON Formatter')).toBeInTheDocument()
       })
 
-      // Clear search using the X button
-      const clearButton = screen.getAllByRole('button')[0] // First button is the clear button
-      fireEvent.click(clearButton)
+      // Clear search using Escape key (component supports Escape key to clear)
+      fireEvent.keyDown(searchInput, { key: 'Escape' })
 
       // Search input should be cleared
-      expect(searchInput).toHaveValue('')
+      await waitFor(() => {
+        expect(searchInput).toHaveValue('')
+      })
+
+      // Search results should be hidden
+      await waitFor(() => {
+        expect(screen.queryByText('JSON Formatter')).not.toBeInTheDocument()
+      })
     })
   })
 
@@ -258,7 +264,7 @@ describe('Integration Tests', () => {
       render(<SearchTools onToolSelect={mockOnToolSelect} />)
 
       // Search for JSON formatter
-      const searchInput = screen.getByPlaceholderText(/search tools/i)
+      const searchInput = screen.getByPlaceholderText('Search')
       fireEvent.change(searchInput, { target: { value: 'json' } })
 
       // Wait for search results
@@ -340,7 +346,7 @@ describe('Integration Tests', () => {
       render(<SearchTools onToolSelect={mockOnToolSelect} />)
 
       // Type invalid search query
-      const searchInput = screen.getByPlaceholderText(/search tools/i)
+      const searchInput = screen.getByPlaceholderText('Search')
       fireEvent.change(searchInput, { target: { value: '!!!' } })
 
       // Should show no results
@@ -384,9 +390,10 @@ describe('Integration Tests', () => {
       )
 
       // Test keyboard navigation
-      const searchInput = screen.getByPlaceholderText(/search tools/i)
-      searchInput.focus()
-      expect(searchInput).toHaveFocus()
+      const searchInputs = screen.getAllByPlaceholderText('Search')
+      const searchToolsInput = searchInputs[searchInputs.length - 1] // Get the SearchTools input (last one)
+      searchToolsInput.focus()
+      expect(searchToolsInput).toHaveFocus()
 
       // Test sidebar keyboard navigation
       const categoryButton = screen.getByText('Text Tools')

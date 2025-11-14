@@ -35,21 +35,21 @@ describe('SearchTools', () => {
   it('should render search input', () => {
     render(<SearchTools onToolSelect={mockOnToolSelect} />);
 
-    expect(screen.getByPlaceholderText(/search tools/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
   });
 
   it('should not render search when closed', () => {
     render(<SearchTools onToolSelect={mockOnToolSelect} />);
 
     // Search input should always be visible, but results should not be shown when no query
-    expect(screen.getByPlaceholderText(/search tools/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
     expect(screen.queryByText(/tools found/i)).not.toBeInTheDocument();
   });
 
   it('should search for tools when typing', async () => {
     render(<SearchTools onToolSelect={mockOnToolSelect} />);
 
-    const searchInput = screen.getByPlaceholderText(/search tools/i);
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'lorem' } });
 
     await waitFor(() => {
@@ -60,7 +60,7 @@ describe('SearchTools', () => {
   it('should show no results when no matches found', async () => {
     render(<SearchTools onToolSelect={mockOnToolSelect} />);
 
-    const searchInput = screen.getByPlaceholderText(/search tools/i);
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'nonexistent' } });
 
     await waitFor(() => {
@@ -71,7 +71,7 @@ describe('SearchTools', () => {
   it('should call onToolSelect when tool is clicked', async () => {
     render(<SearchTools onToolSelect={mockOnToolSelect} />);
 
-    const searchInput = screen.getByPlaceholderText(/search tools/i);
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'lorem' } });
 
     await waitFor(() => {
@@ -85,7 +85,7 @@ describe('SearchTools', () => {
   it('should clear search when clear button is clicked', async () => {
     render(<SearchTools onToolSelect={mockOnToolSelect} />);
 
-    const searchInput = screen.getByPlaceholderText(/search tools/i);
+    const searchInput = screen.getByPlaceholderText('Search');
 
     // First search for something
     fireEvent.change(searchInput, { target: { value: 'lorem' } });
@@ -106,7 +106,7 @@ describe('SearchTools', () => {
   it('should clear search when input is cleared', async () => {
     render(<SearchTools onToolSelect={mockOnToolSelect} />);
 
-    const searchInput = screen.getByPlaceholderText(/search tools/i);
+    const searchInput = screen.getByPlaceholderText('Search');
 
     // First search for something
     fireEvent.change(searchInput, { target: { value: 'lorem' } });
