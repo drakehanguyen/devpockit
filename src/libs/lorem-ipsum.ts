@@ -13,7 +13,7 @@ import {
 } from '@/config/lorem-ipsum-config';
 
 export interface LoremOptions {
-  type: 'latin' | 'bacon' | 'gen-alpha' | 'tech-bro';
+  type: 'latin' | 'bacon' | 'gen-alpha' | 'tech-bro' | 'wibu' | 'climber-bro';
   unit: 'words' | 'sentences' | 'paragraphs';
   quantity: number;
   format: 'plain' | 'html';

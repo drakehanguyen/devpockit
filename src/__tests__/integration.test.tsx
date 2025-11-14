@@ -25,6 +25,7 @@ describe('Integration Tests', () => {
     it('should handle complete navigation flow from sidebar to tool selection', async () => {
       const mockOnToolSelect = jest.fn()
       const mockOnToggle = jest.fn()
+      const mockOnHomeClick = jest.fn()
 
       render(
         <div>
@@ -33,6 +34,7 @@ describe('Integration Tests', () => {
             onToggle={mockOnToggle}
             selectedTool={undefined}
             onToolSelect={mockOnToolSelect}
+            onHomeClick={mockOnHomeClick}
           />
         </div>
       )
@@ -93,6 +95,7 @@ describe('Integration Tests', () => {
     it('should handle sidebar collapse and expand', () => {
       const mockOnToolSelect = jest.fn()
       const mockOnToggle = jest.fn()
+      const mockOnHomeClick = jest.fn()
 
       render(
         <Sidebar
@@ -100,6 +103,7 @@ describe('Integration Tests', () => {
           onToggle={mockOnToggle}
           selectedTool={undefined}
           onToolSelect={mockOnToolSelect}
+          onHomeClick={mockOnHomeClick}
         />
       )
 
@@ -307,6 +311,7 @@ describe('Integration Tests', () => {
       const mockOnToolSelect = jest.fn()
       const mockOnTabSelect = jest.fn()
       const mockOnTabClose = jest.fn()
+      const mockOnHomeClick = jest.fn()
 
       const tabs = [
         { toolId: 'lorem-ipsum', toolName: 'Lorem Ipsum Generator', category: 'Text Tools', isActive: true }
@@ -319,6 +324,7 @@ describe('Integration Tests', () => {
             onToggle={jest.fn()}
             selectedTool="lorem-ipsum"
             onToolSelect={mockOnToolSelect}
+            onHomeClick={mockOnHomeClick}
           />
           <TopNavTabs
             tabs={tabs}
@@ -376,6 +382,7 @@ describe('Integration Tests', () => {
   describe('Accessibility Integration', () => {
     it('should maintain keyboard navigation throughout workflow', () => {
       const mockOnToolSelect = jest.fn()
+      const mockOnHomeClick = jest.fn()
 
       render(
         <div>
@@ -384,6 +391,7 @@ describe('Integration Tests', () => {
             onToggle={jest.fn()}
             selectedTool={undefined}
             onToolSelect={mockOnToolSelect}
+            onHomeClick={mockOnHomeClick}
           />
           <SearchTools onToolSelect={mockOnToolSelect} />
         </div>

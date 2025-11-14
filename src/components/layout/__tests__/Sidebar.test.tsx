@@ -28,6 +28,7 @@ jest.mock('@/libs/tools-data', () => ({
 describe('Sidebar', () => {
   const mockOnToolSelect = jest.fn();
   const mockOnToggle = jest.fn();
+  const mockOnHomeClick = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -40,6 +41,7 @@ describe('Sidebar', () => {
         onToggle={mockOnToggle}
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -54,6 +56,7 @@ describe('Sidebar', () => {
         onToggle={mockOnToggle}
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -71,6 +74,7 @@ describe('Sidebar', () => {
         onToggle={mockOnToggle}
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -92,6 +96,7 @@ describe('Sidebar', () => {
         onToggle={mockOnToggle}
         selectedTool="lorem-ipsum"
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -112,6 +117,7 @@ describe('Sidebar', () => {
         onToggle={mockOnToggle}
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
