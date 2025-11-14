@@ -1,8 +1,6 @@
 'use client';
 
 import { ToolStateProvider, useToolStateContext } from '@/components/providers/ToolStateProvider';
-import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getToolComponent } from '@/libs/tool-components';
 import { getToolById } from '@/libs/tools-data';
 import { isValidCategoryUrl, isValidToolUrl, parseToolUrl } from '@/libs/url-utils';
@@ -11,7 +9,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { WelcomePage } from '../pages/WelcomePage';
 import { MobileMenu } from './MobileMenu';
-import { SearchTools } from './SearchTools';
 import { Sidebar } from './Sidebar';
 import { TopNavTabs, type ActiveTab } from './TopNavTabs';
 
@@ -115,9 +112,17 @@ function AppLayoutInner({ children }: AppLayoutProps) {
     if (isValidToolUrl(pathname)) {
       const parsed = parseToolUrl(pathname);
       if (parsed) {
-        // Only update selectedTool if it's different
-        if (selectedTool !== parsed.toolId) {
-          setSelectedTool(parsed.toolId);
+        // Update selectedTool
+        setSelectedTool(parsed.toolId);
+        // Auto-expand sidebar when a tool is selected (if collapsed and not on mobile)
+        if (!isMobile) {
+          setSidebarCollapsed(prev => {
+            // Only expand if currently collapsed
+            if (prev) {
+              return false;
+            }
+            return prev;
+          });
         }
 
         // Update tabs to reflect the current tool
@@ -147,14 +152,10 @@ function AppLayoutInner({ children }: AppLayoutProps) {
       }
     } else if (isValidCategoryUrl(pathname)) {
       // Category page - show welcome page for that category
-      if (selectedTool !== undefined) {
-        setSelectedTool(undefined);
-      }
+      setSelectedTool(undefined);
     } else if (pathname === '/') {
       // Home page
-      if (selectedTool !== undefined) {
-        setSelectedTool(undefined);
-      }
+      setSelectedTool(undefined);
     } else {
       // Invalid URL, redirect to home
       router.push('/');
@@ -259,77 +260,46 @@ function AppLayoutInner({ children }: AppLayoutProps) {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
-      <header className="border-b bg-card px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          {/* Mobile menu */}
-          {isMobile && (
-            <MobileMenu
-              selectedTool={selectedTool}
-              onToolSelect={handleToolSelect}
-            />
-          )}
-
-          {/* Logo/Home button */}
-          <Button
-            variant="ghost"
-            onClick={handleHomeClick}
-            className="flex items-center space-x-2 px-3"
-          >
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">DP</span>
-            </div>
-            {!isMobile && (
-              <div>
-                <span className="font-bold">DevPockit</span>
-              </div>
-            )}
-          </Button>
-        </div>
-
-        {/* Search */}
-        <div className="flex-1 max-w-md mx-4">
-          <SearchTools onToolSelect={handleToolSelect} />
-        </div>
-
-        {/* Header actions */}
-        <div className="flex items-center space-x-2">
-          <ThemeToggle />
-        </div>
-      </header>
-
-      {/* Top Navigation Tabs (Desktop only) */}
-      {!isMobile && activeTabs.length > 0 && (
-        <TopNavTabs
-          tabs={activeTabs}
-          activeTab={selectedTool}
-          onTabSelect={handleTabSelect}
-          onTabClose={handleTabClose}
-          onCloseAll={handleCloseAllTabs}
-        />
-      )}
-
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar (Desktop only) */}
-        {!isMobile && (
+        {/* Sidebar or Mobile Menu */}
+        {!isMobile ? (
           <Sidebar
             isCollapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             selectedTool={selectedTool}
             onToolSelect={handleToolSelect}
+            onHomeClick={handleHomeClick}
+          />
+        ) : (
+          <MobileMenu
+            selectedTool={selectedTool}
+            onToolSelect={handleToolSelect}
+            onHomeClick={handleHomeClick}
           />
         )}
 
         {/* Content Area */}
         <main className={cn(
-          'flex-1 overflow-auto',
+          'flex-1 overflow-hidden flex flex-col',
           !isMobile && !sidebarCollapsed && 'ml-0',
           !isMobile && sidebarCollapsed && 'ml-0'
         )}>
           {selectedTool ? (
-            <div className="h-full">
-              <DynamicToolRenderer toolId={selectedTool} />
+            <div className="h-full flex flex-col overflow-hidden">
+              {/* Tool Header with Tabs (Desktop only) */}
+              {!isMobile && activeTabs.length > 0 && (
+                <TopNavTabs
+                  tabs={activeTabs}
+                  activeTab={selectedTool}
+                  onTabSelect={handleTabSelect}
+                  onTabClose={handleTabClose}
+                  onCloseAll={handleCloseAllTabs}
+                />
+              )}
+              <div className="flex-1 overflow-auto">
+                <DynamicToolRenderer toolId={selectedTool} />
+              </div>
             </div>
           ) : (
             <WelcomePage onToolSelect={handleToolSelect} />

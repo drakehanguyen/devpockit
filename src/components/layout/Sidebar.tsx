@@ -1,20 +1,33 @@
 'use client';
 
+import { SearchTools } from '@/components/layout/SearchTools';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Separator } from '@/components/ui/separator';
 import { toolCategories } from '@/libs/tools-data';
 import { cn } from '@/libs/utils';
 import { type ToolCategory } from '@/types/tools';
-import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import {
+  ArrowLeftRight,
+  ArrowLeftToLine,
+  ChevronRight,
+  Code,
+  FileText,
+  Globe,
+  Home,
+  Lock,
+  Moon,
+  RefreshCw,
+  Settings,
+  Sun
+} from 'lucide-react';
+import { useTheme } from 'next-themes';
+import React, { useState } from 'react';
 
 interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
   selectedTool?: string;
   onToolSelect: (toolId: string) => void;
+  onHomeClick: () => void;
   className?: string;
 }
 
@@ -25,152 +38,225 @@ interface CategoryItemProps {
   onToolSelect: (toolId: string) => void;
 }
 
+// Map category IDs to lucide icons
+const getCategoryIcon = (categoryId: string) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    'text-tools': FileText,
+    'formatters': Code,
+    'cryptography': Lock,
+    'encoders': RefreshCw,
+    'converters': ArrowLeftRight,
+    'network': Globe,
+    'utilities': Settings,
+  };
+  return iconMap[categoryId] || FileText;
+};
+
 const CategoryItem = ({ category, isCollapsed, selectedTool, onToolSelect }: CategoryItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const IconComponent = getCategoryIcon(category.id);
 
-  const getCategoryColorClasses = (color: string) => {
-    const colorMap = {
-      blue: 'text-category-blue-600 bg-category-blue-50 hover:bg-category-blue-100 hover:text-category-blue-700 dark:text-category-blue-400 dark:bg-category-blue-950/50 dark:hover:bg-category-blue-900/50 dark:hover:text-category-blue-300',
-      green: 'text-category-green-600 bg-category-green-50 hover:bg-category-green-100 hover:text-category-green-700 dark:text-category-green-400 dark:bg-category-green-950/50 dark:hover:bg-category-green-900/50 dark:hover:text-category-green-300',
-      purple: 'text-category-purple-600 bg-category-purple-50 hover:bg-category-purple-100 hover:text-category-purple-700 dark:text-category-purple-400 dark:bg-category-purple-950/50 dark:hover:bg-category-purple-900/50 dark:hover:text-category-purple-300',
-      red: 'text-category-red-600 bg-category-red-50 hover:bg-category-red-100 hover:text-category-red-700 dark:text-category-red-400 dark:bg-category-red-950/50 dark:hover:bg-category-red-900/50 dark:hover:text-category-red-300',
-      orange: 'text-category-orange-600 bg-category-orange-50 hover:bg-category-orange-100 hover:text-category-orange-700 dark:text-category-orange-400 dark:bg-category-orange-950/50 dark:hover:bg-category-orange-900/50 dark:hover:text-category-orange-300',
-      teal: 'text-category-teal-600 bg-category-teal-50 hover:bg-category-teal-100 hover:text-category-teal-700 dark:text-category-teal-400 dark:bg-category-teal-950/50 dark:hover:bg-category-teal-900/50 dark:hover:text-category-teal-300',
-      indigo: 'text-category-indigo-600 bg-category-indigo-50 hover:bg-category-indigo-100 hover:text-category-indigo-700 dark:text-category-indigo-400 dark:bg-category-indigo-950/50 dark:hover:bg-category-indigo-900/50 dark:hover:text-category-indigo-300',
-    };
-    return colorMap[color as keyof typeof colorMap] || colorMap.blue;
-  };
+  // Auto-expand category if it contains the selected tool
+  React.useEffect(() => {
+    if (selectedTool && !isCollapsed) {
+      const hasSelectedTool = category.tools.some(tool => tool.id === selectedTool);
+      if (hasSelectedTool) {
+        setIsExpanded(true);
+      }
+    }
+  }, [selectedTool, category.tools, isCollapsed]);
 
   if (isCollapsed) {
     return (
-      <div className="flex flex-col items-center space-y-2">
+      <div className="flex flex-col items-center">
         <Button
           variant="ghost"
           size="sm"
-          className={cn(
-            'w-10 h-10 p-0 rounded-lg transition-colors',
-            getCategoryColorClasses(category.color)
-          )}
+          className="w-10 h-10 p-0 rounded-md hover:bg-muted"
           title={category.name}
         >
-          <span className="text-lg">{category.icon}</span>
+          <IconComponent className="h-4 w-4" />
         </Button>
       </div>
     );
   }
 
   return (
-    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <CollapsibleTrigger asChild>
-        <Button
-          variant="ghost"
-          className={cn(
-            'w-full justify-start p-3 h-auto rounded-lg transition-colors',
-            getCategoryColorClasses(category.color)
-          )}
-        >
-          <span className="text-lg mr-3">{category.icon}</span>
-          <span className="font-medium flex-1 text-left">{category.name}</span>
-          {isExpanded ? (
-            <ChevronDownIcon className="h-4 w-4" />
-          ) : (
-            <ChevronRightIcon className="h-4 w-4" />
-          )}
-        </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 space-y-1">
-        {category.tools.map((tool) => (
-          <Button
-            key={tool.id}
-            variant="ghost"
-            size="sm"
-            className={cn(
-              'w-full justify-start pl-6 py-2 h-auto text-sm transition-colors rounded-md',
-              selectedTool === tool.id
-                ? 'bg-muted text-foreground dark:bg-muted/50'
-                : 'hover:bg-secondary hover:text-foreground'
-            )}
-            onClick={() => onToolSelect(tool.id)}
-          >
-            <span className="mr-2">{tool.icon}</span>
-            <span className="flex-1 text-left">{tool.name}</span>
-          </Button>
-        ))}
-      </CollapsibleContent>
-    </Collapsible>
+    <div className="w-full">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          'w-full flex items-center gap-2 px-2 py-2.5 rounded-md transition-colors hover:bg-muted',
+          'text-[#171717] dark:text-[#e5e5e5]'
+        )}
+      >
+        <IconComponent className="h-4 w-4 shrink-0" />
+        <span className="flex-1 text-left text-sm font-normal whitespace-nowrap overflow-hidden text-ellipsis">{category.name}</span>
+        {isExpanded ? (
+          <ChevronRight className="h-4 w-4 shrink-0 rotate-90 transition-transform" />
+        ) : (
+          <ChevronRight className="h-4 w-4 shrink-0 transition-transform" />
+        )}
+      </button>
+
+      {isExpanded && (
+        <div className="mt-1 space-y-1">
+          {category.tools.map((tool) => (
+            <button
+              key={tool.id}
+              onClick={() => onToolSelect(tool.id)}
+              className={cn(
+                'w-full flex items-center gap-2 px-2 py-2 rounded-md transition-colors',
+                'text-[#171717] dark:text-[#e5e5e5]',
+                selectedTool === tool.id
+                  ? 'bg-muted'
+                  : 'hover:bg-muted/50'
+              )}
+            >
+              {/* Tree structure - vertical line and leaf */}
+              <div className="relative w-5 h-5 shrink-0">
+                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-[#e5e5e5] dark:bg-[#404040] -translate-x-1/2" />
+              </div>
+              <span className="flex-1 text-left text-sm font-normal overflow-ellipsis overflow-hidden whitespace-nowrap">
+                {tool.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
-export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, className }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, onHomeClick, className }: SidebarProps) {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch by waiting for client-side mount
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <Card className={cn(
-      'h-full border-r bg-card transition-all duration-300 overflow-hidden',
-      isCollapsed ? 'w-16' : 'w-72',
+    <div className={cn(
+      'h-full border-r border-[#e5e5e5] dark:border-[#262626] bg-white dark:bg-[#0a0a0a] transition-all duration-300 overflow-hidden flex flex-col',
+      isCollapsed ? 'w-16' : 'w-[280px]',
       className
     )}>
-      <div className="flex flex-col h-full">
-        {/* Header */}
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            {!isCollapsed && (
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">DP</span>
-                </div>
-                <div>
-                  <h1 className="font-bold text-lg">DevPockit</h1>
-                  <p className="text-xs text-muted-foreground">Developer Tools</p>
-                </div>
-              </div>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggle}
-              className={cn(
-                'p-2',
-                isCollapsed && 'w-full'
-              )}
-            >
-              <span className="text-lg">
-                {isCollapsed ? '→' : '←'}
-              </span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Categories */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {!isCollapsed && (
-            <div className="mb-4">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                Tool Categories
-              </h2>
-              <Separator />
-            </div>
-          )}
-
-          {toolCategories.map((category) => (
-            <CategoryItem
-              key={category.id}
-              category={category}
-              isCollapsed={isCollapsed}
-              selectedTool={selectedTool}
-              onToolSelect={onToolSelect}
-            />
-          ))}
-        </div>
-
-        {/* Footer */}
+      {/* Header with Logo and Collapse button */}
+      <div className="flex items-center justify-between px-3 pt-3 pb-4 shrink-0">
         {!isCollapsed && (
-          <div className="p-4 border-t">
-            <div className="text-xs text-muted-foreground text-center">
-              <p>DevPockit v1.0</p>
-              <p>Built with Next.js</p>
+          <div className="flex items-center gap-0.5">
+            {/* Logo */}
+            <div className="w-10 h-10 bg-[#ccd0da] dark:bg-[#4c4f69] rounded-[10px] flex items-center justify-center shrink-0">
+              <span className="font-bold text-[17.5px] text-[#4c4f69] dark:text-[#ccd0da] leading-[25px]">
+                DP
+              </span>
+            </div>
+            {/* Name */}
+            <div className="pl-2">
+              <div className="font-semibold text-[18px] leading-[24px] tracking-[-0.36px] text-black dark:text-white">
+                DevPockit
+              </div>
+              <div className="font-normal text-[14px] leading-[20px] tracking-[-0.28px] text-[#737373] dark:text-[#a3a3a3]">
+                Developer Tools
+              </div>
             </div>
           </div>
         )}
+        {/* Collapse button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggle}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={cn(
+            'p-0 h-4 w-4 hover:bg-transparent',
+            isCollapsed && 'w-full'
+          )}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ArrowLeftToLine className="h-4 w-4" />
+          )}
+        </Button>
       </div>
-    </Card>
+
+      {/* Search Bar */}
+      {!isCollapsed && (
+        <div className="px-3 pb-4 shrink-0">
+          <SearchTools onToolSelect={onToolSelect} />
+        </div>
+      )}
+
+      {/* Menu */}
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        <div className="space-y-2">
+          {/* All tools button */}
+          {!isCollapsed && (
+            <>
+              <button
+                onClick={onHomeClick}
+                className="w-full flex items-center gap-2 px-2 py-2.5 rounded-md transition-colors hover:bg-muted text-[#171717] dark:text-[#e5e5e5]"
+              >
+                <Home className="h-4 w-4 shrink-0" />
+                <span className="flex-1 text-left text-sm font-normal">All tools</span>
+              </button>
+
+              {/* Separator */}
+              <div className="h-px bg-[#f3f4f6] dark:bg-[#262626] my-2" />
+            </>
+          )}
+
+          {/* Categories */}
+          <div className="space-y-1">
+            {toolCategories.map((category) => (
+              <CategoryItem
+                key={category.id}
+                category={category}
+                isCollapsed={isCollapsed}
+                selectedTool={selectedTool}
+                onToolSelect={onToolSelect}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Theme Toggle */}
+      {!isCollapsed && (
+        <div className="px-3 py-3 shrink-0">
+          <div className="bg-[#f5f5f5] dark:bg-[#262626] rounded-[10px] p-[3px] flex items-center">
+            {/* Light mode tab */}
+            <button
+              onClick={() => setTheme('light')}
+              className={cn(
+                'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
+                mounted && theme === 'light'
+                  ? 'bg-white dark:bg-[#171717] shadow-sm'
+                  : 'bg-transparent'
+              )}
+              title="Light mode"
+            >
+              <Sun className="h-4 w-4 text-[#525252]" />
+            </button>
+            {/* Dark mode tab */}
+            <button
+              onClick={() => setTheme('dark')}
+              className={cn(
+                'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
+                mounted && theme === 'dark'
+                  ? 'bg-white dark:bg-[#171717] shadow-sm'
+                  : 'bg-transparent'
+              )}
+              title="Dark mode"
+            >
+              <Moon className="h-4 w-4 text-[#525252]" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

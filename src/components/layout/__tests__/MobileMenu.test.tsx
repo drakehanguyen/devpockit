@@ -27,6 +27,7 @@ jest.mock('@/libs/tools-data', () => ({
 
 describe('MobileMenu', () => {
   const mockOnToolSelect = jest.fn();
+  const mockOnHomeClick = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -37,6 +38,7 @@ describe('MobileMenu', () => {
       <MobileMenu
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -48,6 +50,7 @@ describe('MobileMenu', () => {
       <MobileMenu
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -59,6 +62,7 @@ describe('MobileMenu', () => {
       <MobileMenu
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -78,6 +82,7 @@ describe('MobileMenu', () => {
       <MobileMenu
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -101,6 +106,7 @@ describe('MobileMenu', () => {
       <MobileMenu
         selectedTool="lorem-ipsum"
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -121,6 +127,7 @@ describe('MobileMenu', () => {
       <MobileMenu
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 

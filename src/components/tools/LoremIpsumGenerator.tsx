@@ -2,51 +2,96 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { OutputDisplay } from '@/components/ui/OutputDisplay';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
 import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
 import { cn } from '@/libs/utils';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
 interface LoremIpsumGeneratorProps {
   className?: string;
 }
 
-
 export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   const { toolState, updateToolState } = useToolState('lorem-ipsum-generator');
 
-  // Initialize with persistent state or defaults
-  const [options, setOptions] = useState<LoremOptions>(
-    (toolState?.options as LoremOptions) || DEFAULT_OPTIONS
-  );
-  const [output, setOutput] = useState<string>(toolState?.output || '');
+  // Initialize with defaults to avoid hydration mismatch
+  const [options, setOptions] = useState<LoremOptions>(DEFAULT_OPTIONS);
+  const [outputPlain, setOutputPlain] = useState<string>('');
+  const [outputHtml, setOutputHtml] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string>(toolState?.error || '');
+  const [error, setError] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'plain' | 'html'>('plain');
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Hydrate state from toolState after mount (client-side only)
+  useEffect(() => {
+    setIsHydrated(true);
+    if (toolState) {
+      if (toolState.options) setOptions(toolState.options as LoremOptions);
+      if (toolState.outputPlain) setOutputPlain(toolState.outputPlain as string);
+      if (toolState.outputHtml) setOutputHtml(toolState.outputHtml as string);
+      if (toolState.error) setError(toolState.error as string);
+      if ((toolState.options as LoremOptions)?.format) {
+        setActiveTab((toolState.options as LoremOptions).format);
+      }
+    }
+  }, []);
 
   // Update persistent state whenever local state changes
   useEffect(() => {
-    updateToolState({
-      options,
-      output,
-      error
-    });
-  }, [options, output, error]);
+    if (isHydrated) {
+      updateToolState({
+        options,
+        outputPlain,
+        outputHtml,
+        error
+      });
+    }
+  }, [options, outputPlain, outputHtml, error, isHydrated]);
 
   // Reset local state when tool state is cleared
   useEffect(() => {
-    if (!toolState || Object.keys(toolState).length === 0) {
+    if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
       setOptions(DEFAULT_OPTIONS);
-      setOutput('');
+      setOutputPlain('');
+      setOutputHtml('');
       setError('');
+      setActiveTab('plain');
     }
-  }, [toolState]);
+  }, [toolState, isHydrated]);
 
+  // Sync format with active tab
+  useEffect(() => {
+    setOptions(prev => ({ ...prev, format: activeTab }));
+  }, [activeTab]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as 'plain' | 'html');
+  };
+
+  const convertPlainToHtml = (plainText: string, unit: 'words' | 'sentences' | 'paragraphs'): string => {
+    if (!plainText) return '';
+
+    switch (unit) {
+      case 'words':
+      case 'sentences':
+        // Wrap entire content in a single <p> tag
+        return `<p>${plainText}</p>`;
+      
+      case 'paragraphs':
+        // Split by double newlines and wrap each paragraph in <p> tags
+        const paragraphs = plainText.split('\n\n').filter(p => p.trim().length > 0);
+        return paragraphs.map(p => `<p>${p.trim()}</p>`).join('\n');
+      
+      default:
+        return plainText;
+    }
+  };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -63,58 +108,74 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
       // Simulate async operation for better UX
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      const result = generateLoremIpsum(options);
-      setOutput(result);
+      // Generate plain text once (same content)
+      const plainOptions = { ...options, format: 'plain' as const };
+      const plainResult = generateLoremIpsum(plainOptions);
+      
+      // Convert the same plain text to HTML format
+      const htmlResult = convertPlainToHtml(plainResult, options.unit);
+      
+      setOutputPlain(plainResult);
+      setOutputHtml(htmlResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate text');
-      setOutput('');
+      setOutputPlain('');
+      setOutputHtml('');
     } finally {
       setIsGenerating(false);
     }
   };
 
-
   const handleQuantityChange = (value: string) => {
     const quantity = parseInt(value, 10);
-    if (quantity >= 1 && quantity <= 100) {
+    if (!isNaN(quantity) && quantity >= 1 && quantity <= 100) {
       setOptions(prev => ({ ...prev, quantity }));
     }
   };
 
-  const incrementQuantity = () => {
-    if (options.quantity < 100) {
-      setOptions(prev => ({ ...prev, quantity: prev.quantity + 1 }));
+  const handleCopy = async () => {
+    const currentOutput = activeTab === 'plain' ? outputPlain : outputHtml;
+    if (!currentOutput) return;
+    
+    try {
+      await navigator.clipboard.writeText(currentOutput);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
   };
 
-  const decrementQuantity = () => {
-    if (options.quantity > 1) {
-      setOptions(prev => ({ ...prev, quantity: prev.quantity - 1 }));
-    }
-  };
+  const currentOutput = activeTab === 'plain' ? outputPlain : outputHtml;
 
   return (
-    <div className={cn('space-y-6', className)}>
-      {/* Header and Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lorem Ipsum Generator</CardTitle>
-          <CardDescription>
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Header Section */}
+      <div className="bg-primary-foreground px-[24px] py-[24px]">
+        <div className="max-w-[1200px]">
+          <h1 className="text-[32px] font-semibold leading-6 tracking-[-0.64px] text-foreground mb-3">
+            Lorem Ipsum Generator
+          </h1>
+          <p className="text-sm leading-5 tracking-[-0.28px] text-muted-foreground">
             Generate placeholder text in Latin or Bacon Ipsum format
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Type Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="type">Ipsum Type</Label>
+          </p>
+        </div>
+      </div>
+
+      {/* Body Section */}
+      <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
+        <div className="flex flex-col gap-4">
+          {/* Controls */}
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              {/* Type Select */}
               <Select
                 value={options.type}
-                onValueChange={(value: 'latin' | 'bacon') =>
+                onValueChange={(value: 'latin' | 'bacon' | 'gen-alpha' | 'tech-bro' | 'wibu' | 'climber-bro') =>
                   setOptions(prev => ({ ...prev, type: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-[228px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -125,18 +186,15 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
 
-            {/* Unit Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="unit">Unit</Label>
+              {/* Unit Select */}
               <Select
                 value={options.unit}
                 onValueChange={(value: 'words' | 'sentences' | 'paragraphs') =>
                   setOptions(prev => ({ ...prev, unit: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-[155px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -147,98 +205,106 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
 
-            {/* Format Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="format">Output Format</Label>
-              <Select
-                value={options.format}
-                onValueChange={(value: 'plain' | 'html') =>
-                  setOptions(prev => ({ ...prev, format: value }))
-                }
+              {/* Quantity Input */}
+              <Input
+                type="number"
+                min="1"
+                max="100"
+                value={options.quantity}
+                onChange={(e) => handleQuantityChange(e.target.value)}
+                className="w-[84px] text-center"
+              />
+
+              {/* Generate Button */}
+              <Button
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                size="default"
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LOREM_OPTIONS.formats.map((format) => (
-                    <SelectItem key={format.value} value={format.value}>
-                      {format.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {isGenerating ? (
+                  <>
+                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  'Generate'
+                )}
+              </Button>
             </div>
 
-            {/* Quantity Input */}
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity (1-100)</Label>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={decrementQuantity}
-                  disabled={options.quantity <= 1}
-                  className="h-10 w-10 p-0"
-                >
-                  -
-                </Button>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={options.quantity}
-                  onChange={(e) => handleQuantityChange(e.target.value)}
-                  className="text-center"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={incrementQuantity}
-                  disabled={options.quantity >= 100}
-                  className="h-10 w-10 p-0"
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Generate Button */}
-          <div className="flex justify-center">
+            {/* Copy Button */}
             <Button
-              onClick={handleGenerate}
-              disabled={isGenerating}
-              size="lg"
-              className="min-w-32"
+              onClick={handleCopy}
+              disabled={!currentOutput}
+              variant="secondary"
+              size="default"
             >
-              {isGenerating ? (
-                <>
-                  <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                'Generate Text'
-              )}
+              {copySuccess ? 'Copied!' : 'Copy'}
+              <DocumentDuplicateIcon className="h-4 w-4" />
             </Button>
           </div>
-        </CardContent>
-      </Card>
 
+          {/* Results */}
+          <div className="border border-border rounded-[10px] p-3 bg-background">
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+              <TabsList className="inline-flex mb-4">
+                <TabsTrigger value="plain">
+                  Plain text
+                </TabsTrigger>
+                <TabsTrigger value="html">
+                  HTML
+                </TabsTrigger>
+              </TabsList>
 
-      {/* Output Display */}
-      <OutputDisplay
-        title="Generated Text"
-        content={output}
-        error={error}
-        isLoading={isGenerating}
-        format={options.format}
-        placeholder="Click 'Generate Text' to create your Lorem Ipsum content"
-        showWordCount={options.unit === 'words'}
-        showCharacterCount={true}
-      />
+              <TabsContent value="plain" className="mt-0">
+                {/* Textarea */}
+                <textarea
+                  readOnly
+                  value={outputPlain || (error ? '' : '')}
+                  placeholder={error || 'Click "Generate" to create your Lorem Ipsum content'}
+                  className={cn(
+                    'w-full h-[374px] p-2 bg-background rounded-lg resize-none',
+                    'font-mono text-base leading-[1.5] text-foreground',
+                    'focus:outline-none',
+                    error ? 'text-red-500 placeholder:text-red-500' : 'placeholder:text-muted-foreground'
+                  )}
+                />
+
+                {/* Character Count */}
+                {outputPlain && !error && (
+                  <p className="text-sm tracking-[0.07px] text-muted-foreground mt-4">
+                    {outputPlain.length} characters
+                  </p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="html" className="mt-0">
+                {/* Textarea */}
+                <textarea
+                  readOnly
+                  value={outputHtml || (error ? '' : '')}
+                  placeholder={error || 'Click "Generate" to create your Lorem Ipsum content'}
+                  className={cn(
+                    'w-full h-[374px] p-2 bg-background rounded-lg resize-none',
+                    'font-mono text-base leading-[1.5] text-foreground',
+                    'focus:outline-none',
+                    error ? 'text-red-500 placeholder:text-red-500' : 'placeholder:text-muted-foreground'
+                  )}
+                />
+
+                {/* Character Count */}
+                {outputHtml && !error && (
+                  <p className="text-sm tracking-[0.07px] text-muted-foreground mt-4">
+                    {outputHtml.length} characters
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { render } from '@/test-utils/test-utils';
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { Sidebar } from '../Sidebar';
 
 // Mock the tools data
@@ -28,6 +28,7 @@ jest.mock('@/libs/tools-data', () => ({
 describe('Sidebar', () => {
   const mockOnToolSelect = jest.fn();
   const mockOnToggle = jest.fn();
+  const mockOnHomeClick = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -40,6 +41,7 @@ describe('Sidebar', () => {
         onToggle={mockOnToggle}
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -54,6 +56,7 @@ describe('Sidebar', () => {
         onToggle={mockOnToggle}
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -71,6 +74,7 @@ describe('Sidebar', () => {
         onToggle={mockOnToggle}
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
@@ -85,21 +89,23 @@ describe('Sidebar', () => {
     expect(mockOnToolSelect).toHaveBeenCalledWith('lorem-ipsum');
   });
 
-  it('should highlight selected tool', () => {
+  it('should highlight selected tool', async () => {
     render(
       <Sidebar
         isCollapsed={false}
         onToggle={mockOnToggle}
         selectedTool="lorem-ipsum"
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
-    // First expand the category
-    const categoryButton = screen.getByText('Text Tools');
-    fireEvent.click(categoryButton);
+    // Category should auto-expand when tool is selected
+    // Wait for the tool to be visible (auto-expand happens in useEffect)
+    const toolButton = await waitFor(() => {
+      return screen.getByText('Lorem Ipsum Generator');
+    });
 
-    const toolButton = screen.getByText('Lorem Ipsum Generator');
     // Check if the tool button has the selected styling
     expect(toolButton.closest('button')).toHaveClass('bg-muted');
   });
@@ -111,10 +117,11 @@ describe('Sidebar', () => {
         onToggle={mockOnToggle}
         selectedTool={undefined}
         onToolSelect={mockOnToolSelect}
+        onHomeClick={mockOnHomeClick}
       />
     );
 
-    const toggleButton = screen.getByRole('button', { name: /←/ });
+    const toggleButton = screen.getByRole('button', { name: /collapse sidebar/i });
     fireEvent.click(toggleButton);
 
     expect(mockOnToggle).toHaveBeenCalled();
