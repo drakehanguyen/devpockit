@@ -4,6 +4,7 @@ import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
 import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
 import { cn } from '@/libs/utils';
@@ -19,7 +20,8 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<LoremOptions>(DEFAULT_OPTIONS);
-  const [output, setOutput] = useState<string>('');
+  const [outputPlain, setOutputPlain] = useState<string>('');
+  const [outputHtml, setOutputHtml] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'plain' | 'html'>('plain');
@@ -31,7 +33,8 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     setIsHydrated(true);
     if (toolState) {
       if (toolState.options) setOptions(toolState.options as LoremOptions);
-      if (toolState.output) setOutput(toolState.output as string);
+      if (toolState.outputPlain) setOutputPlain(toolState.outputPlain as string);
+      if (toolState.outputHtml) setOutputHtml(toolState.outputHtml as string);
       if (toolState.error) setError(toolState.error as string);
       if ((toolState.options as LoremOptions)?.format) {
         setActiveTab((toolState.options as LoremOptions).format);
@@ -44,17 +47,19 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     if (isHydrated) {
       updateToolState({
         options,
-        output,
+        outputPlain,
+        outputHtml,
         error
       });
     }
-  }, [options, output, error, isHydrated]);
+  }, [options, outputPlain, outputHtml, error, isHydrated]);
 
   // Reset local state when tool state is cleared
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
       setOptions(DEFAULT_OPTIONS);
-      setOutput('');
+      setOutputPlain('');
+      setOutputHtml('');
       setError('');
       setActiveTab('plain');
     }
@@ -64,6 +69,29 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   useEffect(() => {
     setOptions(prev => ({ ...prev, format: activeTab }));
   }, [activeTab]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as 'plain' | 'html');
+  };
+
+  const convertPlainToHtml = (plainText: string, unit: 'words' | 'sentences' | 'paragraphs'): string => {
+    if (!plainText) return '';
+
+    switch (unit) {
+      case 'words':
+      case 'sentences':
+        // Wrap entire content in a single <p> tag
+        return `<p>${plainText}</p>`;
+      
+      case 'paragraphs':
+        // Split by double newlines and wrap each paragraph in <p> tags
+        const paragraphs = plainText.split('\n\n').filter(p => p.trim().length > 0);
+        return paragraphs.map(p => `<p>${p.trim()}</p>`).join('\n');
+      
+      default:
+        return plainText;
+    }
+  };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -80,11 +108,19 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
       // Simulate async operation for better UX
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      const result = generateLoremIpsum(options);
-      setOutput(result);
+      // Generate plain text once (same content)
+      const plainOptions = { ...options, format: 'plain' as const };
+      const plainResult = generateLoremIpsum(plainOptions);
+      
+      // Convert the same plain text to HTML format
+      const htmlResult = convertPlainToHtml(plainResult, options.unit);
+      
+      setOutputPlain(plainResult);
+      setOutputHtml(htmlResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate text');
-      setOutput('');
+      setOutputPlain('');
+      setOutputHtml('');
     } finally {
       setIsGenerating(false);
     }
@@ -98,10 +134,11 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   };
 
   const handleCopy = async () => {
-    if (!output) return;
+    const currentOutput = activeTab === 'plain' ? outputPlain : outputHtml;
+    if (!currentOutput) return;
     
     try {
-      await navigator.clipboard.writeText(output);
+      await navigator.clipboard.writeText(currentOutput);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
@@ -109,14 +146,14 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     }
   };
 
-  const characterCount = output.length;
+  const currentOutput = activeTab === 'plain' ? outputPlain : outputHtml;
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header Section */}
-      <div className="bg-muted px-12 py-10">
+      <div className="bg-primary-foreground px-[24px] py-[24px]">
         <div className="max-w-[1200px]">
-          <h1 className="text-[32px] font-semibold leading-6 tracking-[-0.64px] text-foreground mb-4">
+          <h1 className="text-[32px] font-semibold leading-6 tracking-[-0.64px] text-foreground mb-3">
             Lorem Ipsum Generator
           </h1>
           <p className="text-sm leading-5 tracking-[-0.28px] text-muted-foreground">
@@ -126,11 +163,11 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
       </div>
 
       {/* Body Section */}
-      <div className="flex-1 bg-background px-12 py-10">
-        <div className="flex flex-col gap-6">
+      <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
+        <div className="flex flex-col gap-4">
           {/* Controls */}
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {/* Type Select */}
               <Select
                 value={options.type}
@@ -150,16 +187,6 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                 </SelectContent>
               </Select>
 
-              {/* Quantity Input */}
-              <Input
-                type="number"
-                min="1"
-                max="100"
-                value={options.quantity}
-                onChange={(e) => handleQuantityChange(e.target.value)}
-                className="w-[84px] text-center"
-              />
-
               {/* Unit Select */}
               <Select
                 value={options.unit}
@@ -178,6 +205,16 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Quantity Input */}
+              <Input
+                type="number"
+                min="1"
+                max="100"
+                value={options.quantity}
+                onChange={(e) => handleQuantityChange(e.target.value)}
+                className="w-[84px] text-center"
+              />
 
               {/* Generate Button */}
               <Button
@@ -199,7 +236,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
             {/* Copy Button */}
             <Button
               onClick={handleCopy}
-              disabled={!output}
+              disabled={!currentOutput}
               variant="secondary"
               size="default"
             >
@@ -211,50 +248,60 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
           {/* Results */}
           <div className="border border-border rounded-[10px] p-3 bg-background">
             {/* Tabs */}
-            <div className="bg-muted rounded-[10px] p-[3px] inline-flex mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setActiveTab('plain')}
-                className={cn(
-                  'rounded-[10px] h-[29px]',
-                  activeTab === 'plain' && 'bg-background shadow-sm'
-                )}
-              >
-                Plain text
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setActiveTab('html')}
-                className={cn(
-                  'rounded-[10px] h-[29px]',
-                  activeTab === 'html' && 'bg-background shadow-sm'
-                )}
-              >
-                HTML
-              </Button>
-            </div>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+              <TabsList className="inline-flex mb-4">
+                <TabsTrigger value="plain">
+                  Plain text
+                </TabsTrigger>
+                <TabsTrigger value="html">
+                  HTML
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Textarea */}
-            <textarea
-              readOnly
-              value={output || (error ? '' : '')}
-              placeholder={error || 'Click "Generate" to create your Lorem Ipsum content'}
-              className={cn(
-                'w-full h-[374px] p-2 bg-background rounded-lg resize-none',
-                'font-mono text-base leading-[1.5] text-foreground',
-                'focus:outline-none',
-                error ? 'text-red-500 placeholder:text-red-500' : 'placeholder:text-muted-foreground'
-              )}
-            />
+              <TabsContent value="plain" className="mt-0">
+                {/* Textarea */}
+                <textarea
+                  readOnly
+                  value={outputPlain || (error ? '' : '')}
+                  placeholder={error || 'Click "Generate" to create your Lorem Ipsum content'}
+                  className={cn(
+                    'w-full h-[374px] p-2 bg-background rounded-lg resize-none',
+                    'font-mono text-base leading-[1.5] text-foreground',
+                    'focus:outline-none',
+                    error ? 'text-red-500 placeholder:text-red-500' : 'placeholder:text-muted-foreground'
+                  )}
+                />
 
-            {/* Character Count */}
-            {output && !error && (
-              <p className="text-sm tracking-[0.07px] text-muted-foreground mt-4">
-                {characterCount} characters
-              </p>
-            )}
+                {/* Character Count */}
+                {outputPlain && !error && (
+                  <p className="text-sm tracking-[0.07px] text-muted-foreground mt-4">
+                    {outputPlain.length} characters
+                  </p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="html" className="mt-0">
+                {/* Textarea */}
+                <textarea
+                  readOnly
+                  value={outputHtml || (error ? '' : '')}
+                  placeholder={error || 'Click "Generate" to create your Lorem Ipsum content'}
+                  className={cn(
+                    'w-full h-[374px] p-2 bg-background rounded-lg resize-none',
+                    'font-mono text-base leading-[1.5] text-foreground',
+                    'focus:outline-none',
+                    error ? 'text-red-500 placeholder:text-red-500' : 'placeholder:text-muted-foreground'
+                  )}
+                />
+
+                {/* Character Count */}
+                {outputHtml && !error && (
+                  <p className="text-sm tracking-[0.07px] text-muted-foreground mt-4">
+                    {outputHtml.length} characters
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>

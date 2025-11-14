@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/libs/utils';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { X } from 'lucide-react';
 import { useState } from 'react';
 
 export interface ActiveTab {
@@ -29,7 +29,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
 
   return (
     <div className={cn(
-      'bg-card border-b border-border flex items-center',
+      'bg-card border-border flex items-center',
       className
     )}>
       {/* Render all tabs horizontally */}
@@ -42,14 +42,14 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
           <div
             key={tab.toolId}
             className={cn(
-              'flex items-center gap-4 px-6 py-4 border-r border-b border-border/50 cursor-pointer group transition-colors',
+              'flex items-center gap-2 pl-4 pr-3 py-3 border-r border-border/50 cursor-pointer group transition-colors',
               isSelected ? 'bg-primary-foreground' : 'bg-card hover:bg-accent'
             )}
             onMouseEnter={() => setHoveredTab(tab.toolId)}
             onMouseLeave={() => setHoveredTab(null)}
             onClick={() => onTabSelect(tab.toolId)}
           >
-            <h2 className="text-lg font-semibold text-foreground tracking-tight whitespace-nowrap">
+            <h2 className="text-sm font-normal text-foreground tracking-tight whitespace-nowrap">
               {tab.toolName}
             </h2>
             <button
@@ -63,7 +63,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
               }}
               title="Close tool"
             >
-              <XMarkIcon className="h-4 w-4 text-foreground hover:text-muted-foreground" />
+              <X className="h-4 w-4 text-foreground hover:text-muted-foreground" />
             </button>
           </div>
         );
@@ -71,7 +71,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
 
       {/* Close All button (optional, show when multiple tabs) */}
       {tabs.length > 2 && onCloseAll && (
-        <div className="ml-auto flex items-center px-6 py-4">
+        <div className="ml-auto flex items-center px-4 py-3">
           <button
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             onClick={onCloseAll}

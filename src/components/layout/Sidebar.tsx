@@ -56,6 +56,16 @@ const CategoryItem = ({ category, isCollapsed, selectedTool, onToolSelect }: Cat
   const [isExpanded, setIsExpanded] = useState(false);
   const IconComponent = getCategoryIcon(category.id);
 
+  // Auto-expand category if it contains the selected tool
+  React.useEffect(() => {
+    if (selectedTool && !isCollapsed) {
+      const hasSelectedTool = category.tools.some(tool => tool.id === selectedTool);
+      if (hasSelectedTool) {
+        setIsExpanded(true);
+      }
+    }
+  }, [selectedTool, category.tools, isCollapsed]);
+
   if (isCollapsed) {
     return (
       <div className="flex flex-col items-center">
@@ -81,7 +91,7 @@ const CategoryItem = ({ category, isCollapsed, selectedTool, onToolSelect }: Cat
         )}
       >
         <IconComponent className="h-4 w-4 shrink-0" />
-        <span className="flex-1 text-left text-sm font-normal">{category.name}</span>
+        <span className="flex-1 text-left text-sm font-normal whitespace-nowrap overflow-hidden text-ellipsis">{category.name}</span>
         {isExpanded ? (
           <ChevronRight className="h-4 w-4 shrink-0 rotate-90 transition-transform" />
         ) : (
@@ -130,11 +140,11 @@ export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, onH
   return (
     <div className={cn(
       'h-full border-r border-[#e5e5e5] dark:border-[#262626] bg-white dark:bg-[#0a0a0a] transition-all duration-300 overflow-hidden flex flex-col',
-      isCollapsed ? 'w-16' : 'w-[240px]',
+      isCollapsed ? 'w-16' : 'w-[280px]',
       className
     )}>
       {/* Header with Logo and Collapse button */}
-      <div className="flex items-center justify-between px-2 py-3 shrink-0">
+      <div className="flex items-center justify-between px-3 pt-3 pb-4 shrink-0">
         {!isCollapsed && (
           <div className="flex items-center gap-0.5">
             {/* Logo */}
@@ -174,13 +184,13 @@ export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, onH
 
       {/* Search Bar */}
       {!isCollapsed && (
-        <div className="px-2 pb-3 shrink-0">
+        <div className="px-3 pb-4 shrink-0">
           <SearchTools onToolSelect={onToolSelect} />
         </div>
       )}
 
       {/* Menu */}
-      <div className="flex-1 overflow-y-auto px-2 pb-3">
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
         <div className="space-y-2">
           {/* All tools button */}
           {!isCollapsed && (
@@ -215,7 +225,7 @@ export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, onH
 
       {/* Theme Toggle */}
       {!isCollapsed && (
-        <div className="px-2 py-3 shrink-0">
+        <div className="px-3 py-3 shrink-0">
           <div className="bg-[#f5f5f5] dark:bg-[#262626] rounded-[10px] p-[3px] flex items-center">
             {/* Light mode tab */}
             <button

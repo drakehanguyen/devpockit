@@ -112,9 +112,17 @@ function AppLayoutInner({ children }: AppLayoutProps) {
     if (isValidToolUrl(pathname)) {
       const parsed = parseToolUrl(pathname);
       if (parsed) {
-        // Only update selectedTool if it's different
-        if (selectedTool !== parsed.toolId) {
-          setSelectedTool(parsed.toolId);
+        // Update selectedTool
+        setSelectedTool(parsed.toolId);
+        // Auto-expand sidebar when a tool is selected (if collapsed and not on mobile)
+        if (!isMobile) {
+          setSidebarCollapsed(prev => {
+            // Only expand if currently collapsed
+            if (prev) {
+              return false;
+            }
+            return prev;
+          });
         }
 
         // Update tabs to reflect the current tool
@@ -144,14 +152,10 @@ function AppLayoutInner({ children }: AppLayoutProps) {
       }
     } else if (isValidCategoryUrl(pathname)) {
       // Category page - show welcome page for that category
-      if (selectedTool !== undefined) {
-        setSelectedTool(undefined);
-      }
+      setSelectedTool(undefined);
     } else if (pathname === '/') {
       // Home page
-      if (selectedTool !== undefined) {
-        setSelectedTool(undefined);
-      }
+      setSelectedTool(undefined);
     } else {
       // Invalid URL, redirect to home
       router.push('/');

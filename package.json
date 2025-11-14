@@ -30,6 +30,7 @@
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.13",
     "@types/qrcode": "^1.5.5",
     "@types/uuid": "^11.0.0",
     "canvas": "^3.2.0",
