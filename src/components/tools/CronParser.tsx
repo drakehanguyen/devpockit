@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { OutputDisplay } from '@/components/ui/OutputDisplay';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   CRON_EXAMPLES,
@@ -245,11 +245,16 @@ export function CronParser({ className }: CronParserProps) {
       </Card>
 
       {/* Output Section */}
-      <OutputDisplay
-        content={output}
+      <CodeEditor
+        mode="output"
+        outputValue={output}
+        language="plaintext"
+        title="Parsed Result"
+        placeholder="Enter a cron expression and click Parse to see the human-readable description and next execution times..."
         error={error}
         isLoading={isParsing}
-        placeholder="Enter a cron expression and click Parse to see the human-readable description and next execution times..."
+        showStats={true}
+        height="400px"
       />
     </div>
   );

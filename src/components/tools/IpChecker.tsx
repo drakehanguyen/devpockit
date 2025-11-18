@@ -1,5 +1,5 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
-import { OutputDisplay } from '@/components/ui/OutputDisplay';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -242,9 +242,13 @@ export function IpChecker({ className }: IpCheckerProps) {
 
       {/* Output */}
       {output && (
-        <OutputDisplay
-          content={output}
+        <CodeEditor
+          mode="output"
+          outputValue={output}
+          language="json"
           title="IP Information"
+          showStats={true}
+          height="400px"
         />
       )}
 

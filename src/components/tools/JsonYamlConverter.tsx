@@ -4,9 +4,8 @@ import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { OutputDisplay } from '@/components/ui/OutputDisplay';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import {
   DEFAULT_JSON_YAML_OPTIONS,
   JSON_YAML_CATEGORIES,
@@ -186,17 +185,6 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Input Textarea */}
-          <div className="space-y-2">
-            <Label htmlFor="input-content">Content</Label>
-            <Textarea
-              id="input-content"
-              placeholder="Enter JSON or YAML content here..."
-              value={options.input}
-              onChange={(e) => setOptions(prev => ({ ...prev, input: e.target.value }))}
-              className="min-h-[200px] font-mono text-sm"
-            />
-          </div>
 
           {/* Options */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -317,12 +305,20 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
         </CardContent>
       </Card>
 
-      {/* Output Section */}
-      <OutputDisplay
-        content={output}
+      {/* Code Editor with Input and Output */}
+      <CodeEditor
+        mode="both"
+        inputValue={options.input}
+        outputValue={output}
+        onInputChange={(value) => setOptions(prev => ({ ...prev, input: value }))}
+        language={options.outputFormat === 'json' ? 'json' : 'plaintext'}
+        inputTitle="Input (JSON/YAML)"
+        outputTitle={`Output (${options.outputFormat.toUpperCase()})`}
+        placeholder="Enter JSON or YAML content here..."
         error={error}
         isLoading={isConverting}
-        placeholder="Enter JSON or YAML content and click Convert to see the converted output..."
+        showStats={true}
+        height="400px"
       />
     </div>
   );

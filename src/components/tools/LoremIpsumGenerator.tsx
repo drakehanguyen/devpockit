@@ -2,13 +2,14 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
 import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
 import { cn } from '@/libs/utils';
-import { ArrowPathIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
 interface LoremIpsumGeneratorProps {
@@ -16,7 +17,7 @@ interface LoremIpsumGeneratorProps {
 }
 
 export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
-  const { toolState, updateToolState } = useToolState('lorem-ipsum-generator');
+  const { toolState, updateToolState } = useToolState('lorem-ipsum');
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<LoremOptions>(DEFAULT_OPTIONS);
@@ -25,7 +26,6 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'plain' | 'html'>('plain');
-  const [copySuccess, setCopySuccess] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Hydrate state from toolState after mount (client-side only)
@@ -82,12 +82,12 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
       case 'sentences':
         // Wrap entire content in a single <p> tag
         return `<p>${plainText}</p>`;
-      
+
       case 'paragraphs':
         // Split by double newlines and wrap each paragraph in <p> tags
         const paragraphs = plainText.split('\n\n').filter(p => p.trim().length > 0);
         return paragraphs.map(p => `<p>${p.trim()}</p>`).join('\n');
-      
+
       default:
         return plainText;
     }
@@ -111,10 +111,10 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
       // Generate plain text once (same content)
       const plainOptions = { ...options, format: 'plain' as const };
       const plainResult = generateLoremIpsum(plainOptions);
-      
+
       // Convert the same plain text to HTML format
       const htmlResult = convertPlainToHtml(plainResult, options.unit);
-      
+
       setOutputPlain(plainResult);
       setOutputHtml(htmlResult);
     } catch (err) {
@@ -133,20 +133,6 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     }
   };
 
-  const handleCopy = async () => {
-    const currentOutput = activeTab === 'plain' ? outputPlain : outputHtml;
-    if (!currentOutput) return;
-    
-    try {
-      await navigator.clipboard.writeText(currentOutput);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  const currentOutput = activeTab === 'plain' ? outputPlain : outputHtml;
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
@@ -233,16 +219,6 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </Button>
             </div>
 
-            {/* Copy Button */}
-            <Button
-              onClick={handleCopy}
-              disabled={!currentOutput}
-              variant="secondary"
-              size="default"
-            >
-              {copySuccess ? 'Copied!' : 'Copy'}
-              <DocumentDuplicateIcon className="h-4 w-4" />
-            </Button>
           </div>
 
           {/* Results */}
@@ -259,47 +235,31 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </TabsList>
 
               <TabsContent value="plain" className="mt-0">
-                {/* Textarea */}
-                <textarea
-                  readOnly
-                  value={outputPlain || (error ? '' : '')}
-                  placeholder={error || 'Click "Generate" to create your Lorem Ipsum content'}
-                  className={cn(
-                    'w-full h-[374px] p-2 bg-background rounded-lg resize-none',
-                    'font-mono text-base leading-[1.5] text-foreground',
-                    'focus:outline-none',
-                    error ? 'text-red-500 placeholder:text-red-500' : 'placeholder:text-muted-foreground'
-                  )}
+                <CodeEditor
+                  mode="output"
+                  outputValue={outputPlain}
+                  language="plaintext"
+                  placeholder="Click 'Generate' to create your Lorem Ipsum content"
+                  error={error}
+                  isLoading={isGenerating}
+                  showStats={true}
+                  height="374px"
+                  className="border-0 p-0"
                 />
-
-                {/* Character Count */}
-                {outputPlain && !error && (
-                  <p className="text-sm tracking-[0.07px] text-muted-foreground mt-4">
-                    {outputPlain.length} characters
-                  </p>
-                )}
               </TabsContent>
 
               <TabsContent value="html" className="mt-0">
-                {/* Textarea */}
-                <textarea
-                  readOnly
-                  value={outputHtml || (error ? '' : '')}
-                  placeholder={error || 'Click "Generate" to create your Lorem Ipsum content'}
-                  className={cn(
-                    'w-full h-[374px] p-2 bg-background rounded-lg resize-none',
-                    'font-mono text-base leading-[1.5] text-foreground',
-                    'focus:outline-none',
-                    error ? 'text-red-500 placeholder:text-red-500' : 'placeholder:text-muted-foreground'
-                  )}
+                <CodeEditor
+                  mode="output"
+                  outputValue={outputHtml}
+                  language="xml"
+                  placeholder="Click 'Generate' to create your Lorem Ipsum content"
+                  error={error}
+                  isLoading={isGenerating}
+                  showStats={true}
+                  height="374px"
+                  className="border-0 p-0"
                 />
-
-                {/* Character Count */}
-                {outputHtml && !error && (
-                  <p className="text-sm tracking-[0.07px] text-muted-foreground mt-4">
-                    {outputHtml.length} characters
-                  </p>
-                )}
               </TabsContent>
             </Tabs>
           </div>

@@ -4,13 +4,12 @@ import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { OutputDisplay } from '@/components/ui/OutputDisplay';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { DEFAULT_JSON_OPTIONS, JSON_EXAMPLES, JSON_FORMAT_OPTIONS } from '@/config/json-formatter-config';
 import { formatJson, getJsonStats, type JsonFormatOptions, type JsonFormatResult } from '@/libs/json-formatter';
 import { cn } from '@/libs/utils';
-import { ArrowPathIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
 interface JsonFormatterProps {
@@ -100,14 +99,6 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
     setStats(null);
   };
 
-  const handleCopyInput = async () => {
-    if (!input) return;
-    try {
-      await navigator.clipboard.writeText(input);
-    } catch (err) {
-      console.error('Failed to copy input:', err);
-    }
-  };
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -220,38 +211,6 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
             </Button>
           </div>
 
-          {/* Input Area */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="json-input">JSON Input</Label>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyInput}
-                  disabled={!input}
-                >
-                  <DocumentDuplicateIcon className="h-4 w-4 mr-1" />
-                  Copy
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClear}
-                >
-                  Clear
-                </Button>
-              </div>
-            </div>
-            <Textarea
-              id="json-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Paste your JSON here..."
-              className="min-h-[200px] font-mono text-sm"
-            />
-          </div>
-
           {/* Action Buttons */}
           <div className="flex items-center space-x-4">
             <Button
@@ -271,20 +230,31 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
                 </>
               )}
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClear}
+            >
+              Clear
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Output Display */}
-      <OutputDisplay
-        title="Formatted JSON"
-        content={output}
+      {/* Code Editor with Input and Output */}
+      <CodeEditor
+        mode="both"
+        inputValue={input}
+        outputValue={output}
+        onInputChange={(value) => setInput(value)}
+        language="json"
+        inputTitle="JSON Input"
+        outputTitle="Formatted JSON"
+        placeholder="Paste your JSON here..."
         error={error}
         isLoading={isFormatting}
-        format="plain"
-        placeholder="Formatted JSON will appear here..."
-        showWordCount={false}
-        showCharacterCount={true}
+        showStats={true}
+        height="400px"
       />
 
       {/* Statistics */}

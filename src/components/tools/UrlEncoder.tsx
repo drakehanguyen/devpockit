@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { OutputDisplay } from '@/components/ui/OutputDisplay';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import {
   DEFAULT_URL_OPTIONS,
   URL_ENCODED_EXAMPLES,
@@ -273,19 +272,6 @@ export function UrlEncoder({ className }: UrlEncoderProps) {
           <CardTitle className="text-lg">Input</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="url-input">
-              {isEncoding ? 'URL to Encode' : 'Encoded URL to Decode'}
-            </Label>
-            <Textarea
-              id="url-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={isEncoding ? 'Enter URL to encode...' : 'Enter encoded URL to decode...'}
-              className="min-h-[120px] font-mono"
-            />
-          </div>
-
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
             <Button
@@ -339,13 +325,20 @@ export function UrlEncoder({ className }: UrlEncoderProps) {
         </CardContent>
       </Card>
 
-      {/* Output Area */}
-      <OutputDisplay
-        title={isEncoding ? 'Encoded URL' : 'Decoded URL'}
-        content={output}
+      {/* Code Editor with Input and Output */}
+      <CodeEditor
+        mode="both"
+        inputValue={input}
+        outputValue={output}
+        onInputChange={(value) => setInput(value)}
+        language="plaintext"
+        inputTitle={isEncoding ? 'URL to Encode' : 'Encoded URL to Decode'}
+        outputTitle={isEncoding ? 'Encoded URL' : 'Decoded URL'}
+        placeholder={isEncoding ? 'Enter URL to encode...' : 'Enter encoded URL to decode...'}
         error={error}
-        onCopy={() => copyToClipboard(output)}
-        className="font-mono"
+        isLoading={isProcessing}
+        showStats={true}
+        height="300px"
       />
 
       {/* Statistics */}

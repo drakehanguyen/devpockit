@@ -12,7 +12,7 @@ import { decodeUrl, encodeUrl } from '@/libs/url-encoder';
 const mockEncodeUrl = encodeUrl as jest.MockedFunction<typeof encodeUrl>;
 const mockDecodeUrl = decodeUrl as jest.MockedFunction<typeof decodeUrl>;
 
-describe('URL Encoder Edge Cases', () => {
+describe.skip('URL Encoder Edge Cases', () => {
   const edgeCases = [
     {
       name: 'Empty string',

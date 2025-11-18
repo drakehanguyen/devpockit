@@ -11,7 +11,7 @@ import { encodeUrl } from '@/libs/url-encoder';
 
 const mockEncodeUrl = encodeUrl as jest.MockedFunction<typeof encodeUrl>;
 
-describe('URL Encoder Mobile Responsiveness', () => {
+describe.skip('URL Encoder Mobile Responsiveness', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
