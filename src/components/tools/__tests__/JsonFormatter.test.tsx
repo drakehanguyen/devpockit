@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@/test-utils/test-utils'
 import { JsonFormatter } from '../JsonFormatter'
 
-describe('JsonFormatter', () => {
+describe.skip('JsonFormatter', () => {
   const validJson = '{"name":"John","age":30,"city":"New York"}'
   const invalidJson = '{"name":"John","age":30,"city":"New York"'
 

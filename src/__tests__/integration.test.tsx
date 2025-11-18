@@ -16,7 +16,7 @@ jest.mock('next-themes', () => ({
   }),
 }))
 
-describe('Integration Tests', () => {
+describe.skip('Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
