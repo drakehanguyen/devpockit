@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { OutputDisplay } from '@/components/ui/OutputDisplay';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     analyzeNetwork,
@@ -421,9 +421,13 @@ export function IpCidrConverter({ onResult, onError }: IpCidrConverterProps) {
 
       {/* Output Section */}
       {output && (
-        <OutputDisplay
-          content={output}
+        <CodeEditor
+          mode="output"
+          outputValue={output}
+          language="plaintext"
           title="Result"
+          showStats={true}
+          height="300px"
         />
       )}
 

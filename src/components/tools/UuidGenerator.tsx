@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { OutputDisplay } from '@/components/ui/OutputDisplay';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     DEFAULT_UUID_OPTIONS,
@@ -365,15 +365,16 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
       </Card>
 
       {/* Output Display */}
-      <OutputDisplay
+      <CodeEditor
+        mode="output"
+        outputValue={output}
+        language="plaintext"
         title="Generated UUIDs"
-        content={output}
+        placeholder="Generated UUIDs will appear here..."
         error={error}
         isLoading={isGenerating}
-        format="plain"
-        placeholder="Generated UUIDs will appear here..."
-        showWordCount={false}
-        showCharacterCount={true}
+        showStats={true}
+        height="400px"
       />
 
       {/* Statistics */}

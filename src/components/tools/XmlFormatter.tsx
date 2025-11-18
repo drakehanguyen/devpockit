@@ -4,13 +4,12 @@ import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { OutputDisplay } from '@/components/ui/OutputDisplay';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { DEFAULT_XML_OPTIONS, XML_EXAMPLES, XML_FORMAT_OPTIONS } from '@/config/xml-formatter-config';
 import { cn } from '@/libs/utils';
 import { formatXml, getXmlStats, type XmlFormatOptions, type XmlFormatResult } from '@/libs/xml-formatter';
-import { ArrowPathIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
 interface XmlFormatterProps {
@@ -100,14 +99,6 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
     setStats(null);
   };
 
-  const handleCopyInput = async () => {
-    if (!input) return;
-    try {
-      await navigator.clipboard.writeText(input);
-    } catch (err) {
-      console.error('Failed to copy input:', err);
-    }
-  };
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -240,38 +231,6 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
             </Button>
           </div>
 
-          {/* Input Area */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="xml-input">XML Input</Label>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyInput}
-                  disabled={!input}
-                >
-                  <DocumentDuplicateIcon className="h-4 w-4 mr-1" />
-                  Copy
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClear}
-                >
-                  Clear
-                </Button>
-              </div>
-            </div>
-            <Textarea
-              id="xml-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Paste your XML here..."
-              className="min-h-[200px] font-mono text-sm"
-            />
-          </div>
-
           {/* Action Buttons */}
           <div className="flex items-center space-x-4">
             <Button
@@ -291,20 +250,31 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                 </>
               )}
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClear}
+            >
+              Clear
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Output Display */}
-      <OutputDisplay
-        title="Formatted XML"
-        content={output}
+      {/* Code Editor with Input and Output */}
+      <CodeEditor
+        mode="both"
+        inputValue={input}
+        outputValue={output}
+        onInputChange={(value) => setInput(value)}
+        language="xml"
+        inputTitle="XML Input"
+        outputTitle="Formatted XML"
+        placeholder="Paste your XML here..."
         error={error}
         isLoading={isFormatting}
-        format="plain"
-        placeholder="Formatted XML will appear here..."
-        showWordCount={false}
-        showCharacterCount={true}
+        showStats={true}
+        height="400px"
       />
 
       {/* Statistics */}
