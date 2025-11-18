@@ -154,10 +154,10 @@ describe('IpChecker Component', () => {
     fireEvent.click(checkButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Copy')).toBeInTheDocument(); // Only from OutputDisplay now
+      expect(screen.getByText('Copy')).toBeInTheDocument(); // From CodeEditor
     });
 
-    // Click the copy button (from OutputDisplay)
+    // Click the copy button (from CodeEditor)
     const copyButton = screen.getByText('Copy');
     fireEvent.click(copyButton);
 

@@ -74,7 +74,7 @@ describe('LoremIpsumGenerator', () => {
     }, { timeout: 3000 })
   })
 
-  it('should display output in OutputDisplay component', async () => {
+  it('should display output in CodeEditor component', async () => {
     render(<LoremIpsumGenerator />)
 
     const generateButton = screen.getByRole('button', { name: 'Generate' })

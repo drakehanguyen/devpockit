@@ -1,6 +1,6 @@
 /**
  * Unified Code Editor Component
- * Replaces OutputDisplay and Textarea with CodeMirror 6 editor
+ * CodeMirror 6 editor component for displaying and editing code
  * Supports input, output, and both modes with line numbers and themes
  */
 
@@ -148,7 +148,7 @@ function useCodeMirror(
           display: 'flex',
           flexDirection: 'column',
         },
-        // Custom scrollbar styling to match OutputDisplay
+        // Custom scrollbar styling
         '.cm-scroller': {
           overflow: 'auto !important',
           scrollbarWidth: 'thin',
