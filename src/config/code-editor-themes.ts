@@ -8,7 +8,7 @@ import { Extension } from '@codemirror/state';
 import { basicDark, basicLight } from '@uiw/codemirror-theme-basic';
 import { darcula } from '@uiw/codemirror-theme-darcula';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
-import { materialDark } from '@uiw/codemirror-theme-material';
+import { materialDark, materialLight } from '@uiw/codemirror-theme-material';
 import { monokai } from '@uiw/codemirror-theme-monokai';
 import { nord } from '@uiw/codemirror-theme-nord';
 import { solarizedDark, solarizedLight } from '@uiw/codemirror-theme-solarized';
@@ -21,6 +21,7 @@ export type CodeEditorTheme =
   | 'vscodeDark'
   | 'githubLight'
   | 'githubDark'
+  | 'materialLight'
   | 'materialDark'
   | 'monokai'
   | 'solarizedLight'
@@ -44,6 +45,7 @@ const THEME_MAP: Record<CodeEditorTheme, Extension> = {
   vscodeDark: vscodeDark,
   githubLight: githubLight,
   githubDark: githubDark,
+  materialLight: materialLight,
   materialDark: materialDark,
   monokai: monokai,
   solarizedLight: solarizedLight,
@@ -85,6 +87,11 @@ export const CODE_EDITOR_THEMES: Record<CodeEditorTheme, ThemeConfig> = {
     name: 'githubDark',
     label: 'GitHub Dark',
     extension: githubDark,
+  },
+  materialLight: {
+    name: 'materialLight',
+    label: 'Material Light',
+    extension: materialLight,
   },
   materialDark: {
     name: 'materialDark',
