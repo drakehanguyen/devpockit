@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
 import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
 import { cn } from '@/libs/utils';
@@ -17,7 +17,7 @@ interface LoremIpsumGeneratorProps {
 }
 
 export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
-  const { toolState, updateToolState } = useToolState('lorem-ipsum-generator');
+  const { toolState, updateToolState } = useToolState('lorem-ipsum');
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<LoremOptions>(DEFAULT_OPTIONS);
