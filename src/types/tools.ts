@@ -10,6 +10,8 @@ export interface Tool {
   isActive?: boolean;
   path: string;
   component: string;
+  supportsDesktop?: boolean;
+  supportsMobile?: boolean;
 }
 
 export interface ToolCategory {

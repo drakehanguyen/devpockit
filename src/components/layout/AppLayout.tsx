@@ -302,7 +302,10 @@ function AppLayoutInner({ children }: AppLayoutProps) {
               </div>
             </div>
           ) : (
-            <WelcomePage onToolSelect={handleToolSelect} />
+            <WelcomePage 
+              onToolSelect={handleToolSelect}
+              activeToolIds={activeTabs.map(tab => tab.toolId)}
+            />
           )}
         </main>
       </div>

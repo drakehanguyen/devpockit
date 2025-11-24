@@ -139,10 +139,10 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
       {/* Header Section */}
       <div className="bg-primary-foreground px-[24px] py-[24px]">
         <div className="max-w-[1200px]">
-          <h1 className="text-[32px] font-semibold leading-6 tracking-[-0.64px] text-foreground mb-3">
+          <h1 className="text-[32px] font-normal leading-6 tracking-normal text-foreground mb-3">
             Lorem Ipsum Generator
           </h1>
-          <p className="text-sm leading-5 tracking-[-0.28px] text-muted-foreground">
+          <p className="text-sm leading-5 tracking-normal text-muted-foreground">
             Generate placeholder text in Latin or Bacon Ipsum format
           </p>
         </div>
