@@ -1,0 +1,99 @@
+import * as React from 'react';
+import { Laptop, Smartphone } from 'lucide-react';
+import { cn } from '@/libs/utils';
+
+export interface ToolCardProps {
+  icon?: React.ReactNode;
+  name: string;
+  category: string;
+  isActive?: boolean;
+  supportsDesktop?: boolean;
+  supportsMobile?: boolean;
+  onClick?: () => void;
+  className?: string;
+}
+
+export function ToolCard({
+  icon,
+  name,
+  category,
+  isActive = false,
+  supportsDesktop = true,
+  supportsMobile = true,
+  onClick,
+  className,
+}: ToolCardProps) {
+  const [isHovered, setIsHovered] = React.useState(false);
+  const isSelected = isActive || isHovered;
+
+  return (
+    <div
+      className={cn(
+        'group bg-white dark:bg-neutral-800 border rounded-xl h-[165px] cursor-pointer transition-all duration-200',
+        isSelected
+          ? 'border-orange-600 hover:shadow-md'
+          : 'border-neutral-200 dark:border-neutral-700 hover:shadow-md',
+        className
+      )}
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="flex flex-col gap-2 h-[165px] overflow-hidden rounded-[inherit]">
+        {/* Icon Section */}
+        <div
+          className={cn(
+            'relative flex flex-col gap-2.5 items-center justify-center flex-1 px-14 py-5 transition-colors duration-200 dark:bg-neutral-900',
+            isSelected ? 'bg-orange-50' : 'bg-neutral-100'
+          )}
+        >
+          {/* Device Compatibility Badge */}
+          {(supportsDesktop || supportsMobile) && (
+            <div className="absolute top-1.5 right-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md px-1 py-0.5 flex items-center gap-0.5">
+              {supportsDesktop && (
+                <Laptop className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+              )}
+              {supportsMobile && (
+                <Smartphone className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+              )}
+            </div>
+          )}
+
+          {/* Tool Icon */}
+          <div
+            className={cn(
+              'w-10 h-10 flex items-center justify-center transition-colors duration-200',
+              isSelected ? 'text-orange-600 dark:text-orange-500' : 'text-neutral-400 dark:text-neutral-400'
+            )}
+          >
+            {React.isValidElement(icon)
+              ? React.cloneElement(icon as React.ReactElement<any>, {
+                  strokeWidth: 1.5,
+                })
+              : icon}
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="flex flex-col gap-1 px-3 pb-3">
+          {/* Tool Name */}
+          <div className="flex flex-col">
+            <h3 className="font-medium text-base leading-6 text-neutral-900 dark:text-neutral-100 line-clamp-1">
+              {name}
+            </h3>
+          </div>
+
+          {/* Category Tag */}
+          <div className="flex gap-1 items-start">
+            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md px-2 py-0.5">
+              <p className="font-normal text-xs leading-[18px] tracking-[0.18px] text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+                {category}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

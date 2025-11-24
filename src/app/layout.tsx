@@ -1,6 +1,23 @@
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import type { Metadata, Viewport } from 'next'
+import { Geist, Geist_Mono, DM_Serif_Text } from 'next/font/google'
 import './globals.css'
+
+const geistSans = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+})
+
+const dmSerifText = DM_Serif_Text({
+  weight: ['400'],
+  subsets: ['latin'],
+  variable: '--font-dm-serif',
+})
 
 export const metadata: Metadata = {
   title: 'DevPockit - Essential Developer Tools',
@@ -20,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${dmSerifText.variable}`}>
       <body className="antialiased font-sans">
         <ThemeProvider
           attribute="class"

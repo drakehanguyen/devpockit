@@ -155,10 +155,10 @@ export function Sidebar({ isCollapsed, onToggle, selectedTool, onToolSelect, onH
             </div>
             {/* Name */}
             <div className="pl-2">
-              <div className="font-semibold text-[18px] leading-[24px] tracking-[-0.36px] text-black dark:text-white">
+              <div className="font-semibold text-[18px] leading-[24px] tracking-normal text-black dark:text-white">
                 DevPockit
               </div>
-              <div className="font-normal text-[14px] leading-[20px] tracking-[-0.28px] text-[#737373] dark:text-[#a3a3a3]">
+              <div className="font-normal text-[14px] leading-[20px] tracking-normal text-[#737373] dark:text-[#a3a3a3]">
                 Developer Tools
               </div>
             </div>

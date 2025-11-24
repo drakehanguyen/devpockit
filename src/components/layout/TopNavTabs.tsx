@@ -49,7 +49,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
             onMouseLeave={() => setHoveredTab(null)}
             onClick={() => onTabSelect(tab.toolId)}
           >
-            <h2 className="text-sm font-normal text-foreground tracking-tight whitespace-nowrap">
+            <h2 className="text-sm font-normal text-foreground tracking-normal whitespace-nowrap">
               {tab.toolName}
             </h2>
             <button

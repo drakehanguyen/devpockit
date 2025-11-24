@@ -90,10 +90,10 @@ export function MobileMenu({ selectedTool, onToolSelect, onHomeClick }: MobileMe
             </div>
             {/* Name */}
             <div className="pl-2">
-              <SheetTitle className="font-semibold text-[18px] leading-[24px] tracking-[-0.36px]">
+              <SheetTitle className="font-semibold text-[18px] leading-[24px] tracking-normal">
                 DevPockit
               </SheetTitle>
-              <p className="font-normal text-[14px] leading-[20px] tracking-[-0.28px] text-[#737373] dark:text-[#a3a3a3]">
+              <p className="font-normal text-[14px] leading-[20px] tracking-normal text-[#737373] dark:text-[#a3a3a3]">
                 Developer Tools
               </p>
             </div>

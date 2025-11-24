@@ -94,7 +94,7 @@ export function SearchTools({ onToolSelect, className }: SearchToolsProps) {
           onKeyDown={handleKeyDown}
           className="pl-8 pr-12 h-[36px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
         />
-        <div className="absolute right-2 text-sm font-medium text-[#111827] dark:text-[#e5e5e5] leading-[20px] tracking-[-0.28px]">
+        <div className="absolute right-2 text-sm font-medium text-[#111827] dark:text-[#e5e5e5] leading-[20px] tracking-normal">
           ⌘K
         </div>
       </div>
