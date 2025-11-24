@@ -2,15 +2,18 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeEditor } from '@/components/ui/CodeEditor';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { OutputPanel, type OutputPanelTab } from '@/components/ui/OutputPanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { CODE_EDITOR_THEMES, type CodeEditorTheme } from '@/config/code-editor-themes';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
+import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
 import { cn } from '@/libs/utils';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface LoremIpsumGeneratorProps {
   className?: string;
@@ -27,6 +30,10 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   const [error, setError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'plain' | 'html'>('plain');
   const [isHydrated, setIsHydrated] = useState(false);
+  
+  // Editor settings
+  const [theme, setTheme] = useCodeEditorTheme('basicDark');
+  const [wrapText, setWrapText] = useState(true);
 
   // Hydrate state from toolState after mount (client-side only)
   useEffect(() => {
@@ -133,27 +140,45 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     }
   };
 
+  // Prepare tabs for OutputPanel
+  const outputTabs: OutputPanelTab[] = useMemo(
+    () => [
+      {
+        id: 'plain',
+        label: 'Plain text',
+        content: outputPlain,
+        language: 'plaintext',
+      },
+      {
+        id: 'html',
+        label: 'HTML',
+        content: outputHtml,
+        language: 'xml',
+      },
+    ],
+    [outputPlain, outputHtml]
+  );
+
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header Section */}
-      <div className="bg-primary-foreground px-[24px] py-[24px]">
-        <div className="max-w-[1200px]">
-          <h1 className="text-[32px] font-normal leading-6 tracking-normal text-foreground mb-3">
-            Lorem Ipsum Generator
-          </h1>
-          <p className="text-sm leading-5 tracking-normal text-muted-foreground">
-            Generate placeholder text in Latin or Bacon Ipsum format
-          </p>
-        </div>
+      <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
+        <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
+          Lorem Ipsum Generator
+        </h1>
+        <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
+          Generate placeholder text in Latin or Bacon Ipsum format
+        </p>
       </div>
 
       {/* Body Section */}
       <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
         <div className="flex flex-col gap-4">
           {/* Controls */}
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4">
+            {/* Main Controls Row */}
+            <div className="flex items-center gap-3 flex-wrap">
               {/* Type Select */}
               <Select
                 value={options.type}
@@ -161,7 +186,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                   setOptions(prev => ({ ...prev, type: value }))
                 }
               >
-                <SelectTrigger className="w-[228px]">
+                <SelectTrigger label="Ipsum Type:">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -180,7 +205,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                   setOptions(prev => ({ ...prev, unit: value }))
                 }
               >
-                <SelectTrigger className="w-[155px]">
+                <SelectTrigger label="Unit:">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -206,6 +231,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               <Button
                 onClick={handleGenerate}
                 disabled={isGenerating}
+                variant="default"
                 size="default"
               >
                 {isGenerating ? (
@@ -219,50 +245,60 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </Button>
             </div>
 
+            {/* Editor Settings Row */}
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Theme Selector */}
+              <div className="flex items-center gap-2">
+                <Label htmlFor="theme-select" className="text-sm text-muted-foreground whitespace-nowrap">
+                  Theme:
+                </Label>
+                <Select value={theme} onValueChange={(value) => setTheme(value as CodeEditorTheme)}>
+                  <SelectTrigger id="theme-select" className="h-9 w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(CODE_EDITOR_THEMES).map((themeConfig) => (
+                      <SelectItem key={themeConfig.name} value={themeConfig.name}>
+                        {themeConfig.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Wrap Text Toggle */}
+              <div className="flex items-center gap-2">
+                <Label htmlFor="wrap-text" className="text-sm text-muted-foreground cursor-pointer whitespace-nowrap">
+                  Wrap Text:
+                </Label>
+                <Switch
+                  id="wrap-text"
+                  checked={wrapText}
+                  onCheckedChange={setWrapText}
+                  className="h-5 w-9"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Results */}
-          <div className="border border-border rounded-[10px] p-3 bg-background">
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="inline-flex mb-4">
-                <TabsTrigger value="plain">
-                  Plain text
-                </TabsTrigger>
-                <TabsTrigger value="html">
-                  HTML
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="plain" className="mt-0">
-                <CodeEditor
-                  mode="output"
-                  outputValue={outputPlain}
-                  language="plaintext"
-                  placeholder="Click 'Generate' to create your Lorem Ipsum content"
-                  error={error}
-                  isLoading={isGenerating}
-                  showStats={true}
-                  height="374px"
-                  className="border-0 p-0"
-                />
-              </TabsContent>
-
-              <TabsContent value="html" className="mt-0">
-                <CodeEditor
-                  mode="output"
-                  outputValue={outputHtml}
-                  language="xml"
-                  placeholder="Click 'Generate' to create your Lorem Ipsum content"
-                  error={error}
-                  isLoading={isGenerating}
-                  showStats={true}
-                  height="374px"
-                  className="border-0 p-0"
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+          {error ? (
+            <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="text-sm text-red-700 dark:text-red-300">
+                {error}
+              </div>
+            </div>
+          ) : (
+            <OutputPanel
+              tabs={outputTabs}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              showStats={true}
+              height="374px"
+              theme={theme}
+              wrapText={wrapText}
+            />
+          )}
         </div>
       </div>
     </div>

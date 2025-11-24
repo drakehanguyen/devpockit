@@ -321,6 +321,13 @@ export function CodeEditor({
   // For now, we'll always allow internal state management unless there's an onChange callback
   const currentWrapText = internalWrapText;
 
+  // Sync theme prop with persisted theme when it changes
+  useEffect(() => {
+    if (theme !== undefined && theme !== persistedTheme) {
+      setPersistedTheme(theme);
+    }
+  }, [theme, persistedTheme, setPersistedTheme]);
+
   // Sync internal state when wrapText prop changes (only on mount or when prop actually changes)
   useEffect(() => {
     if (wrapText !== undefined) {

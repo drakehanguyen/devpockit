@@ -29,7 +29,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
 
   return (
     <div className={cn(
-      'bg-card border-border flex items-center',
+      'bg-neutral-100 dark:bg-neutral-800 border-border flex items-center',
       className
     )}>
       {/* Render all tabs horizontally */}
@@ -42,19 +42,22 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
           <div
             key={tab.toolId}
             className={cn(
-              'flex items-center gap-2 pl-4 pr-3 py-3 border-r border-border/50 cursor-pointer group transition-colors',
-              isSelected ? 'bg-primary-foreground' : 'bg-card hover:bg-accent'
+              'flex items-center gap-2 pl-4 pr-3 py-3 border-r border-neutral-200 dark:border-neutral-700 cursor-pointer group transition-colors',
+              isSelected ? 'bg-white dark:bg-neutral-900' : 'bg-transparent hover:bg-accent'
             )}
             onMouseEnter={() => setHoveredTab(tab.toolId)}
             onMouseLeave={() => setHoveredTab(null)}
             onClick={() => onTabSelect(tab.toolId)}
           >
-            <h2 className="text-sm font-normal text-foreground tracking-normal whitespace-nowrap">
+            <h2 className={cn(
+              "text-sm font-normal tracking-normal whitespace-nowrap",
+              isSelected ? "text-neutral-900 dark:text-neutral-100" : "text-foreground"
+            )}>
               {tab.toolName}
             </h2>
             <button
               className={cn(
-                'shrink-0 transition-opacity duration-200',
+                'shrink-0 transition-all duration-200 p-1 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-700',
                 showCloseIcon ? 'opacity-100' : 'opacity-0'
               )}
               onClick={(e) => {
@@ -63,7 +66,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
               }}
               title="Close tool"
             >
-              <X className="h-4 w-4 text-foreground hover:text-muted-foreground" />
+              <X className="h-3.5 w-3.5 text-foreground" />
             </button>
           </div>
         );
