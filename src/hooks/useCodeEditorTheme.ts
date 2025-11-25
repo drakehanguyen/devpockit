@@ -32,8 +32,42 @@ export function useCodeEditorTheme(defaultTheme: CodeEditorTheme = 'basicDark'):
     }
   }, [theme]);
 
+  // Listen for storage changes from other components (like sidebar)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === THEME_STORAGE_KEY && e.newValue) {
+        const newTheme = e.newValue as CodeEditorTheme;
+        if (newTheme in CODE_EDITOR_THEMES) {
+          setThemeState(newTheme);
+        }
+      }
+    };
+
+    // Listen for custom storage event (for same-tab updates)
+    const handleCustomStorageChange = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail && customEvent.detail in CODE_EDITOR_THEMES) {
+        setThemeState(customEvent.detail as CodeEditorTheme);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('code-editor-theme-change', handleCustomStorageChange as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('code-editor-theme-change', handleCustomStorageChange as EventListener);
+    };
+  }, []);
+
   const setTheme = (newTheme: CodeEditorTheme) => {
     setThemeState(newTheme);
+    // Dispatch custom event for same-tab updates (storage event only fires in other tabs)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('code-editor-theme-change', { detail: newTheme }));
+    }
   };
 
   return [theme, setTheme];
