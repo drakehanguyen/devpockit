@@ -8,8 +8,8 @@ import { cn } from '@/libs/utils';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { WelcomePage } from '../pages/WelcomePage';
-import { MobileMenu } from './MobileMenu';
-import { Sidebar } from './Sidebar';
+import { AppSidebar } from '../app-sidebar';
+import { SidebarProvider, SidebarInset, useSidebar } from '@/components/ui/sidebar';
 import { TopNavTabs, type ActiveTab } from './TopNavTabs';
 
 interface AppLayoutProps {
@@ -76,7 +76,7 @@ function DynamicToolRenderer({ toolId }: { toolId: string }) {
   }
 
   return (
-    <div className="h-full overflow-auto">
+    <div className="flex-1 overflow-auto">
       <ToolComponent />
     </div>
   );
@@ -85,27 +85,11 @@ function DynamicToolRenderer({ toolId }: { toolId: string }) {
 // Inner component that has access to ToolStateContext
 function AppLayoutInner({ children }: AppLayoutProps) {
   const { clearToolState, clearAllToolStates, toolStates } = useToolStateContext();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { isMobile } = useSidebar();
   const [activeTabs, setActiveTabs] = useState<ActiveTab[]>([]);
   const [selectedTool, setSelectedTool] = useState<string | undefined>();
-  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-
-  // Handle responsive behavior
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setSidebarCollapsed(true);
-      }
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Sync URL with selected tool and tabs
   useEffect(() => {
@@ -114,16 +98,6 @@ function AppLayoutInner({ children }: AppLayoutProps) {
       if (parsed) {
         // Update selectedTool
         setSelectedTool(parsed.toolId);
-        // Auto-expand sidebar when a tool is selected (if collapsed and not on mobile)
-        if (!isMobile) {
-          setSidebarCollapsed(prev => {
-            // Only expand if currently collapsed
-            if (prev) {
-              return false;
-            }
-            return prev;
-          });
-        }
 
         // Update tabs to reflect the current tool
         if (!isMobile) {
@@ -181,7 +155,7 @@ function AppLayoutInner({ children }: AppLayoutProps) {
       // Ctrl+K for search focus
       if (e.ctrlKey && e.key === 'k') {
         e.preventDefault();
-        const searchInput = document.querySelector('input[placeholder="Search tools..."]') as HTMLInputElement;
+        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
         if (searchInput) {
           searchInput.focus();
         }
@@ -260,54 +234,36 @@ function AppLayoutInner({ children }: AppLayoutProps) {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar or Mobile Menu */}
-        {!isMobile ? (
-          <Sidebar
-            isCollapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-            selectedTool={selectedTool}
-            onToolSelect={handleToolSelect}
-            onHomeClick={handleHomeClick}
-          />
-        ) : (
-          <MobileMenu
-            selectedTool={selectedTool}
-            onToolSelect={handleToolSelect}
-            onHomeClick={handleHomeClick}
-          />
-        )}
-
-        {/* Content Area */}
-        <main className={cn(
-          'flex-1 overflow-hidden flex flex-col',
-          !isMobile && !sidebarCollapsed && 'ml-0',
-          !isMobile && sidebarCollapsed && 'ml-0'
-        )}>
-          {selectedTool ? (
-            <div className="h-full flex flex-col overflow-hidden">
-              {/* Tool Header with Tabs (Desktop only) */}
-              {!isMobile && activeTabs.length > 0 && (
-                <TopNavTabs
-                  tabs={activeTabs}
-                  activeTab={selectedTool}
-                  onTabSelect={handleTabSelect}
-                  onTabClose={handleTabClose}
-                  onCloseAll={handleCloseAllTabs}
-                />
-              )}
-              <div className="flex-1 overflow-auto">
+        <AppSidebar
+          selectedTool={selectedTool}
+          onToolSelect={handleToolSelect}
+          onHomeClick={handleHomeClick}
+        />
+        <SidebarInset>
+          <div className="flex flex-1 flex-col gap-4 pb-4">
+            {selectedTool ? (
+              <>
+                {/* Tool Header with Tabs (Desktop only) */}
+                {!isMobile && activeTabs.length > 0 && (
+                  <TopNavTabs
+                    tabs={activeTabs}
+                    activeTab={selectedTool}
+                    onTabSelect={handleTabSelect}
+                    onTabClose={handleTabClose}
+                    onCloseAll={handleCloseAllTabs}
+                  />
+                )}
                 <DynamicToolRenderer toolId={selectedTool} />
-              </div>
-            </div>
-          ) : (
-            <WelcomePage 
-              onToolSelect={handleToolSelect}
-              activeToolIds={activeTabs.map(tab => tab.toolId)}
-            />
-          )}
-        </main>
+              </>
+            ) : (
+              <WelcomePage 
+                onToolSelect={handleToolSelect}
+                activeToolIds={activeTabs.map(tab => tab.toolId)}
+              />
+            )}
+          </div>
+        </SidebarInset>
       </div>
     </div>
   );
@@ -316,7 +272,9 @@ function AppLayoutInner({ children }: AppLayoutProps) {
 export function AppLayout({ children }: AppLayoutProps) {
   return (
     <ToolStateProvider>
-      <AppLayoutInner>{children}</AppLayoutInner>
+      <SidebarProvider>
+        <AppLayoutInner>{children}</AppLayoutInner>
+      </SidebarProvider>
     </ToolStateProvider>
   );
 }

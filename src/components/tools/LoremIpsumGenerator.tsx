@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { OutputPanel, type OutputPanelTab } from '@/components/ui/OutputPanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { CODE_EDITOR_THEMES, type CodeEditorTheme } from '@/config/code-editor-themes';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
@@ -32,7 +31,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   const [isHydrated, setIsHydrated] = useState(false);
   
   // Editor settings
-  const [theme, setTheme] = useCodeEditorTheme('basicDark');
+  const [theme] = useCodeEditorTheme('basicDark');
   const [wrapText, setWrapText] = useState(true);
 
   // Hydrate state from toolState after mount (client-side only)
@@ -247,25 +246,6 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
 
             {/* Editor Settings Row */}
             <div className="flex items-center gap-4 flex-wrap">
-              {/* Theme Selector */}
-              <div className="flex items-center gap-2">
-                <Label htmlFor="theme-select" className="text-sm text-muted-foreground whitespace-nowrap">
-                  Theme:
-                </Label>
-                <Select value={theme} onValueChange={(value) => setTheme(value as CodeEditorTheme)}>
-                  <SelectTrigger id="theme-select" className="h-9 w-[160px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(CODE_EDITOR_THEMES).map((themeConfig) => (
-                      <SelectItem key={themeConfig.name} value={themeConfig.name}>
-                        {themeConfig.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               {/* Wrap Text Toggle */}
               <div className="flex items-center gap-2">
                 <Label htmlFor="wrap-text" className="text-sm text-muted-foreground cursor-pointer whitespace-nowrap">
