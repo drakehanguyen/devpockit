@@ -39,7 +39,7 @@ export function useCodeEditorTheme(defaultTheme: CodeEditorTheme = 'basicDark'):
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === THEME_STORAGE_KEY && e.newValue) {
         const newTheme = e.newValue as CodeEditorTheme;
-        if (newTheme in CODE_EDITOR_THEMES) {
+        if (newTheme in CODE_EDITOR_THEMES && newTheme !== theme) {
           setThemeState(newTheme);
         }
       }
@@ -49,7 +49,11 @@ export function useCodeEditorTheme(defaultTheme: CodeEditorTheme = 'basicDark'):
     const handleCustomStorageChange = (e: Event) => {
       const customEvent = e as CustomEvent<string>;
       if (customEvent.detail && customEvent.detail in CODE_EDITOR_THEMES) {
-        setThemeState(customEvent.detail as CodeEditorTheme);
+        const newTheme = customEvent.detail as CodeEditorTheme;
+        // Only update if the theme is different to avoid infinite loops
+        if (newTheme !== theme) {
+          setThemeState(newTheme);
+        }
       }
     };
 
@@ -60,13 +64,16 @@ export function useCodeEditorTheme(defaultTheme: CodeEditorTheme = 'basicDark'):
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('code-editor-theme-change', handleCustomStorageChange as EventListener);
     };
-  }, []);
+  }, [theme]);
 
   const setTheme = (newTheme: CodeEditorTheme) => {
-    setThemeState(newTheme);
-    // Dispatch custom event for same-tab updates (storage event only fires in other tabs)
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('code-editor-theme-change', { detail: newTheme }));
+    // Only update if the theme is different to avoid unnecessary updates
+    if (newTheme !== theme) {
+      setThemeState(newTheme);
+      // Dispatch custom event for same-tab updates (storage event only fires in other tabs)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('code-editor-theme-change', { detail: newTheme }));
+      }
     }
   };
 
