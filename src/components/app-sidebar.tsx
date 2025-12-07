@@ -163,7 +163,7 @@ export function AppSidebar({
                 )}
                 onMouseEnter={() => setIsLogoHovered(true)}
                 onMouseLeave={() => setIsLogoHovered(false)}
-                onClick={isCollapsed ? toggleSidebar : undefined}
+                onClick={isCollapsed ? toggleSidebar : handleHomeClick}
               >
                 {isCollapsed && isLogoHovered ? (
                   <PanelLeft className="h-4 w-4 text-sidebar-foreground" />
@@ -178,14 +178,21 @@ export function AppSidebar({
                 )}
               </div>
             </TooltipTrigger>
-            {isCollapsed && (
+            {isCollapsed ? (
               <TooltipContent side="right">
                 Expand sidebar
               </TooltipContent>
+            ) : (
+              <TooltipContent side="right">
+                Go to home
+              </TooltipContent>
             )}
           </Tooltip>
-          <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-            <div className="font-serif text-[24px] leading-[24px] tracking-normal text-sidebar-foreground">
+          <div
+            className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden cursor-pointer"
+            onClick={handleHomeClick}
+          >
+            <div className="font-serif text-[24px] leading-[24px] tracking-normal text-sidebar-foreground hover:opacity-80 transition-opacity">
               DevPockit
             </div>
           </div>
@@ -262,8 +269,8 @@ export function AppSidebar({
             <div className="text-xs font-medium text-[#525252] dark:text-[#a3a3a3] mb-1.5 px-1">
               Code Editor Theme
             </div>
-            <Select 
-              value={codeEditorTheme} 
+            <Select
+              value={codeEditorTheme}
               onValueChange={(value) => setCodeEditorTheme(value as CodeEditorTheme)}
             >
               <SelectTrigger className="h-8 w-full text-xs">
