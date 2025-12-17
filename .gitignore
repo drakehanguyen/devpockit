@@ -311,3 +311,6 @@ dmypy.json
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Plan documents
+.plan/
