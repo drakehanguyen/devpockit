@@ -2,14 +2,15 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { CodeEditor } from '@/components/ui/CodeEditor';
+import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
+import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_XML_OPTIONS, XML_EXAMPLES, XML_FORMAT_OPTIONS } from '@/config/xml-formatter-config';
-import { cn } from '@/libs/utils';
+import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { formatXml, getXmlStats, type XmlFormatOptions, type XmlFormatResult } from '@/libs/xml-formatter';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import { cn } from '@/libs/utils';
+import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
 interface XmlFormatterProps {
@@ -19,39 +20,57 @@ interface XmlFormatterProps {
 export function XmlFormatter({ className }: XmlFormatterProps) {
   const { toolState, updateToolState } = useToolState('xml-formatter');
 
-  // Initialize with persistent state or defaults
-  const [options, setOptions] = useState<XmlFormatOptions>(
-    (toolState?.options as XmlFormatOptions) || DEFAULT_XML_OPTIONS
-  );
-  const [input, setInput] = useState<string>(toolState?.input || '');
-  const [output, setOutput] = useState<string>(toolState?.output || '');
+  // Initialize with defaults to avoid hydration mismatch
+  const [options, setOptions] = useState<XmlFormatOptions>(DEFAULT_XML_OPTIONS);
+  const [input, setInput] = useState<string>('');
+  const [output, setOutput] = useState<string>('');
   const [isFormatting, setIsFormatting] = useState(false);
-  const [error, setError] = useState<string>(toolState?.error || '');
-  const [stats, setStats] = useState<{ size: number; lines: number; depth: number; tags: number; attributes: number } | null>(
-    (toolState?.stats as { size: number; lines: number; depth: number; tags: number; attributes: number }) || null
-  );
+  const [error, setError] = useState<string>('');
+  const [stats, setStats] = useState<{ size: number; lines: number; depth: number; tags: number; attributes: number } | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Editor settings
+  const [theme] = useCodeEditorTheme('basicDark');
+  const [inputWrapText, setInputWrapText] = useState(true);
+  const [outputWrapText, setOutputWrapText] = useState(true);
+
+  // Hydrate state from toolState after mount (client-side only)
+  useEffect(() => {
+    setIsHydrated(true);
+    if (toolState) {
+      if (toolState.options) setOptions(toolState.options as XmlFormatOptions);
+      if (toolState.input) setInput(toolState.input as string);
+      if (toolState.output) setOutput(toolState.output as string);
+      if (toolState.error) setError(toolState.error as string);
+      if (toolState.stats) setStats(toolState.stats as { size: number; lines: number; depth: number; tags: number; attributes: number });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Update persistent state whenever local state changes
   useEffect(() => {
-    updateToolState({
-      options,
-      input,
-      output,
-      error,
-      stats: stats || undefined
-    });
-  }, [options, input, output, error, stats]);
+    if (isHydrated) {
+      updateToolState({
+        options,
+        input,
+        output,
+        error,
+        stats: stats || undefined
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options, input, output, error, stats, isHydrated]);
 
   // Reset local state when tool state is cleared
   useEffect(() => {
-    if (!toolState || Object.keys(toolState).length === 0) {
+    if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
       setOptions(DEFAULT_XML_OPTIONS);
       setInput('');
       setOutput('');
       setError('');
       setStats(null);
     }
-  }, [toolState]);
+  }, [toolState, isHydrated]);
 
   const handleFormat = async () => {
     if (!input.trim()) {
@@ -85,46 +104,47 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
     }
   };
 
-  const handleClear = () => {
-    setInput('');
-    setOutput('');
+  const handleLoadExample = (type: 'valid' | 'minified' | 'invalid') => {
+    setInput(XML_EXAMPLES[type]);
     setError('');
-    setStats(null);
   };
 
-  const handleLoadExample = (example: 'valid' | 'invalid' | 'minified') => {
-    setInput(XML_EXAMPLES[example]);
-    setOutput('');
-    setError('');
-    setStats(null);
+  const getCharacterCount = (text: string): number => {
+    return text.length;
   };
 
+  const getLineCount = (text: string): number => {
+    if (!text) return 0;
+    return text.split('\n').length;
+  };
 
   return (
-    <div className={cn('space-y-6', className)}>
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <span className="text-2xl">{'< >'}</span>
-            <span>XML Formatter</span>
-          </CardTitle>
-          <p className="text-muted-foreground">
-            Format, minify, and validate XML with syntax highlighting and statistics
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Format Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="format-select">Format Type</Label>
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Header Section */}
+      <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
+        <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
+          XML Formatter
+        </h1>
+        <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
+          Format, minify, and validate XML with syntax highlighting and statistics
+        </p>
+      </div>
+
+      {/* Body Section */}
+      <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
+        <div className="flex flex-col gap-4">
+          {/* Controls */}
+          <div className="flex flex-col gap-4">
+            {/* Main Controls Row */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Format Type Select */}
               <Select
                 value={options.format}
                 onValueChange={(value: 'beautify' | 'minify') =>
                   setOptions(prev => ({ ...prev, format: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger label="Format Type:">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -135,19 +155,16 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
 
-            {/* Indent Size (only for beautify) */}
-            {options.format === 'beautify' && (
-              <div className="space-y-2">
-                <Label htmlFor="indent-select">Indent Size</Label>
+              {/* Indent Size (only for beautify) */}
+              {options.format === 'beautify' && (
                 <Select
                   value={options.indentSize.toString()}
                   onValueChange={(value) =>
                     setOptions(prev => ({ ...prev, indentSize: parseInt(value) }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger label="Indent Size:">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -158,19 +175,16 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            )}
+              )}
 
-            {/* Preserve Whitespace */}
-            <div className="space-y-2">
-              <Label htmlFor="whitespace-select">Whitespace</Label>
+              {/* Preserve Whitespace */}
               <Select
                 value={options.preserveWhitespace.toString()}
                 onValueChange={(value) =>
                   setOptions(prev => ({ ...prev, preserveWhitespace: value === 'true' }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger label="Whitespace:">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -181,18 +195,15 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
 
-            {/* Self-Closing Tags */}
-            <div className="space-y-2">
-              <Label htmlFor="selfclosing-select">Self-Closing Tags</Label>
+              {/* Self-Closing Tags */}
               <Select
                 value={options.selfClosingTags}
                 onValueChange={(value: 'auto' | 'always' | 'never') =>
                   setOptions(prev => ({ ...prev, selfClosingTags: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger label="Self-Closing:">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -206,109 +217,99 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
             </div>
           </div>
 
-          {/* Example Buttons */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleLoadExample('valid')}
-            >
-              Load Valid Example
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleLoadExample('minified')}
-            >
-              Load Minified Example
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleLoadExample('invalid')}
-            >
-              Load Invalid Example
-            </Button>
+          {/* Side-by-side Editor Panels */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Input Panel */}
+            <CodeInputPanel
+              title="XML Input"
+              value={input}
+              onChange={setInput}
+              language="xml"
+              height="500px"
+              theme={theme}
+              wrapText={inputWrapText}
+              onWrapTextChange={setInputWrapText}
+              showCopyButton={false}
+              showClearButton={true}
+              headerActions={
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                    >
+                      Load Examples
+                      <ChevronDownIcon className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleLoadExample('valid')}>
+                      Load Valid Example
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('minified')}>
+                      Load Minified Example
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('invalid')}>
+                      Load Invalid Example
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              }
+              footerLeftContent={
+                <span>{getCharacterCount(input)} characters</span>
+              }
+              footerRightContent={
+                <Button
+                  onClick={handleFormat}
+                  disabled={!input.trim() || isFormatting}
+                  variant="default"
+                  size="sm"
+                  className="h-8 px-4"
+                >
+                  {isFormatting ? (
+                    <>
+                      <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
+                      Formatting...
+                    </>
+                  ) : (
+                    'Generate'
+                  )}
+                </Button>
+              }
+            />
+
+            {/* Output Panel */}
+            <CodeOutputPanel
+              title="Formatted XML"
+              value={output}
+              language="xml"
+              height="500px"
+              theme={theme}
+              wrapText={outputWrapText}
+              onWrapTextChange={setOutputWrapText}
+              footerLeftContent={
+                output && (
+                  <>
+                    <span>{getCharacterCount(output)} characters</span>
+                    <span>{getLineCount(output)} lines</span>
+                    {stats && <span>{stats.tags} tags</span>}
+                  </>
+                )
+              }
+            />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-4">
-            <Button
-              onClick={handleFormat}
-              disabled={!input.trim() || isFormatting}
-              className="flex items-center space-x-2"
-            >
-              {isFormatting ? (
-                <>
-                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                  <span>Formatting...</span>
-                </>
-              ) : (
-                <>
-                  <ArrowPathIcon className="h-4 w-4" />
-                  <span>Format XML</span>
-                </>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClear}
-            >
-              Clear
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Code Editor with Input and Output */}
-      <CodeEditor
-        mode="both"
-        inputValue={input}
-        outputValue={output}
-        onInputChange={(value) => setInput(value)}
-        language="xml"
-        inputTitle="XML Input"
-        outputTitle="Formatted XML"
-        placeholder="Paste your XML here..."
-        error={error}
-        isLoading={isFormatting}
-        showStats={true}
-        height="400px"
-      />
-
-      {/* Statistics */}
-      {stats && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">XML Statistics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{stats.size}</div>
-                <div className="text-sm text-muted-foreground">Characters</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{stats.lines}</div>
-                <div className="text-sm text-muted-foreground">Lines</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{stats.depth}</div>
-                <div className="text-sm text-muted-foreground">Max Depth</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{stats.tags}</div>
-                <div className="text-sm text-muted-foreground">Tags</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{stats.attributes}</div>
-                <div className="text-sm text-muted-foreground">Attributes</div>
+          {/* Error Display */}
+          {error && (
+            <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="text-sm text-red-700 dark:text-red-300">
+                {error}
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </div>
+      </div>
     </div>
   );
 }
