@@ -2,11 +2,9 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
+import { EditorPanel, type EditorPanelTab } from '@/components/ui/EditorPanel';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { OutputPanel, type OutputPanelTab } from '@/components/ui/OutputPanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
@@ -29,7 +27,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   const [error, setError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'plain' | 'html'>('plain');
   const [isHydrated, setIsHydrated] = useState(false);
-  
+
   // Editor settings
   const [theme] = useCodeEditorTheme('basicDark');
   const [wrapText, setWrapText] = useState(true);
@@ -139,8 +137,8 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     }
   };
 
-  // Prepare tabs for OutputPanel
-  const outputTabs: OutputPanelTab[] = useMemo(
+  // Prepare tabs for EditorPanel
+  const outputTabs: EditorPanelTab[] = useMemo(
     () => [
       {
         id: 'plain',
@@ -243,22 +241,6 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                 )}
               </Button>
             </div>
-
-            {/* Editor Settings Row */}
-            <div className="flex items-center gap-4 flex-wrap">
-              {/* Wrap Text Toggle */}
-              <div className="flex items-center gap-2">
-                <Label htmlFor="wrap-text" className="text-sm text-muted-foreground cursor-pointer whitespace-nowrap">
-                  Wrap Text:
-                </Label>
-                <Switch
-                  id="wrap-text"
-                  checked={wrapText}
-                  onCheckedChange={setWrapText}
-                  className="h-5 w-9"
-                />
-              </div>
-            </div>
           </div>
 
           {/* Results */}
@@ -269,7 +251,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </div>
             </div>
           ) : (
-            <OutputPanel
+            <EditorPanel
               tabs={outputTabs}
               activeTab={activeTab}
               onTabChange={handleTabChange}
@@ -277,6 +259,8 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               height="374px"
               theme={theme}
               wrapText={wrapText}
+              onWrapTextChange={setWrapText}
+              showWrapTextToggle={true}
             />
           )}
         </div>

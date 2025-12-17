@@ -13,7 +13,7 @@ import { createMonacoOptions, getMonacoLanguageId } from '@/libs/monaco-utils';
 import { getShikiHighlighter, initializeShiki, isShikiInitialized, loadShikiTheme } from '@/libs/shiki-init';
 import { cn } from '@/libs/utils';
 import dynamic from 'next/dynamic';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 // Dynamic import of Monaco Editor React component
 // ssr: false is required because Monaco Editor doesn't work on server
@@ -43,6 +43,7 @@ export interface MonacoEditorInstanceProps {
   placeholder?: string;
   height?: string;
   className?: string;
+  padding?: { top?: number; bottom?: number };
   onMount?: (editor: any, monaco: any) => void;
 }
 
@@ -61,6 +62,7 @@ export function MonacoEditorInstance({
   placeholder,
   height = '400px',
   className,
+  padding,
   onMount,
 }: MonacoEditorInstanceProps) {
   const [initError, setInitError] = useState<Error | null>(null);
@@ -68,8 +70,9 @@ export function MonacoEditorInstance({
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
 
-  // Get Monaco options (calculate before handleEditorDidMount)
-  const monacoTheme = getMonacoTheme(theme);
+  // Get Monaco theme - recalculate when theme prop changes
+  // This ensures the theme is always up-to-date, especially on initial load
+  const monacoTheme = useMemo(() => getMonacoTheme(theme), [theme]);
 
   // Load theme helper function with proper fallback chain
   const loadThemeSafely = async (monaco: any, themeName: string, currentTheme: CodeEditorTheme): Promise<string> => {
@@ -156,11 +159,12 @@ export function MonacoEditorInstance({
 
       // Load the current theme if not already loaded
       // This ensures the theme is available before we try to use it
-      const loadedTheme = await loadThemeSafely(monaco, monacoTheme, theme);
-      if (loadedTheme !== monacoTheme) {
-        // Update Monaco theme to the loaded theme (might be fallback)
-        monaco.editor.setTheme(loadedTheme);
-      }
+      // Use the current monacoTheme from the prop (which should be the persisted theme)
+      const currentMonacoTheme = getMonacoTheme(theme);
+      const loadedTheme = await loadThemeSafely(monaco, currentMonacoTheme, theme);
+
+      // Always set the theme, even if it's the same, to ensure it's applied
+      monaco.editor.setTheme(loadedTheme);
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to initialize Shiki');
       setInitError(err);
@@ -177,15 +181,16 @@ export function MonacoEditorInstance({
   };
 
   // Handle theme changes dynamically
+  // This effect ensures the theme is updated when the prop changes
   useEffect(() => {
     if (!monacoRef.current || !editorRef.current) {
       return;
     }
 
     const updateTheme = async () => {
-      const newTheme = getMonacoTheme(theme);
       try {
-        const loadedTheme = await loadThemeSafely(monacoRef.current, newTheme, theme);
+        // Load the theme and apply it
+        const loadedTheme = await loadThemeSafely(monacoRef.current, monacoTheme, theme);
         monacoRef.current.editor.setTheme(loadedTheme);
       } catch (error) {
         console.warn('Failed to update theme:', error);
@@ -194,7 +199,7 @@ export function MonacoEditorInstance({
 
     updateTheme();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme]);
+  }, [theme, monacoTheme]);
 
   const monacoOptions = createMonacoOptions(
     language,
@@ -226,6 +231,12 @@ export function MonacoEditorInstance({
         options={{
           ...monacoOptions,
           readOnly,
+          ...(padding && {
+            padding: {
+              top: padding.top ?? 0,
+              bottom: padding.bottom ?? 0,
+            },
+          }),
         }}
         onMount={handleEditorDidMount}
         loading={

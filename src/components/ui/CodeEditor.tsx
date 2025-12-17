@@ -52,6 +52,7 @@ export interface CodeEditorProps {
   height?: string; // e.g., '400px', '50vh'
   minHeight?: string; // e.g., '200px', '30vh'
   maxHeight?: string; // e.g., '600px', '80vh'
+  editorPadding?: { top?: number; bottom?: number };
 }
 
 export function CodeEditor({
@@ -77,24 +78,20 @@ export function CodeEditor({
   height = '400px',
   minHeight,
   maxHeight,
+  editorPadding,
 }: CodeEditorProps) {
   // State management
   const [copySuccess, setCopySuccess] = useState<'input' | 'output' | null>(null);
   const [internalWrapText, setInternalWrapText] = useState(wrapText ?? true);
 
   // Theme management - use persisted theme for user control
+  // The hook loads from localStorage first, so persisted theme takes precedence over the prop
+  // The theme prop is only used as a fallback default if no persisted theme exists
   const [persistedTheme, setPersistedTheme] = useCodeEditorTheme(theme);
   const currentTheme = persistedTheme;
 
   // Determine current wrap text state
   const currentWrapText = internalWrapText;
-
-  // Sync theme prop with persisted theme when it changes
-  useEffect(() => {
-    if (theme !== undefined && theme !== persistedTheme) {
-      setPersistedTheme(theme);
-    }
-  }, [theme, persistedTheme, setPersistedTheme]);
 
   // Sync internal state when wrapText prop changes
   useEffect(() => {
@@ -271,6 +268,7 @@ export function CodeEditor({
                   placeholder={options.placeholder}
                   height="100%"
                   className="h-full"
+                  padding={editorPadding}
                 />
               </div>
 
@@ -375,6 +373,7 @@ export function CodeEditor({
                 placeholder={inputOptions.placeholder}
                 height="100%"
                 className="h-full"
+                padding={editorPadding}
               />
             </div>
 
@@ -484,6 +483,7 @@ export function CodeEditor({
                     placeholder={outputOptions.placeholder}
                     height="100%"
                     className="h-full"
+                    padding={editorPadding}
                   />
                 </div>
 
