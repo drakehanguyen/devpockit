@@ -1,18 +1,11 @@
 /**
  * Code Editor Theme Configuration
- * Defines available themes for CodeMirror editor
+ * Defines available themes for Monaco Editor with Shiki
  * Themes are independent from the website theme
  */
 
-import { Extension } from '@codemirror/state';
-import { basicDark, basicLight } from '@uiw/codemirror-theme-basic';
-import { darcula } from '@uiw/codemirror-theme-darcula';
-import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
-import { materialDark, materialLight } from '@uiw/codemirror-theme-material';
-import { monokai } from '@uiw/codemirror-theme-monokai';
-import { nord } from '@uiw/codemirror-theme-nord';
-import { solarizedDark, solarizedLight } from '@uiw/codemirror-theme-solarized';
-import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
+import { getShikiThemeName } from '@/libs/shiki-init';
+import { getMonacoTheme } from './monaco-themes';
 
 export type CodeEditorTheme =
   | 'basicLight'
@@ -26,110 +19,117 @@ export type CodeEditorTheme =
   | 'monokai'
   | 'solarizedLight'
   | 'solarizedDark'
-  | 'darcula'
+  | 'catppuccin'
   | 'nord';
 
 export interface ThemeConfig {
   name: string;
   label: string;
-  extension: Extension;
+  monacoTheme: string; // Monaco theme name (matches Shiki theme name)
+  shikiTheme: string; // Shiki theme name
 }
 
 /**
- * Theme mapping
- */
-const THEME_MAP: Record<CodeEditorTheme, Extension> = {
-  basicLight: basicLight,
-  basicDark: basicDark,
-  vscodeLight: vscodeLight,
-  vscodeDark: vscodeDark,
-  githubLight: githubLight,
-  githubDark: githubDark,
-  materialLight: materialLight,
-  materialDark: materialDark,
-  monokai: monokai,
-  solarizedLight: solarizedLight,
-  solarizedDark: solarizedDark,
-  darcula: darcula,
-  nord: nord,
-};
-
-/**
  * Theme configuration with labels
+ * Monaco and Shiki theme names are the same (registered via @shikijs/monaco)
  */
 export const CODE_EDITOR_THEMES: Record<CodeEditorTheme, ThemeConfig> = {
   basicLight: {
     name: 'basicLight',
     label: 'Basic Light',
-    extension: basicLight,
+    monacoTheme: getMonacoTheme('basicLight'),
+    shikiTheme: getShikiThemeName('basicLight'),
   },
   basicDark: {
     name: 'basicDark',
     label: 'Basic Dark',
-    extension: basicDark,
+    monacoTheme: getMonacoTheme('basicDark'),
+    shikiTheme: getShikiThemeName('basicDark'),
   },
   vscodeLight: {
     name: 'vscodeLight',
     label: 'VS Code Light',
-    extension: vscodeLight,
+    monacoTheme: getMonacoTheme('vscodeLight'),
+    shikiTheme: getShikiThemeName('vscodeLight'),
   },
   vscodeDark: {
     name: 'vscodeDark',
     label: 'VS Code Dark',
-    extension: vscodeDark,
+    monacoTheme: getMonacoTheme('vscodeDark'),
+    shikiTheme: getShikiThemeName('vscodeDark'),
   },
   githubLight: {
     name: 'githubLight',
     label: 'GitHub Light',
-    extension: githubLight,
+    monacoTheme: getMonacoTheme('githubLight'),
+    shikiTheme: getShikiThemeName('githubLight'),
   },
   githubDark: {
     name: 'githubDark',
     label: 'GitHub Dark',
-    extension: githubDark,
+    monacoTheme: getMonacoTheme('githubDark'),
+    shikiTheme: getShikiThemeName('githubDark'),
   },
   materialLight: {
     name: 'materialLight',
     label: 'Material Light',
-    extension: materialLight,
+    monacoTheme: getMonacoTheme('materialLight'),
+    shikiTheme: getShikiThemeName('materialLight'),
   },
   materialDark: {
     name: 'materialDark',
     label: 'Material Dark',
-    extension: materialDark,
+    monacoTheme: getMonacoTheme('materialDark'),
+    shikiTheme: getShikiThemeName('materialDark'),
   },
   monokai: {
     name: 'monokai',
     label: 'Monokai',
-    extension: monokai,
+    monacoTheme: getMonacoTheme('monokai'),
+    shikiTheme: getShikiThemeName('monokai'),
   },
   solarizedLight: {
     name: 'solarizedLight',
     label: 'Solarized Light',
-    extension: solarizedLight,
+    monacoTheme: getMonacoTheme('solarizedLight'),
+    shikiTheme: getShikiThemeName('solarizedLight'),
   },
   solarizedDark: {
     name: 'solarizedDark',
     label: 'Solarized Dark',
-    extension: solarizedDark,
+    monacoTheme: getMonacoTheme('solarizedDark'),
+    shikiTheme: getShikiThemeName('solarizedDark'),
   },
-  darcula: {
-    name: 'darcula',
-    label: 'Darcula',
-    extension: darcula,
+  catppuccin: {
+    name: 'catppuccin',
+    label: 'Catppuccin',
+    monacoTheme: getMonacoTheme('catppuccin'),
+    shikiTheme: getShikiThemeName('catppuccin'),
   },
   nord: {
     name: 'nord',
     label: 'Nord',
-    extension: nord,
+    monacoTheme: getMonacoTheme('nord'),
+    shikiTheme: getShikiThemeName('nord'),
   },
 };
 
 /**
- * Get theme extension by name
+ * Get Monaco theme name by CodeEditorTheme
+ * @param theme - CodeEditorTheme
+ * @returns Monaco theme name
  */
-export function getThemeExtension(theme: CodeEditorTheme): Extension {
-  return THEME_MAP[theme] || THEME_MAP.basicDark;
+export function getThemeMonacoName(theme: CodeEditorTheme): string {
+  return getMonacoTheme(theme);
+}
+
+/**
+ * Get Shiki theme name by CodeEditorTheme
+ * @param theme - CodeEditorTheme
+ * @returns Shiki theme name
+ */
+export function getThemeShikiName(theme: CodeEditorTheme): string {
+  return getShikiThemeName(theme);
 }
 
 /**
