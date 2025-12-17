@@ -2,14 +2,16 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { EditorPanel, type EditorPanelTab } from '@/components/ui/EditorPanel';
+import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
+import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DEFAULT_JSON_OPTIONS, JSON_FORMAT_OPTIONS } from '@/config/json-formatter-config';
+import { DEFAULT_JSON_OPTIONS, JSON_EXAMPLES, JSON_FORMAT_OPTIONS } from '@/config/json-formatter-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { formatJson, getJsonStats, type JsonFormatOptions, type JsonFormatResult } from '@/libs/json-formatter';
 import { cn } from '@/libs/utils';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
-import { useEffect, useMemo, useState } from 'react';
+import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 
 interface JsonFormatterProps {
   className?: string;
@@ -26,11 +28,11 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
   const [error, setError] = useState<string>('');
   const [stats, setStats] = useState<{ size: number; lines: number; depth: number; keys: number } | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [activeTab, setActiveTab] = useState<'input' | 'output'>('input');
 
   // Editor settings
   const [theme] = useCodeEditorTheme('basicDark');
-  const [wrapText, setWrapText] = useState(true);
+  const [inputWrapText, setInputWrapText] = useState(true);
+  const [outputWrapText, setOutputWrapText] = useState(true);
 
   // Hydrate state from toolState after mount (client-side only)
   useEffect(() => {
@@ -41,7 +43,6 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
       if (toolState.stats) setStats(toolState.stats as { size: number; lines: number; depth: number; keys: number });
-      if (toolState.activeTab) setActiveTab(toolState.activeTab as 'input' | 'output');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -54,12 +55,11 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
         input,
         output,
         error,
-        stats: stats || undefined,
-        activeTab
+        stats: stats || undefined
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, input, output, error, stats, activeTab, isHydrated]);
+  }, [options, input, output, error, stats, isHydrated]);
 
   // Reset local state when tool state is cleared
   useEffect(() => {
@@ -69,7 +69,6 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
       setOutput('');
       setError('');
       setStats(null);
-      setActiveTab('input');
     }
   }, [toolState, isHydrated]);
 
@@ -91,14 +90,10 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
       if (result.isValid) {
         setOutput(result.formatted);
         setStats(getJsonStats(result.formatted));
-        // Switch to output tab after successful formatting
-        setActiveTab('output');
       } else {
         setError(result.error || 'Invalid JSON');
         setOutput('');
         setStats(null);
-        // Switch to output tab to show error
-        setActiveTab('output');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to format JSON');
@@ -109,41 +104,19 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
     }
   };
 
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId as 'input' | 'output');
+  const handleLoadExample = (type: 'valid' | 'minified' | 'invalid') => {
+    setInput(JSON_EXAMPLES[type]);
+    setError('');
   };
 
-  const handleContentChange = (content: string, tabId: string) => {
-    if (tabId === 'input') {
-      setInput(content);
-    }
+  const getCharacterCount = (text: string): number => {
+    return text.length;
   };
 
-  const handleCopy = (content: string, tabId: string) => {
-    // Copy is handled by EditorPanel
+  const getLineCount = (text: string): number => {
+    if (!text) return 0;
+    return text.split('\n').length;
   };
-
-  // Prepare tabs for EditorPanel
-  const editorTabs: EditorPanelTab[] = useMemo(
-    () => [
-      {
-        id: 'input',
-        label: 'Input',
-        content: input,
-        language: 'json',
-        editable: true,
-      },
-      {
-        id: 'output',
-        label: 'Output',
-        content: output,
-        language: 'json',
-        editable: false,
-      },
-    ],
-    [input, output]
-  );
-
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
@@ -224,24 +197,90 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
                   </SelectContent>
                 </Select>
               )}
-
-              {/* Format Button */}
-              <Button
-                onClick={handleFormat}
-                disabled={!input.trim() || isFormatting}
-                variant="default"
-                size="default"
-              >
-                {isFormatting ? (
-                  <>
-                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                    Formatting...
-                  </>
-                ) : (
-                  'Format'
-                )}
-              </Button>
             </div>
+          </div>
+
+          {/* Side-by-side Editor Panels */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Input Panel */}
+            <CodeInputPanel
+              title="JSON Input"
+              value={input}
+              onChange={setInput}
+              language="json"
+              height="500px"
+              theme={theme}
+              wrapText={inputWrapText}
+              onWrapTextChange={setInputWrapText}
+              showCopyButton={false}
+              showClearButton={true}
+              headerActions={
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                    >
+                      Load Examples
+                      <ChevronDownIcon className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleLoadExample('valid')}>
+                      Load Valid Example
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('minified')}>
+                      Load Minified Example
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('invalid')}>
+                      Load Invalid Example
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              }
+              footerLeftContent={
+                <span>{getCharacterCount(input)} characters</span>
+              }
+              footerRightContent={
+                <Button
+                  onClick={handleFormat}
+                  disabled={!input.trim() || isFormatting}
+                  variant="default"
+                  size="sm"
+                  className="h-8 px-4"
+                >
+                  {isFormatting ? (
+                    <>
+                      <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
+                      Formatting...
+                    </>
+                  ) : (
+                    'Generate'
+                  )}
+                </Button>
+              }
+            />
+
+            {/* Output Panel */}
+            <CodeOutputPanel
+              title="Formatted JSON"
+              value={output}
+              language="json"
+              height="500px"
+              theme={theme}
+              wrapText={outputWrapText}
+              onWrapTextChange={setOutputWrapText}
+              footerLeftContent={
+                output && (
+                  <>
+                    <span>{getCharacterCount(output)} characters</span>
+                    <span>{getLineCount(output)} lines</span>
+                    {stats && <span>{stats.keys} total keys</span>}
+                  </>
+                )
+              }
+            />
           </div>
 
           {/* Error Display */}
@@ -249,33 +288,6 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
             <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
               <div className="text-sm text-red-700 dark:text-red-300">
                 {error}
-              </div>
-            </div>
-          )}
-
-          {/* Editor Panel */}
-          <EditorPanel
-            tabs={editorTabs}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onContentChange={handleContentChange}
-            onCopy={handleCopy}
-            showStats={false}
-            height="374px"
-            theme={theme}
-            wrapText={wrapText}
-            onWrapTextChange={setWrapText}
-            showWrapTextToggle={true}
-          />
-
-          {/* Custom Statistics for Output Tab */}
-          {activeTab === 'output' && stats && (
-            <div className="px-2 py-2 text-sm text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px]">
-              <div className="flex items-center gap-4">
-                <span>{output.length} characters</span>
-                <span>{output ? output.split('\n').length : 0} lines</span>
-                <span>{stats.depth} max depth</span>
-                <span>{stats.keys} keys</span>
               </div>
             </div>
           )}

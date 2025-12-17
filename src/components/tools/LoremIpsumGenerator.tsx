@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { EditorPanel, type EditorPanelTab } from '@/components/ui/EditorPanel';
+import { CodeOutputPanel, type CodeOutputTab } from '@/components/ui/CodeOutputPanel';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
@@ -74,8 +74,8 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     setOptions(prev => ({ ...prev, format: activeTab }));
   }, [activeTab]);
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as 'plain' | 'html');
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId as 'plain' | 'html');
   };
 
   const convertPlainToHtml = (plainText: string, unit: 'words' | 'sentences' | 'paragraphs'): string => {
@@ -137,25 +137,24 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     }
   };
 
-  // Prepare tabs for EditorPanel
-  const outputTabs: EditorPanelTab[] = useMemo(
+  // Prepare tabs for CodeOutputPanel
+  const outputTabs: CodeOutputTab[] = useMemo(
     () => [
       {
         id: 'plain',
         label: 'Plain text',
-        content: outputPlain,
+        value: outputPlain,
         language: 'plaintext',
       },
       {
         id: 'html',
         label: 'HTML',
-        content: outputHtml,
+        value: outputHtml,
         language: 'xml',
       },
     ],
     [outputPlain, outputHtml]
   );
-
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
@@ -251,16 +250,15 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </div>
             </div>
           ) : (
-            <EditorPanel
+            <CodeOutputPanel
               tabs={outputTabs}
               activeTab={activeTab}
               onTabChange={handleTabChange}
               showStats={true}
-              height="374px"
+              height="500px"
               theme={theme}
               wrapText={wrapText}
               onWrapTextChange={setWrapText}
-              showWrapTextToggle={true}
             />
           )}
         </div>

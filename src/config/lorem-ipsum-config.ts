@@ -124,7 +124,7 @@ export const LOREM_OPTIONS = {
 
 export const DEFAULT_OPTIONS = {
   type: 'latin' as const,
-  unit: 'sentences' as const,
+  unit: 'paragraphs' as const,
   quantity: 5,
   format: 'plain' as const
 };
