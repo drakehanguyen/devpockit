@@ -235,7 +235,28 @@ export function AppSidebar({
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton tooltip={category.name}>
+                      <SidebarMenuButton
+                        tooltip={{
+                          children: (
+                            <div className="flex flex-col gap-1">
+                              <div className="font-semibold border-b border-border pb-1 mb-1">{category.name}</div>
+                              {category.tools.map((tool) => (
+                                <div
+                                  key={tool.id}
+                                  className="text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground py-1 px-2 rounded-md -mx-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleToolSelect(tool.id)
+                                  }}
+                                >
+                                  {tool.name}
+                                </div>
+                              ))}
+                            </div>
+                          ),
+                          className: "w-48",
+                        }}
+                      >
                         <IconComponent className="h-4 w-4" />
                         <span>{category.name}</span>
                         <ChevronRight className="ml-auto h-8 w-8 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
