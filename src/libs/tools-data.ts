@@ -1,18 +1,18 @@
 import { ToolCategory } from '@/types/tools';
 import {
-  FileText,
-  Braces,
-  Code,
-  Hash,
-  QrCode,
-  ScanSearch,
-  ScanLine,
-  Link,
-  Clock,
   ArrowLeftRight,
-  Network,
+  Braces,
+  Clock,
+  Code,
+  FileText,
+  GitCompare,
+  Hash,
+  Link,
   MapPin,
-  Wrench,
+  Network,
+  QrCode,
+  ScanLine,
+  ScanSearch,
   type LucideIcon
 } from 'lucide-react';
 
@@ -34,7 +34,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'cidr-analyzer': Network,
   'ip-to-cidr-converter': Network,
   'ip-checker': MapPin,
-  'placeholder-tool': Wrench,
+  'diff-checker': GitCompare,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -268,14 +268,14 @@ export const toolCategories: ToolCategory[] = [
     description: 'General utility tools and helpers',
     tools: [
       {
-        id: 'placeholder-tool',
-        name: 'Placeholder Tool',
-        description: 'A placeholder tool for testing and development',
+        id: 'diff-checker',
+        name: 'Diff Checker',
+        description: 'Compare two texts side-by-side and highlight differences with syntax highlighting',
         category: 'utilities',
-        icon: '🔧',
-        isPopular: false,
-        path: '/tools/utilities/placeholder-tool',
-        component: 'PlaceholderTool',
+        icon: '📊',
+        isPopular: true,
+        path: '/tools/utilities/diff-checker',
+        component: 'DiffChecker',
         supportsDesktop: true,
         supportsMobile: true,
       },
