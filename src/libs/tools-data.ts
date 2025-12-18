@@ -16,6 +16,8 @@ import {
   type LucideIcon
 } from 'lucide-react';
 
+import { Unlock } from 'lucide-react';
+
 // Icon mapping for tools
 export const toolIcons: Record<string, LucideIcon> = {
   'lorem-ipsum': FileText,
@@ -26,6 +28,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'qr-code-decoder': ScanSearch,
   'qr-code-scanner': ScanLine,
   'url-encoder': Link,
+  'url-decoder': Unlock,
   'cron-parser': Clock,
   'json-yaml-converter': ArrowLeftRight,
   'cidr-analyzer': Network,
@@ -155,13 +158,25 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         id: 'url-encoder',
-        name: 'URL Encoder/Decoder',
-        description: 'Encode and decode URLs with multiple encoding types including URL, URI, and custom character sets',
+        name: 'URL Encoder',
+        description: 'Encode URLs and text with multiple encoding types including URL, URI, and custom character sets',
         category: 'encoders',
         icon: '🔗',
         isPopular: true,
         path: '/tools/encoders/url-encoder',
-        component: 'UrlEncoder',
+        component: 'UrlEncoderTool',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'url-decoder',
+        name: 'URL Decoder',
+        description: 'Decode URL-encoded text back to its original form with support for multiple encoding types',
+        category: 'encoders',
+        icon: '🔓',
+        isPopular: true,
+        path: '/tools/encoders/url-decoder',
+        component: 'UrlDecoderTool',
         supportsDesktop: true,
         supportsMobile: true,
       },

@@ -1,0 +1,271 @@
+'use client';
+
+import { useToolState } from '@/components/providers/ToolStateProvider';
+import { Button } from '@/components/ui/button';
+import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
+import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { URL_ENCODING_TYPES, URL_ENCODED_EXAMPLES, DEFAULT_URL_OPTIONS } from '@/config/url-encoder-config';
+import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
+import { decodeUrl, type UrlEncoderOptions, type UrlEncoderResult } from '@/libs/url-encoder';
+import { cn } from '@/libs/utils';
+import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
+
+interface UrlDecoderToolProps {
+  className?: string;
+}
+
+export function UrlDecoderTool({ className }: UrlDecoderToolProps) {
+  const { toolState, updateToolState } = useToolState('url-decoder-tool');
+
+  const [options, setOptions] = useState<UrlEncoderOptions>(DEFAULT_URL_OPTIONS);
+  const [input, setInput] = useState<string>('');
+  const [output, setOutput] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [stats, setStats] = useState<{
+    originalLength: number;
+    decodedLength: number;
+  } | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  const [theme] = useCodeEditorTheme('basicDark');
+  const [inputWrapText, setInputWrapText] = useState(true);
+  const [outputWrapText, setOutputWrapText] = useState(true);
+
+  useEffect(() => {
+    setIsHydrated(true);
+    if (toolState) {
+      if (toolState.options) setOptions(toolState.options as UrlEncoderOptions);
+      if (toolState.input) setInput(toolState.input as string);
+      if (toolState.output) setOutput(toolState.output as string);
+      if (toolState.error) setError(toolState.error as string);
+      if (toolState.stats) setStats(toolState.stats as { originalLength: number; decodedLength: number });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated) {
+      updateToolState({
+        options,
+        input,
+        output,
+        error,
+        stats: stats || undefined
+      });
+    }
+  }, [options, input, output, error, stats, isHydrated]);
+
+  useEffect(() => {
+    if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
+      setOptions(DEFAULT_URL_OPTIONS);
+      setInput('');
+      setOutput('');
+      setError('');
+      setStats(null);
+    }
+  }, [toolState, isHydrated]);
+
+  const handleDecode = async () => {
+    if (!input.trim()) {
+      setError('Please enter encoded text to decode');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError('');
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const result: UrlEncoderResult = decodeUrl(input, options);
+
+      if (result.isValid) {
+        setOutput(result.decoded);
+        setStats({
+          originalLength: result.originalLength,
+          decodedLength: result.decoded.length
+        });
+      } else {
+        setError(result.error || 'Decoding failed');
+        setOutput('');
+        setStats(null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to decode');
+      setOutput('');
+      setStats(null);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleLoadExample = (key: keyof typeof URL_ENCODED_EXAMPLES) => {
+    setInput(URL_ENCODED_EXAMPLES[key]);
+    setError('');
+  };
+
+  const getCharacterCount = (text: string): number => text.length;
+
+  return (
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Header Section */}
+      <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
+        <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
+          URL Decoder
+        </h1>
+        <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
+          Decode URL-encoded text back to its original form with support for multiple encoding types
+        </p>
+      </div>
+
+      {/* Body Section */}
+      <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
+        <div className="flex flex-col gap-4">
+          {/* Controls */}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Encoding Type Select */}
+              <Select
+                value={options.encodingType}
+                onValueChange={(value: 'url' | 'uri' | 'custom') =>
+                  setOptions(prev => ({ ...prev, encodingType: value }))
+                }
+              >
+                <SelectTrigger label="Encoding Type:">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {URL_ENCODING_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Custom Characters (only for custom encoding) */}
+            {options.encodingType === 'custom' && (
+              <div className="flex items-center gap-2">
+                <Label htmlFor="custom-chars" className="text-sm whitespace-nowrap">Custom Characters:</Label>
+                <Input
+                  id="custom-chars"
+                  value={options.customChars}
+                  onChange={(e) => setOptions(prev => ({ ...prev, customChars: e.target.value }))}
+                  placeholder="Enter characters to decode (e.g., ' &?=#/:;,')"
+                  className="max-w-md"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Side-by-side Editor Panels */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Input Panel */}
+            <CodeInputPanel
+              title="Encoded Text"
+              value={input}
+              onChange={setInput}
+              language="plaintext"
+              height="500px"
+              theme={theme}
+              wrapText={inputWrapText}
+              onWrapTextChange={setInputWrapText}
+              showCopyButton={false}
+              showClearButton={true}
+              headerActions={
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                    >
+                      Load Examples
+                      <ChevronDownIcon className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleLoadExample('simple')}>
+                      Simple Encoded URL
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('withParams')}>
+                      Encoded URL with Parameters
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('specialChars')}>
+                      Encoded Special Characters
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('unicode')}>
+                      Encoded Unicode
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('complex')}>
+                      Complex Encoded URL
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              }
+              footerLeftContent={
+                <span>{getCharacterCount(input)} characters</span>
+              }
+              footerRightContent={
+                <Button
+                  onClick={handleDecode}
+                  disabled={!input.trim() || isProcessing}
+                  variant="default"
+                  size="sm"
+                  className="h-8 px-4"
+                >
+                  {isProcessing ? (
+                    <>
+                      <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
+                      Decoding...
+                    </>
+                  ) : (
+                    'Decode'
+                  )}
+                </Button>
+              }
+            />
+
+            {/* Output Panel */}
+            <CodeOutputPanel
+              title="Decoded Text"
+              value={output}
+              language="plaintext"
+              height="500px"
+              theme={theme}
+              wrapText={outputWrapText}
+              onWrapTextChange={setOutputWrapText}
+              footerLeftContent={
+                output && (
+                  <>
+                    <span>{getCharacterCount(output)} characters</span>
+                    {stats && (
+                      <span>
+                        {stats.decodedLength < stats.originalLength ? '-' : '+'}{Math.abs(((stats.decodedLength - stats.originalLength) / stats.originalLength) * 100).toFixed(1)}% size change
+                      </span>
+                    )}
+                  </>
+                )
+              }
+            />
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="text-sm text-red-700 dark:text-red-300">
+                {error}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
