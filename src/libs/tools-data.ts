@@ -13,10 +13,10 @@ import {
   QrCode,
   ScanLine,
   ScanSearch,
+  Timer,
+  Unlock,
   type LucideIcon
 } from 'lucide-react';
-
-import { Unlock } from 'lucide-react';
 
 // Icon mapping for tools
 export const toolIcons: Record<string, LucideIcon> = {
@@ -35,6 +35,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'ip-to-cidr-converter': Network,
   'ip-checker': MapPin,
   'diff-checker': GitCompare,
+  'timestamp-converter': Timer,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -210,6 +211,18 @@ export const toolCategories: ToolCategory[] = [
         isPopular: true,
         path: '/tools/converters/json-yaml-converter',
         component: 'JsonYamlConverter',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'timestamp-converter',
+        name: 'Timestamp Converter',
+        description: 'Convert between Unix timestamps, ISO 8601, RFC 2822, and other date formats across timezones',
+        category: 'converters',
+        icon: '🕐',
+        isPopular: true,
+        path: '/tools/converters/timestamp-converter',
+        component: 'TimestampConverter',
         supportsDesktop: true,
         supportsMobile: true,
       },

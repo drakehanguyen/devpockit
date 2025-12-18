@@ -16,6 +16,7 @@ export const getToolComponent = async (componentName: string) => {
     'IpToCidrConverter': () => import('@/components/tools/IpToCidrConverter').then(m => m.IpToCidrConverter),
     'IpChecker': () => import('@/components/tools/IpChecker').then(m => m.IpChecker),
     'DiffChecker': () => import('@/components/tools/DiffChecker').then(m => m.DiffChecker),
+    'TimestampConverter': () => import('@/components/tools/TimestampConverter').then(m => m.TimestampConverter),
   };
 
   const loader = componentMap[componentName];
