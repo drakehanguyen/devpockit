@@ -1,10 +1,9 @@
 'use client';
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
-// Alert component not available, using div instead
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/libs/utils';
 import {
   CameraManager
 } from '@/libs/qr-code-decoder';
@@ -23,7 +22,6 @@ import {
   FlashlightOff,
   Loader2,
   RotateCcw,
-  Settings,
   Share,
   Trash2
 } from 'lucide-react';
@@ -31,11 +29,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { QR_SCANNER_CONFIG } from '../../config/qr-code-scanner-config';
 
 interface QrCodeScannerProps {
+  className?: string;
   onResult?: (result: QrDecoderResult) => void;
   onError?: (error: string) => void;
 }
 
-export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
+export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerProps) {
   // State management
   const [isScanning, setIsScanning] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -43,19 +42,15 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
   const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<string>('idle');
   const [options, setOptions] = useState<QrDecoderOptions>(QR_SCANNER_CONFIG.DEFAULT_OPTIONS);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Camera state
-  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
   const [currentCamera, setCurrentCamera] = useState<string>('environment');
   const [isFlashOn, setIsFlashOn] = useState(false);
   const [cameraStatus, setCameraStatus] = useState<any>(null);
 
   // UI state
-  const [showSettings, setShowSettings] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterFormat, setFilterFormat] = useState<string>('all');
   const [showParsedData, setShowParsedData] = useState(true);
-  const [selectedResults, setSelectedResults] = useState<Set<string>>(new Set());
 
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -64,6 +59,10 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
 
   // Tool state management
   const { toolState, updateToolState, clearToolState } = useToolState('qr-code-scanner');
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   // Initialize camera manager
   useEffect(() => {
@@ -89,6 +88,7 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
 
   // Update tool state when state changes
   useEffect(() => {
+    if (!isHydrated) return;
     const currentState = { options, results, error: error || undefined, state };
     const prevState = prevStateRef.current;
 
@@ -96,7 +96,7 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
       updateToolState(currentState);
       prevStateRef.current = currentState;
     }
-  }, [options, results, error, state, updateToolState]);
+  }, [options, results, error, state, updateToolState, isHydrated]);
 
   // Clear tool state when switching tools
   useEffect(() => {
@@ -107,9 +107,6 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
       setState('idle');
       setIsScanning(false);
       setIsCameraActive(false);
-      setSearchQuery('');
-      setFilterFormat('all');
-      setSelectedResults(new Set());
       if (cameraManagerRef.current) {
         cameraManagerRef.current.cleanup();
       }
@@ -141,10 +138,6 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
         setIsCameraActive(true);
         setState('idle');
 
-        // Get camera info
-        const cameras = await cameraManager.getAvailableCameras();
-        setAvailableCameras(cameras.cameras);
-
         const flashStatus = await cameraManager.getFlashStatus();
         setIsFlashOn(flashStatus.isOn || false);
 
@@ -174,12 +167,10 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
       const cameraManager = cameraManagerRef.current;
       await cameraManager.startScanning(
         (result: QrDecoderResult) => {
-          // Replace previous result with new one (only keep 1 result)
           setResults([result]);
           setState('qr detected');
           onResult?.(result);
 
-          // Auto-stop scanning after detection
           setIsScanning(false);
           if (cameraManagerRef.current) {
             cameraManagerRef.current.stopScanning();
@@ -192,7 +183,7 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
         },
         {
           scanIntervalMs: 100,
-          maxResults: 1, // Only detect one QR code
+          maxResults: 1,
           qualityThreshold: 0.5,
           enableMultipleDetection: false
         }
@@ -230,15 +221,12 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
     if (!cameraManagerRef.current || !isCameraActive) return;
 
     try {
-      // Stop current scanning and stream
       await cameraManagerRef.current.stopScanning();
       await cameraManagerRef.current.cleanup();
 
-      // Determine new facing mode
       const newFacingMode = currentCamera === 'environment' ? 'user' : 'environment';
       setCurrentCamera(newFacingMode);
 
-      // Reinitialize with new camera
       const result = await cameraManagerRef.current.initializeCamera(videoRef.current!, {
         video: {
           facingMode: newFacingMode,
@@ -248,11 +236,9 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
       });
 
       if (result.success) {
-        // Update camera status
         const status = await cameraManagerRef.current.getCameraStatus();
         setCameraStatus(status);
 
-        // Restart scanning if it was active
         if (isScanning) {
           await cameraManagerRef.current.startScanning(
             (result) => {
@@ -294,30 +280,6 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
     }
   }, []);
 
-  // Focus camera
-  const focusCamera = useCallback(async () => {
-    if (!cameraManagerRef.current) return;
-
-    try {
-      await cameraManagerRef.current.focusCamera();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to focus camera');
-    }
-  }, []);
-
-  // Filter results
-  const filteredResults = useCallback(() => {
-    return results.filter(result => {
-        const matchesSearch = !searchQuery ||
-          result.data.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          result.format.toLowerCase().includes(searchQuery.toLowerCase());
-
-        const matchesFilter = filterFormat === 'all' || result.format === filterFormat;
-
-      return matchesSearch && matchesFilter;
-    });
-  }, [results, searchQuery, filterFormat]);
-
   // Copy to clipboard
   const copyToClipboard = useCallback(async (text: string) => {
     try {
@@ -346,10 +308,7 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
 
   // Export results
   const exportResults = useCallback((format: 'json' | 'csv' | 'txt') => {
-    const data = selectedResults.size > 0
-      ? results.filter(r => selectedResults.has(r.id))
-      : filteredResults();
-
+    const data = results;
     let content = '';
     let filename = '';
 
@@ -377,378 +336,221 @@ export function QrCodeScanner({ onResult, onError }: QrCodeScannerProps) {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-  }, [results, selectedResults, filteredResults]);
-
-  // Select all results
-  const selectAllResults = useCallback(() => {
-    const filtered = filteredResults();
-    if (selectedResults.size === filtered.length) {
-      setSelectedResults(new Set());
-    } else {
-      setSelectedResults(new Set(filtered.map(r => r.id)));
-    }
-  }, [filteredResults, selectedResults]);
+  }, [results]);
 
   // Clear results
   const clearResults = useCallback(() => {
     setResults([]);
-    setSelectedResults(new Set());
   }, []);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">QR Code Scanner</h2>
-        <p className="text-muted-foreground">
-          Scan QR codes using your device camera
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Header Section */}
+      <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
+        <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
+          QR Code Scanner
+        </h1>
+        <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
+          Scan QR codes using your device camera with real-time detection
         </p>
       </div>
 
-      {/* Camera Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Camera className="h-5 w-5" />
-            Camera Scanner
-          </CardTitle>
-          <CardDescription>
-            Use your device camera to scan QR codes in real-time
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Camera Status */}
-          {state === 'camera initializing' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <div className="flex">
-                <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-                <div className="ml-3">
-                  <p className="text-sm text-blue-800">Initializing camera...</p>
+      {/* Body Section */}
+      <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
+        <div className="flex flex-col gap-4">
+          {/* Main Content - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Input Panel - Camera */}
+            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
+              <div className="flex items-center justify-between px-3 py-0">
+                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
+                  Camera Scanner
+                </div>
+                {isCameraActive && (
+                  <div className="flex items-center gap-1">
+                    <button onClick={switchCamera} className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+                      <RotateCcw className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                    </button>
+                    <button onClick={toggleFlash} className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+                      {isFlashOn ? <FlashlightOff className="h-4 w-4 text-neutral-900 dark:text-neutral-300" /> : <Flashlight className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />}
+                    </button>
+                    <button onClick={stopCamera} className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+                      <CameraOff className="h-4 w-4 text-red-500" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
+                <div className="h-full bg-white dark:bg-neutral-900 rounded-md p-4 flex flex-col">
+                  {/* Camera Video */}
+                  <div className="relative bg-black rounded-lg overflow-hidden flex-1 flex items-center justify-center">
+                    <video
+                      ref={videoRef}
+                      className={`w-full h-full object-contain ${!isCameraActive ? 'hidden' : ''}`}
+                      playsInline
+                      muted
+                    />
+                    {!isCameraActive && (
+                      <div className="text-center space-y-4">
+                        <Camera className="h-12 w-12 mx-auto text-white/50" />
+                        <p className="text-white/70 text-sm">Camera not active</p>
+                        {state === 'camera initializing' && (
+                          <div className="flex items-center justify-center gap-2 text-white/70">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-sm">Initializing...</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Scanning Overlay */}
+                    {isScanning && (
+                      <div className="absolute inset-0 border-4 border-green-500 rounded-lg animate-pulse">
+                        <div className="absolute top-2 left-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">
+                          Scanning for QR codes...
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Camera Info */}
+                  {cameraStatus && isCameraActive && (
+                    <div className="text-xs text-muted-foreground mt-2 flex gap-4">
+                      <span>{cameraStatus.facingMode === 'environment' ? 'Back' : 'Front'} Camera</span>
+                      <span>{cameraStatus.width}x{cameraStatus.height}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <div className="flex">
-                <AlertCircle className="h-4 w-4 text-red-400" />
-                <div className="ml-3">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Camera Video */}
-          <div className="relative bg-black rounded-lg overflow-hidden">
-            <video
-              ref={videoRef}
-              className={`w-full h-auto max-h-96 min-h-48 sm:max-h-80 md:max-h-96 lg:max-h-[32rem] object-contain ${!isCameraActive ? 'hidden' : ''}`}
-              playsInline
-              muted
-              style={{ aspectRatio: '16/9' }}
-            />
-            {!isCameraActive && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black rounded-lg" style={{ aspectRatio: '16/9' }}>
-                <div className="text-center space-y-2">
-                  <Camera className="h-12 w-12 mx-auto text-white" />
-                  <p className="text-white">Camera not active</p>
-                </div>
-              </div>
-            )}
-
-            {/* Scanning Overlay */}
-            {isScanning && (
-              <div className="absolute inset-0 border-4 border-green-500 rounded-lg animate-pulse">
-                <div className="absolute top-4 left-4 right-4 bg-green-500 text-white px-2 py-1 rounded text-sm font-medium">
-                  Scanning for QR codes...
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Camera Controls */}
-          <div className="flex flex-wrap gap-2">
-            {!isCameraActive ? (
-              <>
-                <Button onClick={initializeCamera} className="flex-1">
-                  <Camera className="h-4 w-4 mr-2" />
-                  Initialize Camera
-                </Button>
-              </>
-            ) : (
-              <>
-                {!isScanning ? (
-                  <Button onClick={startScanning} className="flex-1">
+              {/* Footer with Scan Button */}
+              <div className="flex items-center justify-end gap-2 px-3 py-2 min-h-[52px]">
+                {!isCameraActive ? (
+                  <Button
+                    onClick={initializeCamera}
+                    size="sm"
+                    className="h-8 px-4"
+                    disabled={state === 'camera initializing'}
+                  >
+                    {state === 'camera initializing' ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Initializing...
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="h-4 w-4 mr-2" />
+                        Start Camera
+                      </>
+                    )}
+                  </Button>
+                ) : !isScanning ? (
+                  <Button onClick={startScanning} size="sm" className="h-8 px-4">
                     <Camera className="h-4 w-4 mr-2" />
                     Start Scanning
                   </Button>
                 ) : (
-                  <Button onClick={stopScanningOnly} variant="destructive" className="flex-1">
+                  <Button onClick={stopScanningOnly} variant="destructive" size="sm" className="h-8 px-4">
                     <CameraOff className="h-4 w-4 mr-2" />
                     Stop Scanning
                   </Button>
                 )}
+              </div>
+            </div>
 
-                <Button onClick={switchCamera} variant="outline">
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-
-                <Button onClick={toggleFlash} variant="outline">
-                  {isFlashOn ? <FlashlightOff className="h-4 w-4" /> : <Flashlight className="h-4 w-4" />}
-                </Button>
-
-                <Button onClick={() => setShowSettings(!showSettings)} variant="outline">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-
-            {/* Stop Camera Button - Always visible when camera is active */}
-            {isCameraActive && (
-              <Button onClick={stopCamera} variant="outline" className="text-red-600 hover:text-red-700">
-                <CameraOff className="h-4 w-4 mr-2" />
-                Stop Camera
-              </Button>
-            )}
-          </div>
-
-          {/* Camera Settings Panel */}
-          {showSettings && isCameraActive && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle className="text-lg">Camera Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Camera Selection */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Camera</label>
-                    <select
-                      value={currentCamera}
-                      onChange={async (e) => {
-                        const newFacingMode = e.target.value;
-                        setCurrentCamera(newFacingMode);
-
-                        if (cameraManagerRef.current && isCameraActive) {
-                          try {
-                            // Stop current scanning and stream
-                            await cameraManagerRef.current.stopScanning();
-                            await cameraManagerRef.current.cleanup();
-
-                            // Reinitialize with new camera
-                            const result = await cameraManagerRef.current.initializeCamera(videoRef.current!, {
-                              video: {
-                                facingMode: newFacingMode,
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 }
-                              }
-                            });
-
-                            if (result.success) {
-                              // Update camera status
-                              const status = await cameraManagerRef.current.getCameraStatus();
-                              setCameraStatus(status);
-
-                              // Restart scanning if it was active
-                              if (isScanning) {
-                                await cameraManagerRef.current.startScanning(
-                                  (result) => {
-                                    setResults([result]);
-                                    setIsScanning(false);
-                                    setState('qr detected');
-                                  },
-                                  (error) => {
-                                    setError(error);
-                                    setState('error');
-                                  },
-                                  {
-                                    scanIntervalMs: 100,
-                                    maxResults: 1,
-                                    qualityThreshold: 0.5,
-                                    enableMultipleDetection: false
-                                  }
-                                );
-                                setIsScanning(true);
-                                setState('scanning');
-                              }
-                            } else {
-                              setError(result.error || 'Failed to switch camera');
-                            }
-                          } catch (err) {
-                            setError(err instanceof Error ? err.message : 'Failed to switch camera');
-                          }
-                        }
-                      }}
-                      className="w-full p-2 border rounded-md"
+            {/* Output Panel - Results */}
+            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
+              <div className="flex items-center justify-between px-3 py-0">
+                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
+                  Scan Result
+                </div>
+                {results.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => copyToClipboard(results[0].data)}
+                      className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
                     >
-                      <option value="environment">Back Camera</option>
-                      <option value="user">Front Camera</option>
-                    </select>
+                      <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                    </button>
+                    <button onClick={clearResults} className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+                      <Trash2 className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                    </button>
                   </div>
+                )}
+              </div>
+              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
+                <div className="h-full overflow-auto bg-white dark:bg-neutral-900 rounded-md p-4">
+                  {results.length > 0 ? (
+                    <div className="space-y-3">
+                      {results.map((result) => (
+                        <div key={result.id} className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <Badge variant="outline">{result.format}</Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(result.timestamp).toLocaleString()}
+                            </span>
+                          </div>
 
-                  {/* Flash Control */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Flash</label>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        onClick={toggleFlash}
-                        variant={isFlashOn ? "default" : "outline"}
-                        size="sm"
-                      >
-                        {isFlashOn ? <FlashlightOff className="h-4 w-4 mr-2" /> : <Flashlight className="h-4 w-4 mr-2" />}
-                        {isFlashOn ? 'Turn Off' : 'Turn On'}
-                      </Button>
+                          <div className="font-mono text-sm bg-muted p-3 rounded break-all">
+                            {result.data}
+                          </div>
+
+                          {showParsedData && (
+                            <div className="text-sm space-y-1 text-muted-foreground">
+                              <div className="flex gap-4">
+                                <span>Confidence: {(result.confidence * 100).toFixed(1)}%</span>
+                                <span>Position: {result.position.x}, {result.position.y}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  </div>
-
-                  {/* Focus Control */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Focus</label>
-                    <Button
-                      onClick={focusCamera}
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Auto Focus
-                    </Button>
-                  </div>
-
-                  {/* Camera Status */}
-                  {cameraStatus && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Status</label>
-                      <div className="text-sm space-y-1">
-                        <div className="flex justify-between">
-                          <span>Resolution:</span>
-                          <span>{cameraStatus.resolution || 'Unknown'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>FPS:</span>
-                          <span>{cameraStatus.fps || 'Unknown'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Flash:</span>
-                          <span>{cameraStatus.flash ? 'Available' : 'Not Available'}</span>
-                        </div>
-                      </div>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm">
+                      <Camera className="h-12 w-12 mb-4 opacity-50" />
+                      Scanned QR content will appear here
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Camera Info */}
-          {cameraStatus && (
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>Camera: {cameraStatus.facingMode || 'Unknown'}</p>
-              <p>Resolution: {cameraStatus.width}x{cameraStatus.height}</p>
-              <p>Flash: {cameraStatus.flashSupported ? 'Supported' : 'Not supported'}</p>
+              </div>
+              {/* Footer with Export/Share buttons */}
+              {results.length > 0 && (
+                <div className="flex items-center justify-end gap-2 px-3 py-2 min-h-[52px]">
+                  <Button
+                    onClick={() => exportResults('json')}
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export JSON
+                  </Button>
+                  <Button
+                    onClick={() => shareResults(results[0])}
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                  >
+                    <Share className="h-4 w-4 mr-2" />
+                    Share
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
 
-      {/* Results */}
-      {results.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                Scan Result
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button onClick={clearResults} variant="outline" size="sm">
-                  <Trash2 className="h-4 w-4" />
-                  Clear Result
-                </Button>
+          {/* Error Display */}
+          {error && (
+            <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <div className="text-sm text-red-700 dark:text-red-300">
+                {error}
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Result Display */}
-            <div className="space-y-3">
-              {results.map((result) => (
-                <Card key={result.id} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{result.format}</Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(result.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-
-                    <div className="font-mono text-sm bg-muted p-2 rounded break-all">
-                      {result.data}
-                    </div>
-
-                    {showParsedData && (
-                      <div className="space-y-1">
-                        <h4 className="font-medium text-sm">Additional Info:</h4>
-                        <div className="text-sm space-y-1">
-                          <div className="flex">
-                            <span className="font-medium w-20">Confidence:</span>
-                            <span className="ml-2">{(result.confidence * 100).toFixed(1)}%</span>
-                          </div>
-                          <div className="flex">
-                            <span className="font-medium w-20">Position:</span>
-                            <span className="ml-2">{result.position.x}, {result.position.y}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action buttons - now on their own row */}
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Button
-                        onClick={() => copyToClipboard(result.data)}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy
-                      </Button>
-                      <Button
-                        onClick={() => shareResults(result)}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                      >
-                        <Share className="h-4 w-4 mr-2" />
-                        Share
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {/* Export Options */}
-            {results.length > 0 && (
-              <div className="flex gap-2 pt-4 border-t">
-                <Button onClick={() => exportResults('json')} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export JSON
-                </Button>
-                <Button onClick={() => exportResults('csv')} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-                <Button onClick={() => exportResults('txt')} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export TXT
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </div>
+      </div>
     </div>
   );
 }

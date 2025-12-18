@@ -1,32 +1,12 @@
 "use client"
 
-import * as React from "react"
-import { useRouter, usePathname } from "next/navigation"
-import { useTheme } from "next-themes"
-import Image from "next/image"
-import {
-  FileText,
-  Code,
-  Lock,
-  RefreshCw,
-  ArrowLeftRight,
-  Globe,
-  Settings,
-  Home,
-  Sun,
-  Moon,
-  ChevronRight,
-  PanelLeft,
-  type LucideIcon,
-} from "lucide-react"
-import { cn } from "@/libs/utils"
-import { toolCategories } from "@/libs/tools-data"
 import { SearchTools } from "@/components/layout/SearchTools"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Sidebar,
   SidebarContent,
@@ -47,12 +27,32 @@ import {
 } from "@/components/ui/sidebar"
 import {
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { CODE_EDITOR_THEMES, type CodeEditorTheme } from '@/config/code-editor-themes'
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toolCategories } from "@/libs/tools-data"
+import { cn } from "@/libs/utils"
+import {
+  ArrowLeftRight,
+  ChevronRight,
+  Code,
+  FileText,
+  Globe,
+  Home,
+  Lock,
+  Moon,
+  PanelLeft,
+  RefreshCw,
+  Settings,
+  Sun,
+  type LucideIcon,
+} from "lucide-react"
+import { useTheme } from "next-themes"
+import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation"
+import * as React from "react"
 
 // Map category IDs to lucide icons
 const getCategoryIcon = (categoryId: string): LucideIcon => {
@@ -276,7 +276,7 @@ export function AppSidebar({
               <SelectTrigger className="h-8 w-full text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent container={typeof document !== 'undefined' ? document.body : undefined}>
                 {Object.values(CODE_EDITOR_THEMES).map((themeConfig) => (
                   <SelectItem key={themeConfig.name} value={themeConfig.name}>
                     {themeConfig.label}

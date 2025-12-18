@@ -8,10 +8,12 @@ export const getToolComponent = async (componentName: string) => {
     'QrCodeGenerator': () => import('@/components/tools/QrCodeGenerator').then(m => m.QrCodeGenerator),
     'QrCodeDecoder': () => import('@/components/tools/QrCodeDecoder').then(m => m.QrCodeDecoder),
     'QrCodeScanner': () => import('@/components/tools/QrCodeScanner').then(m => m.QrCodeScanner),
-    'UrlEncoder': () => import('@/components/tools/UrlEncoder').then(m => m.UrlEncoder),
+    'UrlEncoderTool': () => import('@/components/tools/UrlEncoderTool').then(m => m.UrlEncoderTool),
+    'UrlDecoderTool': () => import('@/components/tools/UrlDecoderTool').then(m => m.UrlDecoderTool),
     'CronParser': () => import('@/components/tools/CronParser').then(m => m.CronParser),
     'JsonYamlConverter': () => import('@/components/tools/JsonYamlConverter').then(m => m.JsonYamlConverter),
-    'IpCidrConverter': () => import('@/components/tools/IpCidrConverter').then(m => m.IpCidrConverter),
+    'CidrAnalyzer': () => import('@/components/tools/CidrAnalyzer').then(m => m.CidrAnalyzer),
+    'IpToCidrConverter': () => import('@/components/tools/IpToCidrConverter').then(m => m.IpToCidrConverter),
     'IpChecker': () => import('@/components/tools/IpChecker').then(m => m.IpChecker),
   };
 

@@ -6,48 +6,49 @@ import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
 import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DEFAULT_JSON_OPTIONS, JSON_EXAMPLES, JSON_FORMAT_OPTIONS } from '@/config/json-formatter-config';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { URL_ENCODING_TYPES, URL_EXAMPLES, DEFAULT_URL_OPTIONS } from '@/config/url-encoder-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
-import { formatJson, getJsonStats, type JsonFormatOptions, type JsonFormatResult } from '@/libs/json-formatter';
+import { encodeUrl, type UrlEncoderOptions, type UrlEncoderResult } from '@/libs/url-encoder';
 import { cn } from '@/libs/utils';
 import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
-interface JsonFormatterProps {
+interface UrlEncoderToolProps {
   className?: string;
 }
 
-export function JsonFormatter({ className }: JsonFormatterProps) {
-  const { toolState, updateToolState } = useToolState('json-formatter');
+export function UrlEncoderTool({ className }: UrlEncoderToolProps) {
+  const { toolState, updateToolState } = useToolState('url-encoder-tool');
 
-  // Initialize with defaults to avoid hydration mismatch
-  const [options, setOptions] = useState<JsonFormatOptions>(DEFAULT_JSON_OPTIONS);
+  const [options, setOptions] = useState<UrlEncoderOptions>(DEFAULT_URL_OPTIONS);
   const [input, setInput] = useState<string>('');
   const [output, setOutput] = useState<string>('');
-  const [isFormatting, setIsFormatting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string>('');
-  const [stats, setStats] = useState<{ size: number; lines: number; depth: number; keys: number } | null>(null);
+  const [stats, setStats] = useState<{
+    originalLength: number;
+    encodedLength: number;
+    compressionRatio: number;
+  } | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Editor settings
   const [theme] = useCodeEditorTheme('basicDark');
   const [inputWrapText, setInputWrapText] = useState(true);
   const [outputWrapText, setOutputWrapText] = useState(true);
 
-  // Hydrate state from toolState after mount (client-side only)
   useEffect(() => {
     setIsHydrated(true);
     if (toolState) {
-      if (toolState.options) setOptions(toolState.options as JsonFormatOptions);
+      if (toolState.options) setOptions(toolState.options as UrlEncoderOptions);
       if (toolState.input) setInput(toolState.input as string);
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
-      if (toolState.stats) setStats(toolState.stats as { size: number; lines: number; depth: number; keys: number });
+      if (toolState.stats) setStats(toolState.stats as { originalLength: number; encodedLength: number; compressionRatio: number });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update persistent state whenever local state changes
   useEffect(() => {
     if (isHydrated) {
       updateToolState({
@@ -58,13 +59,11 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
         stats: stats || undefined
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options, input, output, error, stats, isHydrated]);
 
-  // Reset local state when tool state is cleared
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
-      setOptions(DEFAULT_JSON_OPTIONS);
+      setOptions(DEFAULT_URL_OPTIONS);
       setInput('');
       setOutput('');
       setError('');
@@ -72,61 +71,57 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
     }
   }, [toolState, isHydrated]);
 
-  const handleFormat = async () => {
+  const handleEncode = async () => {
     if (!input.trim()) {
-      setError('Please enter JSON to format');
+      setError('Please enter text to encode');
       return;
     }
 
-    setIsFormatting(true);
+    setIsProcessing(true);
     setError('');
 
     try {
-      // Simulate async operation for better UX
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      const result: JsonFormatResult = formatJson(input, options);
+      const result: UrlEncoderResult = encodeUrl(input, options);
 
       if (result.isValid) {
-        setOutput(result.formatted);
-        setStats(getJsonStats(result.formatted));
+        setOutput(result.encoded);
+        setStats({
+          originalLength: result.originalLength,
+          encodedLength: result.encodedLength,
+          compressionRatio: result.compressionRatio
+        });
       } else {
-        setError(result.error || 'Invalid JSON');
+        setError(result.error || 'Encoding failed');
         setOutput('');
         setStats(null);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to format JSON');
+      setError(err instanceof Error ? err.message : 'Failed to encode');
       setOutput('');
       setStats(null);
     } finally {
-      setIsFormatting(false);
+      setIsProcessing(false);
     }
   };
 
-  const handleLoadExample = (type: 'valid' | 'minified' | 'invalid') => {
-    setInput(JSON_EXAMPLES[type]);
+  const handleLoadExample = (key: keyof typeof URL_EXAMPLES) => {
+    setInput(URL_EXAMPLES[key]);
     setError('');
   };
 
-  const getCharacterCount = (text: string): number => {
-    return text.length;
-  };
-
-  const getLineCount = (text: string): number => {
-    if (!text) return 0;
-    return text.split('\n').length;
-  };
+  const getCharacterCount = (text: string): number => text.length;
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header Section */}
       <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
         <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
-          JSON Formatter
+          URL Encoder
         </h1>
         <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
-          Format, minify, and validate JSON with syntax highlighting and statistics
+          Encode URLs and text with multiple encoding types including URL, URI, and custom character sets
         </p>
       </div>
 
@@ -135,79 +130,66 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
         <div className="flex flex-col gap-4">
           {/* Controls */}
           <div className="flex flex-col gap-4">
-            {/* Main Controls Row */}
             <div className="flex items-center gap-3 flex-wrap">
-              {/* Format Type Select */}
+              {/* Encoding Type Select */}
               <Select
-                value={options.format}
-                onValueChange={(value: 'beautify' | 'minify') =>
-                  setOptions(prev => ({ ...prev, format: value }))
+                value={options.encodingType}
+                onValueChange={(value: 'url' | 'uri' | 'custom') =>
+                  setOptions(prev => ({ ...prev, encodingType: value }))
                 }
               >
-                <SelectTrigger label="Format Type:">
+                <SelectTrigger label="Encoding Type:">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {JSON_FORMAT_OPTIONS.formats.map((format) => (
-                    <SelectItem key={format.value} value={format.value}>
-                      {format.label}
+                  {URL_ENCODING_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
-              {/* Indent Size (only for beautify) */}
-              {options.format === 'beautify' && (
-                <Select
-                  value={options.indentSize.toString()}
-                  onValueChange={(value) =>
-                    setOptions(prev => ({ ...prev, indentSize: parseInt(value) }))
-                  }
-                >
-                  <SelectTrigger label="Indent Size:">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {JSON_FORMAT_OPTIONS.indentSizes.map((indent) => (
-                      <SelectItem key={indent.value} value={indent.value.toString()}>
-                        {indent.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* Sort Keys (only for beautify) */}
-              {options.format === 'beautify' && (
-                <Select
-                  value={options.sortKeys.toString()}
-                  onValueChange={(value) =>
-                    setOptions(prev => ({ ...prev, sortKeys: value === 'true' }))
-                  }
-                >
-                  <SelectTrigger label="Key Sorting:">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {JSON_FORMAT_OPTIONS.sortKeys.map((sort) => (
-                      <SelectItem key={sort.value.toString()} value={sort.value.toString()}>
-                        {sort.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              {/* Space Handling */}
+              <Select
+                value={options.preserveSpaces ? 'preserve' : 'encode'}
+                onValueChange={(value) =>
+                  setOptions(prev => ({ ...prev, preserveSpaces: value === 'preserve' }))
+                }
+              >
+                <SelectTrigger label="Space Handling:">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="encode">Encode spaces as %20</SelectItem>
+                  <SelectItem value="preserve">Preserve spaces</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Custom Characters (only for custom encoding) */}
+            {options.encodingType === 'custom' && (
+              <div className="flex items-center gap-2">
+                <Label htmlFor="custom-chars" className="text-sm whitespace-nowrap">Custom Characters:</Label>
+                <Input
+                  id="custom-chars"
+                  value={options.customChars}
+                  onChange={(e) => setOptions(prev => ({ ...prev, customChars: e.target.value }))}
+                  placeholder="Enter characters to encode (e.g., ' &?=#/:;,')"
+                  className="max-w-md"
+                />
+              </div>
+            )}
           </div>
 
           {/* Side-by-side Editor Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
             <CodeInputPanel
-              title="JSON Input"
+              title="Text to Encode"
               value={input}
               onChange={setInput}
-              language="json"
+              language="plaintext"
               height="500px"
               theme={theme}
               wrapText={inputWrapText}
@@ -227,14 +209,20 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleLoadExample('valid')}>
-                      Load Valid Example
+                    <DropdownMenuItem onClick={() => handleLoadExample('simple')}>
+                      Simple URL
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleLoadExample('minified')}>
-                      Load Minified Example
+                    <DropdownMenuItem onClick={() => handleLoadExample('withParams')}>
+                      URL with Parameters
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleLoadExample('invalid')}>
-                      Load Invalid Example
+                    <DropdownMenuItem onClick={() => handleLoadExample('specialChars')}>
+                      Special Characters
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('unicode')}>
+                      Unicode Characters
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLoadExample('complex')}>
+                      Complex URL
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -244,19 +232,19 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
               }
               footerRightContent={
                 <Button
-                  onClick={handleFormat}
-                  disabled={!input.trim() || isFormatting}
+                  onClick={handleEncode}
+                  disabled={!input.trim() || isProcessing}
                   variant="default"
                   size="sm"
                   className="h-8 px-4"
                 >
-                  {isFormatting ? (
+                  {isProcessing ? (
                     <>
                       <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
-                      Formatting...
+                      Encoding...
                     </>
                   ) : (
-                    'Format'
+                    'Encode'
                   )}
                 </Button>
               }
@@ -264,9 +252,9 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
 
             {/* Output Panel */}
             <CodeOutputPanel
-              title="Formatted JSON"
+              title="Encoded URL"
               value={output}
-              language="json"
+              language="plaintext"
               height="500px"
               theme={theme}
               wrapText={outputWrapText}
@@ -275,8 +263,11 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
                 output && (
                   <>
                     <span>{getCharacterCount(output)} characters</span>
-                    <span>{getLineCount(output)} lines</span>
-                    {stats && <span>{stats.keys} total keys</span>}
+                    {stats && (
+                      <span>
+                        {stats.compressionRatio > 0 ? '+' : ''}{stats.compressionRatio.toFixed(1)}% size change
+                      </span>
+                    )}
                   </>
                 )
               }

@@ -2,11 +2,9 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
+import { CodeOutputPanel, type CodeOutputTab } from '@/components/ui/CodeOutputPanel';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { OutputPanel, type OutputPanelTab } from '@/components/ui/OutputPanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
@@ -29,7 +27,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   const [error, setError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'plain' | 'html'>('plain');
   const [isHydrated, setIsHydrated] = useState(false);
-  
+
   // Editor settings
   const [theme] = useCodeEditorTheme('basicDark');
   const [wrapText, setWrapText] = useState(true);
@@ -76,8 +74,8 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     setOptions(prev => ({ ...prev, format: activeTab }));
   }, [activeTab]);
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as 'plain' | 'html');
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId as 'plain' | 'html');
   };
 
   const convertPlainToHtml = (plainText: string, unit: 'words' | 'sentences' | 'paragraphs'): string => {
@@ -139,25 +137,24 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     }
   };
 
-  // Prepare tabs for OutputPanel
-  const outputTabs: OutputPanelTab[] = useMemo(
+  // Prepare tabs for CodeOutputPanel
+  const outputTabs: CodeOutputTab[] = useMemo(
     () => [
       {
         id: 'plain',
         label: 'Plain text',
-        content: outputPlain,
+        value: outputPlain,
         language: 'plaintext',
       },
       {
         id: 'html',
         label: 'HTML',
-        content: outputHtml,
+        value: outputHtml,
         language: 'xml',
       },
     ],
     [outputPlain, outputHtml]
   );
-
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
@@ -243,22 +240,6 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                 )}
               </Button>
             </div>
-
-            {/* Editor Settings Row */}
-            <div className="flex items-center gap-4 flex-wrap">
-              {/* Wrap Text Toggle */}
-              <div className="flex items-center gap-2">
-                <Label htmlFor="wrap-text" className="text-sm text-muted-foreground cursor-pointer whitespace-nowrap">
-                  Wrap Text:
-                </Label>
-                <Switch
-                  id="wrap-text"
-                  checked={wrapText}
-                  onCheckedChange={setWrapText}
-                  className="h-5 w-9"
-                />
-              </div>
-            </div>
           </div>
 
           {/* Results */}
@@ -269,14 +250,15 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </div>
             </div>
           ) : (
-            <OutputPanel
+            <CodeOutputPanel
               tabs={outputTabs}
               activeTab={activeTab}
               onTabChange={handleTabChange}
               showStats={true}
-              height="374px"
+              height="500px"
               theme={theme}
               wrapText={wrapText}
+              onWrapTextChange={setWrapText}
             />
           )}
         </div>

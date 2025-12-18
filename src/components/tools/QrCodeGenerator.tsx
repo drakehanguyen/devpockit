@@ -3,11 +3,10 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -28,7 +27,8 @@ import {
   type QrCodeOptions,
   type QrCodeResult
 } from '@/libs/qr-code-generator';
-import { ArrowDownTrayIcon, ArrowPathIcon, ClipboardDocumentIcon, QrCodeIcon } from '@heroicons/react/24/outline';
+import { cn } from '@/libs/utils';
+import { ArrowDownTrayIcon, ArrowPathIcon, ChevronDownIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
 interface QrCodeGeneratorProps {
@@ -38,7 +38,6 @@ interface QrCodeGeneratorProps {
 export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
   const { toolState, updateToolState } = useToolState('qr-code-generator');
 
-  // Initialize with persistent state or defaults
   const [options, setOptions] = useState<QrCodeOptions>(
     (toolState?.options as QrCodeOptions) || DEFAULT_QR_OPTIONS
   );
@@ -70,26 +69,30 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
   );
   const [copySuccess, setCopySuccess] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Use ref to get current options in callback
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
-  // Update persistent state whenever local state changes
   useEffect(() => {
-    updateToolState({
-      options,
-      input,
-      output,
-      error,
-      qrCodeResult: qrCodeResult || undefined,
-      stats: stats || undefined
-    });
-  }, [options, input, output, error, qrCodeResult, stats]);
+    setIsHydrated(true);
+  }, []);
 
-  // Reset state when tool is cleared
   useEffect(() => {
-    if (!toolState || Object.keys(toolState).length === 0) {
+    if (isHydrated) {
+      updateToolState({
+        options,
+        input,
+        output,
+        error,
+        qrCodeResult: qrCodeResult || undefined,
+        stats: stats || undefined
+      });
+    }
+  }, [options, input, output, error, qrCodeResult, stats, isHydrated]);
+
+  useEffect(() => {
+    if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
       setOptions(DEFAULT_QR_OPTIONS);
       setInput({ text: '' });
       setOutput('');
@@ -97,7 +100,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
       setError('');
       setStats(null);
     }
-  }, [toolState]);
+  }, [toolState, isHydrated]);
 
   const handleGenerateQrCode = async () => {
     setIsGenerating(true);
@@ -176,7 +179,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
     setInput(prev => ({
       ...prev,
       contact: {
-        name: '', // Default required field
+        name: '',
         ...(prev.contact || {}),
         [key]: value
       }
@@ -187,9 +190,9 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
     setInput(prev => ({
       ...prev,
       wifi: {
-        ssid: '', // Default required field
-        password: '', // Default required field
-        security: 'WPA' as const, // Default required field
+        ssid: '',
+        password: '',
+        security: 'WPA' as const,
         ...(prev.wifi || {}),
         [key]: value
       }
@@ -200,8 +203,8 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
     setInput(prev => ({
       ...prev,
       sms: {
-        phone: '', // Default required field
-        message: '', // Default required field
+        phone: '',
+        message: '',
         ...(prev.sms || {}),
         [key]: value
       }
@@ -212,7 +215,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
     setInput(prev => ({
       ...prev,
       email: {
-        to: '', // Default required field
+        to: '',
         ...(prev.email || {}),
         [key]: value
       }
@@ -245,7 +248,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
               placeholder="Enter text content for QR code..."
               value={input.text || ''}
               onChange={(e) => handleInputChange('text', e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[120px]"
             />
           </div>
         );
@@ -366,7 +369,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 pt-6">
                 <Switch
                   id="wifi-hidden"
                   checked={input.wifi?.hidden || false}
@@ -448,295 +451,235 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {/* Header and Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <QrCodeIcon className="h-6 w-6" />
-            QR Code Generator
-          </CardTitle>
-          <CardDescription>
-            Generate QR codes for text, URLs, contacts, WiFi, SMS, and email with customizable options
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* QR Code Type Selection */}
-          <div className="space-y-2">
-            <Label>QR Code Type</Label>
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Header Section */}
+      <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
+        <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
+          QR Code Generator
+        </h1>
+        <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
+          Generate QR codes for text, URLs, contacts, WiFi, SMS, and email with customizable options
+        </p>
+      </div>
+
+      {/* Body Section */}
+      <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
+        <div className="flex flex-col gap-4">
+          {/* Controls Row */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* QR Code Type */}
             <Select
               value={options.type}
               onValueChange={(value) => handleOptionChange('type', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger label="QR Type:" className="w-[240px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {QR_CODE_TYPES.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
+                    {type.symbol} {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Size */}
+            <div className="flex items-center gap-2">
+              <Label className="text-sm whitespace-nowrap">Size:</Label>
+              <Input
+                type="number"
+                min={QR_CODE_SIZE_LIMITS.min}
+                max={QR_CODE_SIZE_LIMITS.max}
+                value={options.size}
+                onChange={(e) => handleOptionChange('size', parseInt(e.target.value) || 256)}
+                className="w-20 h-9"
+              />
+              <span className="text-sm text-muted-foreground">px</span>
+            </div>
+
+            {/* Error Correction */}
+            <Select
+              value={options.errorCorrection}
+              onValueChange={(value) => handleOptionChange('errorCorrection', value)}
+            >
+              <SelectTrigger label="Error Correction:" className="w-[280px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {QR_CODE_ERROR_CORRECTIONS.map((level) => (
+                  <SelectItem key={level.value} value={level.value}>
+                    {level.symbol} {level.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Format */}
+            <Select
+              value={options.format}
+              onValueChange={(value) => handleOptionChange('format', value)}
+            >
+              <SelectTrigger label="Format:" className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {QR_CODE_FORMATS.map((format) => (
+                  <SelectItem key={format.value} value={format.value}>
+                    {format.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Color Theme */}
+            <Select
+              value={QR_CODE_COLOR_PRESETS.find(preset =>
+                preset.dark === options.color.dark && preset.light === options.color.light
+              )?.name || 'Default'}
+              onValueChange={(value) => {
+                const preset = QR_CODE_COLOR_PRESETS.find(p => p.name === value);
+                if (preset) {
+                  handleColorPreset(preset);
+                }
+              }}
+            >
+              <SelectTrigger label="Theme:" className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {QR_CODE_COLOR_PRESETS.map((preset) => (
+                  <SelectItem key={preset.name} value={preset.name}>
                     <div className="flex items-center gap-2">
-                      <span>{type.symbol}</span>
-                      <span>{type.label}</span>
+                      <div
+                        className="w-4 h-4 rounded border"
+                        style={{ backgroundColor: preset.dark }}
+                      />
+                      {preset.name}
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          {/* Input Fields */}
-          {renderInputFields()}
-
-          <Separator />
-
-          {/* Customization Options */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Customization Options</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Size */}
-              <div className="space-y-2">
-                <Label htmlFor="size">Size (px)</Label>
-                <Input
-                  id="size"
-                  type="number"
-                  min={QR_CODE_SIZE_LIMITS.min}
-                  max={QR_CODE_SIZE_LIMITS.max}
-                  value={options.size}
-                  onChange={(e) => handleOptionChange('size', parseInt(e.target.value) || 256)}
-                />
-              </div>
-
-              {/* Error Correction */}
-              <div className="space-y-2">
-                <Label>Error Correction</Label>
-                <Select
-                  value={options.errorCorrection}
-                  onValueChange={(value) => handleOptionChange('errorCorrection', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {QR_CODE_ERROR_CORRECTIONS.map((level) => (
-                      <SelectItem key={level.value} value={level.value}>
-                        <div className="flex items-center gap-2">
-                          <span>{level.symbol}</span>
-                          <span>{level.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Format */}
-              <div className="space-y-2">
-                <Label>Output Format</Label>
-                <Select
-                  value={options.format}
-                  onValueChange={(value) => handleOptionChange('format', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {QR_CODE_FORMATS.map((format) => (
-                      <SelectItem key={format.value} value={format.value}>
-                        <div className="flex items-center gap-2">
-                          <span>{format.symbol}</span>
-                          <span>{format.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Color Theme */}
-              <div className="space-y-2">
-                <Label>Color Theme</Label>
-                <Select
-                  value={QR_CODE_COLOR_PRESETS.find(preset =>
-                    preset.dark === options.color.dark && preset.light === options.color.light
-                  )?.name || 'Default'}
-                  onValueChange={(value) => {
-                    const preset = QR_CODE_COLOR_PRESETS.find(p => p.name === value);
-                    if (preset) {
-                      handleColorPreset(preset);
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {QR_CODE_COLOR_PRESETS.map((preset) => (
-                      <SelectItem key={preset.name} value={preset.name}>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-4 h-4 rounded border"
-                            style={{ backgroundColor: preset.dark }}
-                          />
-                          <span>{preset.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-            </div>
 
           </div>
 
-          <Separator />
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              onClick={handleGenerateQrCode}
-              disabled={isGenerating}
-              className="flex-1"
-            >
-              {isGenerating ? (
-                <>
-                  <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
-                  Generating QR Code...
-                </>
-              ) : (
-                <>
-                  <QrCodeIcon className="h-4 w-4 mr-2" />
-                  Generate QR Code
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* Examples */}
-          <div className="space-y-2">
-            <Label>Quick Examples</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {Object.entries(QR_CODE_EXAMPLES).map(([key, example]) => (
-                <Button
-                  key={key}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleExample(example)}
-                  className="justify-start"
-                >
-                  {example.name}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Output */}
-      {qrCodeResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <QrCodeIcon className="h-5 w-5" />
-              Generated QR Code
-            </CardTitle>
-            <CardDescription>
-              {stats && (
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">Type: {stats.type}</Badge>
-                  <Badge variant="outline">Size: {stats.size}px</Badge>
-                  <Badge variant="outline">Error Correction: {stats.errorCorrection}</Badge>
-                  <Badge variant="outline">Format: {stats.format.toUpperCase()}</Badge>
+          {/* Main Content - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Input Panel */}
+            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
+              <div className="flex items-center justify-between px-3 py-0">
+                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
+                  Input Data
                 </div>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* QR Code Preview */}
-            <div className="flex justify-center">
-              <img
-                src={qrCodeResult.dataUrl}
-                alt="Generated QR Code"
-                className="max-w-full h-auto border rounded-lg"
-                style={{ maxHeight: '400px' }}
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button
-                onClick={handleCopyOutput}
-                variant="outline"
-                disabled={copySuccess}
-                className="flex-1"
-              >
-                {copySuccess ? (
-                  <>
-                    <ClipboardDocumentIcon className="h-4 w-4 mr-2" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <ClipboardDocumentIcon className="h-4 w-4 mr-2" />
-                    Copy to Clipboard
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={handleDownloadQrCode}
-                variant="outline"
-                disabled={downloadSuccess}
-                className="flex-1"
-              >
-                {downloadSuccess ? (
-                  <>
-                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                    Downloaded!
-                  </>
-                ) : (
-                  <>
-                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                    Download {qrCodeResult.format.toUpperCase()}
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Error Display */}
-      {error && (
-        <Card className="border-destructive">
-          <CardContent className="pt-6">
-            <div className="space-y-3">
-              <div className="text-destructive text-sm">
-                <strong>Error:</strong> {error}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
+                      Load Examples
+                      <ChevronDownIcon className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {Object.entries(QR_CODE_EXAMPLES).map(([key, example]) => (
+                      <DropdownMenuItem key={key} onClick={() => handleExample(example)}>
+                        {example.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGenerateQrCode}
-                disabled={isGenerating}
-                className="w-full sm:w-auto"
-              >
-                {isGenerating ? (
-                  <>
-                    <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
-                    Retrying...
-                  </>
-                ) : (
-                  <>
-                    <QrCodeIcon className="h-4 w-4 mr-2" />
-                    Try Again
-                  </>
-                )}
-              </Button>
+              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
+                <div className="h-full overflow-auto bg-white dark:bg-neutral-900 rounded-md p-4">
+                  {renderInputFields()}
+                </div>
+              </div>
+              {/* Footer with Generate Button */}
+              <div className="flex items-center justify-end px-3 py-2 min-h-[52px]">
+                <Button
+                  onClick={handleGenerateQrCode}
+                  disabled={isGenerating}
+                  size="sm"
+                  className="h-8 px-4"
+                >
+                  {isGenerating ? (
+                    <>
+                      <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
+                      Generating...
+                    </>
+                  ) : (
+                    'Generate'
+                  )}
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+
+            {/* Output Panel */}
+            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
+              <div className="flex items-center justify-between px-3 py-0">
+                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
+                  Generated QR Code
+                </div>
+                {qrCodeResult && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleCopyOutput}
+                      disabled={copySuccess}
+                      className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      <ClipboardDocumentIcon className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                    </button>
+                    <button
+                      onClick={handleDownloadQrCode}
+                      disabled={downloadSuccess}
+                      className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      <ArrowDownTrayIcon className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
+                <div className="h-full overflow-auto bg-white dark:bg-neutral-900 rounded-md p-4 flex flex-col items-center justify-center">
+                  {qrCodeResult ? (
+                    <img
+                      src={qrCodeResult.dataUrl}
+                      alt="Generated QR Code"
+                      className="max-w-full h-auto border rounded-lg"
+                      style={{ maxHeight: '300px' }}
+                    />
+                  ) : (
+                    <div className="text-muted-foreground text-sm">
+                      QR code will appear here after generation
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Footer with stats */}
+              <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
+                <div className="flex items-center gap-2">
+                  {stats && (
+                    <>
+                      <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">{stats.type}</Badge>
+                      <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">{stats.size}px</Badge>
+                      <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">EC: {stats.errorCorrection}</Badge>
+                      <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">{stats.format.toUpperCase()}</Badge>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="text-sm text-red-700 dark:text-red-300">
+                {error}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

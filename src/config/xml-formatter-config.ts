@@ -55,20 +55,12 @@ export const XML_EXAMPLES = {
 <bookstore>
   <book id="1">
     <title>The Great Gatsby</title>
-    <author>F. Scott Fitzgerald</author>
+    <author>F. Scott Fitzgerald
     <price currency="USD">12.99</price>
-    <description>
-      A classic American novel set in the Jazz Age.
-    </description>
   </book>
   <book id="2">
     <title>To Kill a Mockingbird</title>
     <author>Harper Lee</author>
-    <price currency="USD">10.99</price>
-    <description>
-      A gripping tale of racial injustice and childhood innocence.
-    </description>
-  </book>
 </bookstore>`,
   minified: `<?xml version="1.0" encoding="UTF-8"?><bookstore><book id="1"><title>The Great Gatsby</title><author>F. Scott Fitzgerald</author><price currency="USD">12.99</price><description>A classic American novel set in the Jazz Age.</description></book><book id="2"><title>To Kill a Mockingbird</title><author>Harper Lee</author><price currency="USD">10.99</price><description>A gripping tale of racial injustice and childhood innocence.</description></book></bookstore>`
 };

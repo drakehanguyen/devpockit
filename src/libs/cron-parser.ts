@@ -18,7 +18,7 @@ export interface CronStats {
 /**
  * Parse a cron expression and return human-readable description
  */
-export function parseCronExpression(expression: string): CronParseResult {
+export function parseCronExpression(expression: string, nextRunCount: number = 5): CronParseResult {
   try {
     // Validate and parse the cron expression
     const interval = parseExpression(expression);
@@ -26,9 +26,9 @@ export function parseCronExpression(expression: string): CronParseResult {
     // Generate human-readable description
     const humanReadable = generateHumanReadable(expression);
 
-    // Get next 5 execution times
+    // Get next execution times
     const nextRuns: string[] = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < nextRunCount; i++) {
       const next = interval.next();
       nextRuns.push(next.toISOString());
     }

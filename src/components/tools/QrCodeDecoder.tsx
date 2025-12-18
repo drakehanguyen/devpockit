@@ -2,9 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-// Alert component not available, using div instead
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { DEFAULT_QR_DECODER_OPTIONS } from '@/config/qr-code-decoder-config';
 import {
@@ -16,6 +14,7 @@ import {
   QrDecoderOptions,
   QrDecoderResult
 } from '@/types/qr-decoder';
+import { cn } from '@/libs/utils';
 import {
   AlertCircle,
   CheckCircle,
@@ -32,11 +31,12 @@ import {
 } from 'lucide-react';
 
 interface QrCodeDecoderProps {
+  className?: string;
   onResult?: (result: QrDecoderResult) => void;
   onError?: (error: string) => void;
 }
 
-export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
+export function QrCodeDecoder({ className, onResult, onError }: QrCodeDecoderProps) {
   // State management
   const [files, setFiles] = useState<File[]>([]);
   const [results, setResults] = useState<QrDecoderResult[]>([]);
@@ -49,6 +49,7 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [displayedImage, setDisplayedImage] = useState<string | null>(null);
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,6 +62,10 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
 
   // Tool state management
   const { toolState, updateToolState, clearToolState } = useToolState('qr-code-decoder');
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   // Update refs when props change
   useEffect(() => {
@@ -82,7 +87,6 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
     }
   }, [displayedImage]);
 
-
   // Handle tool state updates
   useEffect(() => {
     if (toolState && Object.keys(toolState).length > 0) {
@@ -95,6 +99,7 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
 
   // Update tool state when state changes
   useEffect(() => {
+    if (!isHydrated) return;
     const currentState = { options, results, error: error || undefined, state };
     const prevState = prevStateRef.current;
 
@@ -102,12 +107,11 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
       updateToolState(currentState);
       prevStateRef.current = currentState;
     }
-  }, [options, results, error, state, updateToolState]);
+  }, [options, results, error, state, updateToolState, isHydrated]);
 
   // Clear tool state when switching tools
   useEffect(() => {
     if (!toolState || Object.keys(toolState).length === 0) {
-      // Clear displayed image from memory
       if (displayedImageRef.current) {
         URL.revokeObjectURL(displayedImageRef.current);
         displayedImageRef.current = null;
@@ -136,20 +140,19 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
   const handleFileSelect = useCallback((selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
 
-    // Only take the first file
     const file = selectedFiles[0];
     const validation = validateImageFile(file);
 
     if (validation.isValid) {
-      filesRef.current = [file]; // Update ref immediately
-      setFiles([file]); // Replace any existing files
+      filesRef.current = [file];
+      setFiles([file]);
       setError(null);
     } else {
       setError(`${file.name}: ${validation.error}`);
     }
   }, []);
 
-  // Process files - completely stable function
+  // Process files
   const processFiles = useCallback(async () => {
     if (filesRef.current.length === 0) {
       setError('No file selected');
@@ -161,33 +164,23 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
     setError(null);
 
     try {
-      const file = filesRef.current[0]; // Only process the first (and only) file
-
-      // Create image URL for display
+      const file = filesRef.current[0];
       const imageUrl = URL.createObjectURL(file);
 
-      // Clear previous image from memory
       if (displayedImageRef.current) {
         URL.revokeObjectURL(displayedImageRef.current);
       }
 
-      // Set new image for display
       displayedImageRef.current = imageUrl;
       setDisplayedImage(imageUrl);
-
-      // Force immediate re-render by updating forceUpdate directly
       setForceUpdate(prev => prev + 1);
 
       const results = await decodeQrFromImage(file);
 
       if (results && results.length > 0) {
-        // Replace previous results with new ones (only keep latest)
         setResults(results);
         setState('qr detected');
-
-        // Force immediate re-render by updating forceUpdate directly
         setForceUpdate(prev => prev + 1);
-
         results.forEach(result => onResultRef.current?.(result));
       } else {
         setError('No QR codes found in the uploaded image');
@@ -211,7 +204,6 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
 
   // Clear all files
   const clearFiles = useCallback(() => {
-    // Clear displayed image from memory
     if (displayedImageRef.current) {
       URL.revokeObjectURL(displayedImageRef.current);
       displayedImageRef.current = null;
@@ -221,7 +213,6 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
     setFiles([]);
     setResults([]);
   }, []);
-
 
   // Copy to clipboard
   const copyToClipboard = useCallback(async (text: string) => {
@@ -252,7 +243,6 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
   // Export results
   const exportResults = useCallback((format: 'json' | 'csv' | 'txt') => {
     const data = results;
-
     let content = '';
     let filename = '';
 
@@ -282,7 +272,6 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
     URL.revokeObjectURL(url);
   }, [results]);
 
-
   // Drag and drop handlers
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -301,221 +290,213 @@ export function QrCodeDecoder({ onResult, onError }: QrCodeDecoderProps) {
   }, [handleFileSelect]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">QR Code Decoder</h2>
-        <p className="text-muted-foreground">
-          Upload an image containing a QR code to decode it
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Header Section */}
+      <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
+        <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
+          QR Code Decoder
+        </h1>
+        <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
+          Upload an image containing a QR code to decode it with support for multiple formats
         </p>
       </div>
 
-      {/* File Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Upload Image
-          </CardTitle>
-          <CardDescription>
-            Select or drag and drop an image file containing a QR code
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Error Display */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <div className="flex">
-                <AlertCircle className="h-4 w-4 text-red-400" />
-                <div className="ml-3">
-                  <p className="text-sm text-red-800">{error}</p>
+      {/* Body Section */}
+      <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
+        <div className="flex flex-col gap-4">
+          {/* Main Content - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Input Panel - Upload */}
+            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
+              <div className="flex items-center justify-between px-3 py-0">
+                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
+                  Upload Image
                 </div>
+                {files.length > 0 && (
+                  <button
+                    onClick={clearFiles}
+                    className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                  </button>
+                )}
               </div>
-            </div>
-          )}
-
-          {/* Drop Zone */}
-          <div
-            ref={dropZoneRef}
-            onDragOver={handleDragOver}
-            onDragEnter={handleDragEnter}
-            onDrop={handleDrop}
-            className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-muted-foreground/50 transition-colors"
-          >
-            <FileImage className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-lg font-medium mb-2">Drop an image here or click to select</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Supports JPG, PNG, GIF, WebP (max 10MB)
-            </p>
-            <Button onClick={() => fileInputRef.current?.click()}>
-              <Upload className="h-4 w-4 mr-2" />
-              Select File
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileSelect(e.target.files)}
-              className="hidden"
-            />
-          </div>
-
-          {/* File List */}
-          {files.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Selected File</h4>
-                <div className="flex gap-2">
-                  <Button onClick={processFiles} disabled={isProcessing}>
-                    {isProcessing ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
+                <div className="h-full bg-white dark:bg-neutral-900 rounded-md p-4">
+                  {/* Drop Zone */}
+                  <div
+                    ref={dropZoneRef}
+                    onDragOver={handleDragOver}
+                    onDragEnter={handleDragEnter}
+                    onDrop={handleDrop}
+                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors h-full flex flex-col items-center justify-center"
+                  >
+                    {files.length === 0 ? (
+                      <>
+                        <FileImage className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-sm font-medium mb-2">Drop an image here or click to select</p>
+                        <p className="text-xs text-muted-foreground mb-4">
+                          Supports JPG, PNG, GIF, WebP (max 10MB)
+                        </p>
+                        <Button onClick={() => fileInputRef.current?.click()} size="sm">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Select File
+                        </Button>
+                      </>
                     ) : (
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                    )}
-                    {isProcessing ? 'Processing...' : 'Process Files'}
-                  </Button>
-                  <Button onClick={clearFiles} variant="outline">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Clear All
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
-                    <div className="flex items-center gap-2">
-                      <FileImage className="h-4 w-4" />
-                      <span className="text-sm">{file.name}</span>
-                      <Badge variant="outline">
-                        {(file.size / 1024 / 1024).toFixed(1)} MB
-                      </Badge>
-                    </div>
-                    <Button
-                      onClick={() => removeFile(index)}
-                      variant="ghost"
-                      size="sm"
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Results */}
-      {results.length > 0 && (
-        <Card key={forceUpdate}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                Decoded Result
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button onClick={() => setShowParsedData(!showParsedData)} variant="outline" size="sm">
-                  {showParsedData ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  {showParsedData ? 'Hide' : 'Show'} Details
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Displayed Image */}
-            {displayedImage && (
-                        <div key={`image-${forceUpdate}`} className="space-y-2">
-                <h4 className="font-medium text-sm">Uploaded Image:</h4>
-                <div className="relative">
-                  <img
-                    src={displayedImage}
-                    alt="Uploaded QR code"
-                    className="max-w-full h-auto max-h-64 object-contain border rounded-lg"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Result Display */}
-            <div key={`results-${forceUpdate}`} className="space-y-3">
-              {results.map((result) => (
-                <Card key={result.id} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{result.format}</Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(result.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-
-                    <div className="font-mono text-sm bg-muted p-2 rounded break-all">
-                      {result.data}
-                    </div>
-
-                    {showParsedData && (
-                      <div className="space-y-1">
-                        <h4 className="font-medium text-sm">Additional Info:</h4>
-                        <div className="text-sm space-y-1">
-                          <div className="flex">
-                            <span className="font-medium w-20">Confidence:</span>
-                            <span className="ml-2">{(result.confidence * 100).toFixed(1)}%</span>
-                          </div>
-                          <div className="flex">
-                            <span className="font-medium w-20">Position:</span>
-                            <span className="ml-2">{result.position.x}, {result.position.y}</span>
-                          </div>
+                      <div className="w-full space-y-4">
+                        {displayedImage ? (
+                          <img
+                            src={displayedImage}
+                            alt="Uploaded QR code"
+                            className="max-w-full h-auto max-h-48 object-contain border rounded-lg mx-auto"
+                          />
+                        ) : (
+                          <FileImage className="h-16 w-16 mx-auto text-muted-foreground" />
+                        )}
+                        <div className="flex items-center justify-center gap-2">
+                          <FileImage className="h-4 w-4" />
+                          <span className="text-sm">{files[0].name}</span>
+                          <Badge variant="outline">
+                            {(files[0].size / 1024 / 1024).toFixed(1)} MB
+                          </Badge>
+                          <button
+                            onClick={() => removeFile(0)}
+                            className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                          >
+                            <XCircle className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                          </button>
                         </div>
                       </div>
                     )}
-
-                    {/* Action buttons - now on their own row */}
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Button
-                        onClick={() => copyToClipboard(result.data)}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy
-                      </Button>
-                      <Button
-                        onClick={() => shareResults(result)}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                      >
-                        <Share className="h-4 w-4 mr-2" />
-                        Share
-                      </Button>
-                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileSelect(e.target.files)}
+                      className="hidden"
+                    />
                   </div>
-                </Card>
-              ))}
-            </div>
-
-            {/* Export Options */}
-            {results.length > 0 && (
-              <div className="flex gap-2 pt-4 border-t">
-                <Button onClick={() => exportResults('json')} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export JSON
-                </Button>
-                <Button onClick={() => exportResults('csv')} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-                <Button onClick={() => exportResults('txt')} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export TXT
+                </div>
+              </div>
+              {/* Footer with Decode Button */}
+              <div className="flex items-center justify-end px-3 py-2 min-h-[52px]">
+                <Button
+                  onClick={processFiles}
+                  disabled={isProcessing || files.length === 0}
+                  size="sm"
+                  className="h-8 px-4"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Decoding...
+                    </>
+                  ) : (
+                    'Decode'
+                  )}
                 </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+            </div>
+
+            {/* Output Panel - Results */}
+            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
+              <div className="flex items-center justify-between px-3 py-0">
+                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
+                  Decoded Result
+                </div>
+                {results.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowParsedData(!showParsedData)}
+                      className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      {showParsedData ? <EyeOff className="h-4 w-4 text-neutral-900 dark:text-neutral-300" /> : <Eye className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />}
+                    </button>
+                    <button
+                      onClick={() => copyToClipboard(results[0].data)}
+                      className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
+                <div className="h-full overflow-auto bg-white dark:bg-neutral-900 rounded-md p-4">
+                  {results.length > 0 ? (
+                    <div key={`results-${forceUpdate}`} className="space-y-3">
+                      {results.map((result) => (
+                        <div key={result.id} className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <Badge variant="outline">{result.format}</Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(result.timestamp).toLocaleString()}
+                            </span>
+                          </div>
+
+                          <div className="font-mono text-sm bg-muted p-3 rounded break-all">
+                            {result.data}
+                          </div>
+
+                          {showParsedData && (
+                            <div className="text-sm space-y-1 text-muted-foreground">
+                              <div className="flex gap-4">
+                                <span>Confidence: {(result.confidence * 100).toFixed(1)}%</span>
+                                <span>Position: {result.position.x}, {result.position.y}</span>
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm">
+                      <FileImage className="h-12 w-12 mb-4 opacity-50" />
+                      Decoded QR content will appear here
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Footer with Download/Share buttons */}
+              {results.length > 0 && (
+                <div className="flex items-center justify-end gap-2 px-3 py-2 min-h-[52px]">
+                  <Button
+                    onClick={() => exportResults('json')}
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export JSON
+                  </Button>
+                  <Button
+                    onClick={() => shareResults(results[0])}
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                  >
+                    <Share className="h-4 w-4 mr-2" />
+                    Share
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <div className="text-sm text-red-700 dark:text-red-300">
+                {error}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

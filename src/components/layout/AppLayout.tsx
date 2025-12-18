@@ -1,15 +1,14 @@
 'use client';
 
 import { ToolStateProvider, useToolStateContext } from '@/components/providers/ToolStateProvider';
+import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { getToolComponent } from '@/libs/tool-components';
 import { getToolById } from '@/libs/tools-data';
 import { isValidCategoryUrl, isValidToolUrl, parseToolUrl } from '@/libs/url-utils';
-import { cn } from '@/libs/utils';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { WelcomePage } from '../pages/WelcomePage';
 import { AppSidebar } from '../app-sidebar';
-import { SidebarProvider, SidebarInset, useSidebar } from '@/components/ui/sidebar';
+import { WelcomePage } from '../pages/WelcomePage';
 import { TopNavTabs, type ActiveTab } from './TopNavTabs';
 
 interface AppLayoutProps {
@@ -76,7 +75,7 @@ function DynamicToolRenderer({ toolId }: { toolId: string }) {
   }
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto min-h-0">
       <ToolComponent />
     </div>
   );
@@ -241,7 +240,7 @@ function AppLayoutInner({ children }: AppLayoutProps) {
           onHomeClick={handleHomeClick}
         />
         <SidebarInset>
-          <div className="flex flex-1 flex-col gap-4 pb-4">
+          <div className="flex flex-1 flex-col gap-4 pb-4 min-h-0 overflow-hidden">
             {selectedTool ? (
               <>
                 {/* Tool Header with Tabs (Desktop only) */}
@@ -252,12 +251,13 @@ function AppLayoutInner({ children }: AppLayoutProps) {
                     onTabSelect={handleTabSelect}
                     onTabClose={handleTabClose}
                     onCloseAll={handleCloseAllTabs}
+                    onTabsReorder={setActiveTabs}
                   />
                 )}
                 <DynamicToolRenderer toolId={selectedTool} />
               </>
             ) : (
-              <WelcomePage 
+              <WelcomePage
                 onToolSelect={handleToolSelect}
                 activeToolIds={activeTabs.map(tab => tab.toolId)}
               />
