@@ -256,7 +256,7 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
                       Formatting...
                     </>
                   ) : (
-                    'Generate'
+                    'Format'
                   )}
                 </Button>
               }

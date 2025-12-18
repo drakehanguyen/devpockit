@@ -273,7 +273,7 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                       Formatting...
                     </>
                   ) : (
-                    'Generate'
+                    'Format'
                   )}
                 </Button>
               }
