@@ -195,7 +195,7 @@ export function CodeEditor({
                   id={`wrap-text-${type}`}
                   checked={currentWrapText}
                   onCheckedChange={handleWrapTextToggle}
-                  className="h-5 w-9"
+                  size="sm"
                 />
               </div>
               {/* Copy Button */}
@@ -317,7 +317,7 @@ export function CodeEditor({
                     id="wrap-text-input"
                     checked={currentWrapText}
                     onCheckedChange={handleWrapTextToggle}
-                    className="h-5 w-9"
+                    size="sm"
                   />
                 </div>
                 {/* Copy Button */}
@@ -411,7 +411,7 @@ export function CodeEditor({
                     id="wrap-text-output"
                     checked={currentWrapText}
                     onCheckedChange={handleWrapTextToggle}
-                    className="h-5 w-9"
+                    size="sm"
                   />
                 </div>
                 {/* Copy Button */}

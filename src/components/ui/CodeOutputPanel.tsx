@@ -193,7 +193,7 @@ export function CodeOutputPanel({
               <Switch
                 checked={wrapText}
                 onCheckedChange={onWrapTextChange}
-                className="h-5 w-9"
+                size="sm"
                 title="Wrap Text"
               />
             )}

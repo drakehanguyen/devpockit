@@ -1,14 +1,14 @@
+'use client';
+
 import { useToolState } from '@/components/providers/ToolStateProvider';
-import { CodeEditor } from '@/components/ui/CodeEditor';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { DEFAULT_IP_OPTIONS, IpCheckerOptions, IpInfo, formatIpInfo, getPublicIpInfo } from '@/libs/ip-checker';
-import { Building, Clock, Globe, Loader2, MapPin, RefreshCw } from 'lucide-react';
+import { cn } from '@/libs/utils';
+import { ArrowPathIcon, BuildingOfficeIcon, ClockIcon, GlobeAltIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface IpCheckerProps {
@@ -18,29 +18,47 @@ interface IpCheckerProps {
 export function IpChecker({ className }: IpCheckerProps) {
   const { toolState, updateToolState } = useToolState('ip-checker');
 
-  const [options, setOptions] = useState<IpCheckerOptions>(
-    (toolState?.options as IpCheckerOptions) || DEFAULT_IP_OPTIONS
-  );
-  const [output, setOutput] = useState<string>(toolState?.output || '');
+  // Initialize with defaults to avoid hydration mismatch
+  const [options, setOptions] = useState<IpCheckerOptions>(DEFAULT_IP_OPTIONS);
+  const [output, setOutput] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>(toolState?.error || '');
-  const [ipInfo, setIpInfo] = useState<IpInfo | null>(toolState?.ipInfo || null);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [ipInfo, setIpInfo] = useState<IpInfo | null>(null);
   const [lastChecked, setLastChecked] = useState<string>('');
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Editor settings
+  const [theme] = useCodeEditorTheme('basicDark');
+  const [wrapText, setWrapText] = useState(true);
 
   // Use ref to get current options in callback
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
+  // Hydrate state from toolState after mount (client-side only)
+  useEffect(() => {
+    setIsHydrated(true);
+    if (toolState) {
+      if (toolState.options) setOptions(toolState.options as IpCheckerOptions);
+      if (toolState.output) setOutput(toolState.output as string);
+      if (toolState.error) setError(toolState.error as string);
+      if (toolState.ipInfo) setIpInfo(toolState.ipInfo as IpInfo);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Update persistent state
   useEffect(() => {
-    updateToolState({
-      options,
-      output,
-      error,
-      ipInfo: ipInfo || undefined
-    });
-  }, [options, output, error, ipInfo]);
+    if (isHydrated) {
+      updateToolState({
+        options,
+        output,
+        error,
+        ipInfo: ipInfo || undefined
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options, output, error, ipInfo, isHydrated]);
 
   // Auto-refresh functionality
   useEffect(() => {
@@ -55,14 +73,14 @@ export function IpChecker({ className }: IpCheckerProps) {
 
   // Reset state when tool is cleared
   useEffect(() => {
-    if (!toolState || Object.keys(toolState).length === 0) {
+    if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
       setOptions(DEFAULT_IP_OPTIONS);
       setOutput('');
       setError('');
       setIpInfo(null);
       setLastChecked('');
     }
-  }, [toolState]);
+  }, [toolState, isHydrated]);
 
   const handleCheckIp = useCallback(async () => {
     setIsLoading(true);
@@ -97,192 +115,160 @@ export function IpChecker({ className }: IpCheckerProps) {
     }
   }, []);
 
-  const handleCopyOutput = async () => {
-    try {
-      await navigator.clipboard.writeText(output);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  const handleOptionChange = (key: keyof IpCheckerOptions, value: any) => {
+  const handleOptionChange = (key: keyof IpCheckerOptions, value: unknown) => {
     setOptions(prev => ({ ...prev, [key]: value }));
   };
 
+  const getLineCount = (text: string): number => {
+    if (!text) return 0;
+    return text.split('\n').length;
+  };
+
   return (
-    <div className={`space-y-6 ${className}`}>
-      {/* Header and Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-6 w-6" />
-            IP Address Lookup
-          </CardTitle>
-          <CardDescription>
-            Look up information about your current public IP address and network details
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Display Options */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="showLocation"
-                checked={options.showLocation}
-                onCheckedChange={(checked) => handleOptionChange('showLocation', checked)}
-              />
-              <Label htmlFor="showLocation" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Show Location
-              </Label>
-            </div>
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Header Section */}
+      <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
+        <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
+          IP Address Lookup
+        </h1>
+        <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
+          Look up information about your current public IP address and network details
+        </p>
+      </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="showISP"
-                checked={options.showISP}
-                onCheckedChange={(checked) => handleOptionChange('showISP', checked)}
-              />
-              <Label htmlFor="showISP" className="flex items-center gap-2">
-                <Building className="h-4 w-4" />
-                Show ISP Info
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="showTimezone"
-                checked={options.showTimezone}
-                onCheckedChange={(checked) => handleOptionChange('showTimezone', checked)}
-              />
-              <Label htmlFor="showTimezone" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Show Timezone
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="showIPv6"
-                checked={options.showIPv6}
-                onCheckedChange={(checked) => handleOptionChange('showIPv6', checked)}
-              />
-              <Label htmlFor="showIPv6" className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Show IPv6
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="autoRefresh"
-                checked={options.autoRefresh}
-                onCheckedChange={(checked) => handleOptionChange('autoRefresh', checked)}
-              />
-              <Label htmlFor="autoRefresh">Auto Refresh</Label>
-            </div>
-          </div>
-
-          {/* Auto Refresh Settings */}
-          {options.autoRefresh && (
-            <div className="space-y-2">
-              <Label htmlFor="refreshInterval">Refresh Interval (seconds)</Label>
-              <Input
-                id="refreshInterval"
-                type="number"
-                min="10"
-                max="300"
-                value={options.refreshInterval}
-                onChange={(e) => handleOptionChange('refreshInterval', parseInt(e.target.value) || 30)}
-                className="w-32"
-              />
-            </div>
-          )}
-
-          <Separator />
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              onClick={handleCheckIp}
-              disabled={isLoading}
-              className="flex-1"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Checking IP...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Check My IP
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* Status */}
-          {lastChecked && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="outline">
-                Last checked: {lastChecked}
-              </Badge>
-              {options.autoRefresh && (
-                <Badge variant="secondary">
-                  Auto-refresh: {options.refreshInterval}s
-                </Badge>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Output */}
-      {output && (
-        <CodeEditor
-          mode="output"
-          outputValue={output}
-          language="json"
-          title="IP Information"
-          showStats={true}
-          height="400px"
-        />
-      )}
-
-      {/* Error Display */}
-      {error && (
-        <Card className="border-destructive">
-          <CardContent className="pt-6">
-            <div className="space-y-3">
-              <div className="text-destructive text-sm">
-                <strong>Error:</strong> {error}
+      {/* Body Section */}
+      <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
+        <div className="flex flex-col gap-4">
+          {/* Controls */}
+          <div className="flex flex-col gap-4">
+            {/* Main Controls Row */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Show Location */}
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={options.showLocation}
+                  onCheckedChange={(checked) => handleOptionChange('showLocation', checked)}
+                  size="sm"
+                />
+                <span className="text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-1">
+                  <MapPinIcon className="h-4 w-4" />
+                  Location
+                </span>
               </div>
+
+              {/* Show ISP */}
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={options.showISP}
+                  onCheckedChange={(checked) => handleOptionChange('showISP', checked)}
+                  size="sm"
+                />
+                <span className="text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-1">
+                  <BuildingOfficeIcon className="h-4 w-4" />
+                  ISP
+                </span>
+              </div>
+
+              {/* Show Timezone */}
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={options.showTimezone}
+                  onCheckedChange={(checked) => handleOptionChange('showTimezone', checked)}
+                  size="sm"
+                />
+                <span className="text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-1">
+                  <ClockIcon className="h-4 w-4" />
+                  Timezone
+                </span>
+              </div>
+
+              {/* Show IPv6 */}
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={options.showIPv6}
+                  onCheckedChange={(checked) => handleOptionChange('showIPv6', checked)}
+                  size="sm"
+                />
+                <span className="text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-1">
+                  <GlobeAltIcon className="h-4 w-4" />
+                  IPv6
+                </span>
+              </div>
+            </div>
+
+            {/* Second Controls Row */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Auto Refresh */}
+              <Select
+                value={options.autoRefresh ? options.refreshInterval.toString() : 'off'}
+                onValueChange={(value) => {
+                  if (value === 'off') {
+                    handleOptionChange('autoRefresh', false);
+                  } else {
+                    handleOptionChange('autoRefresh', true);
+                    handleOptionChange('refreshInterval', parseInt(value));
+                  }
+                }}
+              >
+                <SelectTrigger label="Auto Refresh:">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="off">Off</SelectItem>
+                  <SelectItem value="30">30 seconds</SelectItem>
+                  <SelectItem value="60">1 minute</SelectItem>
+                  <SelectItem value="300">5 minutes</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Check IP Button */}
               <Button
-                variant="outline"
-                size="sm"
                 onClick={handleCheckIp}
                 disabled={isLoading}
-                className="w-full sm:w-auto"
+                variant="default"
+                size="default"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Retrying...
+                    <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
+                    Checking...
                   </>
                 ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Try Again
-                  </>
+                  'Check My IP'
                 )}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+
+          {/* Output Panel */}
+          <CodeOutputPanel
+            title="IP Information"
+            value={output}
+            language="json"
+            height="500px"
+            theme={theme}
+            wrapText={wrapText}
+            onWrapTextChange={setWrapText}
+            footerLeftContent={
+              output && (
+                <>
+                  <span>{getLineCount(output)} lines</span>
+                  {lastChecked && <span>Last checked: {lastChecked}</span>}
+                </>
+              )
+            }
+          />
+
+          {/* Error Display */}
+          {error && (
+            <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="text-sm text-red-700 dark:text-red-300">
+                {error}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
