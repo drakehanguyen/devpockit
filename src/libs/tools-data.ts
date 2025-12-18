@@ -18,8 +18,6 @@ import {
   type LucideIcon
 } from 'lucide-react';
 
-import { Unlock } from 'lucide-react';
-
 // Icon mapping for tools
 export const toolIcons: Record<string, LucideIcon> = {
   'lorem-ipsum': FileText,
