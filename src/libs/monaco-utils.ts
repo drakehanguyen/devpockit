@@ -6,7 +6,7 @@
 /**
  * Monaco Editor language IDs supported by Monaco
  */
-export type MonacoLanguageId = 'json' | 'xml' | 'javascript' | 'typescript' | 'plaintext' | 'html' | 'css' | 'yaml';
+export type MonacoLanguageId = 'json' | 'xml' | 'javascript' | 'typescript' | 'plaintext' | 'html' | 'css' | 'yaml' | 'python' | 'java' | 'csharp' | 'cpp' | 'go' | 'rust' | 'sql' | 'markdown' | 'shell';
 
 /**
  * Map language string to Monaco language ID
@@ -43,6 +43,33 @@ export function getMonacoLanguageId(language?: string): MonacoLanguageId {
     case 'yaml':
     case 'yml':
       return 'yaml';
+    case 'python':
+    case 'py':
+      return 'python';
+    case 'java':
+      return 'java';
+    case 'csharp':
+    case 'cs':
+    case 'c#':
+      return 'csharp';
+    case 'cpp':
+    case 'c++':
+      return 'cpp';
+    case 'go':
+    case 'golang':
+      return 'go';
+    case 'rust':
+    case 'rs':
+      return 'rust';
+    case 'sql':
+      return 'sql';
+    case 'markdown':
+    case 'md':
+      return 'markdown';
+    case 'shell':
+    case 'bash':
+    case 'sh':
+      return 'shell';
     default:
       // Default to plaintext for unknown languages
       return 'plaintext';

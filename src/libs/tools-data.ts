@@ -1,18 +1,20 @@
 import { ToolCategory } from '@/types/tools';
 import {
-  FileText,
-  Braces,
-  Code,
-  Hash,
-  QrCode,
-  ScanSearch,
-  ScanLine,
-  Link,
-  Clock,
   ArrowLeftRight,
-  Network,
+  Braces,
+  Clock,
+  Code,
+  FileText,
+  GitCompare,
+  Hash,
+  Link,
   MapPin,
-  Wrench,
+  Network,
+  QrCode,
+  ScanLine,
+  ScanSearch,
+  Timer,
+  Unlock,
   type LucideIcon
 } from 'lucide-react';
 
@@ -34,7 +36,8 @@ export const toolIcons: Record<string, LucideIcon> = {
   'cidr-analyzer': Network,
   'ip-to-cidr-converter': Network,
   'ip-checker': MapPin,
-  'placeholder-tool': Wrench,
+  'diff-checker': GitCompare,
+  'timestamp-converter': Timer,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -213,6 +216,18 @@ export const toolCategories: ToolCategory[] = [
         supportsDesktop: true,
         supportsMobile: true,
       },
+      {
+        id: 'timestamp-converter',
+        name: 'Timestamp Converter',
+        description: 'Convert between Unix timestamps, ISO 8601, RFC 2822, and other date formats across timezones',
+        category: 'converters',
+        icon: '🕐',
+        isPopular: true,
+        path: '/tools/converters/timestamp-converter',
+        component: 'TimestampConverter',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
     ],
   },
   {
@@ -268,14 +283,14 @@ export const toolCategories: ToolCategory[] = [
     description: 'General utility tools and helpers',
     tools: [
       {
-        id: 'placeholder-tool',
-        name: 'Placeholder Tool',
-        description: 'A placeholder tool for testing and development',
+        id: 'diff-checker',
+        name: 'Diff Checker',
+        description: 'Compare two texts side-by-side and highlight differences with syntax highlighting',
         category: 'utilities',
-        icon: '🔧',
-        isPopular: false,
-        path: '/tools/utilities/placeholder-tool',
-        component: 'PlaceholderTool',
+        icon: '📊',
+        isPopular: true,
+        path: '/tools/utilities/diff-checker',
+        component: 'DiffChecker',
         supportsDesktop: true,
         supportsMobile: true,
       },
