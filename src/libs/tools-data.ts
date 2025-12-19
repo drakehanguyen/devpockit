@@ -8,6 +8,7 @@ import {
   GitCompare,
   Hash,
   Link,
+  List,
   MapPin,
   Network,
   QrCode,
@@ -36,6 +37,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'ip-checker': MapPin,
   'diff-checker': GitCompare,
   'timestamp-converter': Timer,
+  'list-comparison': List,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -289,6 +291,18 @@ export const toolCategories: ToolCategory[] = [
         isPopular: true,
         path: '/tools/utilities/diff-checker',
         component: 'DiffChecker',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'list-comparison',
+        name: 'List Comparison',
+        description: 'Compare two lists of strings and numbers to find differences, intersections, unions, and more',
+        category: 'utilities',
+        icon: '📋',
+        isPopular: true,
+        path: '/tools/utilities/list-comparison',
+        component: 'ListComparison',
         supportsDesktop: true,
         supportsMobile: true,
       },
