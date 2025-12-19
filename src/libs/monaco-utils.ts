@@ -174,6 +174,9 @@ export interface MonacoEditorOptions {
   scrollBeyondLastLine?: boolean;
   formatOnPaste?: boolean;
   formatOnType?: boolean;
+  scrollbar?: {
+    alwaysConsumeMouseWheel?: boolean;
+  };
 }
 
 /**
@@ -204,6 +207,9 @@ export function createMonacoOptions(
     scrollBeyondLastLine: false,
     formatOnPaste: false,
     formatOnType: false,
+    scrollbar: {
+      alwaysConsumeMouseWheel: false, // Allow page scrolling when editor reaches end
+    },
   };
 }
 
