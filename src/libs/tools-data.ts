@@ -222,6 +222,18 @@ export const toolCategories: ToolCategory[] = [
         supportsMobile: true,
       },
       {
+        id: 'data-format-converter',
+        name: 'Data Format Converter',
+        description: 'Convert between JSON, YAML, Python Dictionary, TypeScript Map, and XML formats',
+        category: 'converters',
+        icon: '🔄',
+        isPopular: true,
+        path: '/tools/converters/data-format-converter',
+        component: 'DataFormatConverter',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
         id: 'timestamp-converter',
         name: 'Timestamp Converter',
         description: 'Convert between Unix timestamps, ISO 8601, RFC 2822, and other date formats across timezones',
