@@ -18,6 +18,7 @@ export const getToolComponent = async (componentName: string) => {
     'DiffChecker': () => import('@/components/tools/DiffChecker').then(m => m.DiffChecker),
     'TimestampConverter': () => import('@/components/tools/TimestampConverter').then(m => m.TimestampConverter),
     'ListComparison': () => import('@/components/tools/ListComparison').then(m => m.ListComparison),
+    'ListConverter': () => import('@/components/tools/ListConverter').then(m => m.ListConverter),
   };
 
   const loader = componentMap[componentName];

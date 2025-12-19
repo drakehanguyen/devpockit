@@ -38,6 +38,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'diff-checker': GitCompare,
   'timestamp-converter': Timer,
   'list-comparison': List,
+  'list-converter': ArrowLeftRight,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -225,6 +226,18 @@ export const toolCategories: ToolCategory[] = [
         isPopular: true,
         path: '/tools/converters/timestamp-converter',
         component: 'TimestampConverter',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'list-converter',
+        name: 'List Format Converter',
+        description: 'Convert lists between different formats: line-by-line, comma-separated, JSON array, Python list, and more',
+        category: 'converters',
+        icon: '🔄',
+        isPopular: true,
+        path: '/tools/converters/list-converter',
+        component: 'ListConverter',
         supportsDesktop: true,
         supportsMobile: true,
       },
