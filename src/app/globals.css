@@ -121,8 +121,6 @@
   .monaco-editor .line-numbers {
     min-width: 36px !important;
     text-align: center !important;
-    padding-right: 0 !important;
-    margin-right: 0 !important;
     width: 100% !important;
   }
 
@@ -143,17 +141,6 @@
   .monaco-editor .glyph-margin {
     padding-right: 0 !important;
     margin-right: 0 !important;
-  }
-
-  /* Center line number text */
-  .monaco-editor .line-numbers span {
-    text-align: center !important;
-    display: inline-block;
-    width: 100%;
-  }
-
-  .monaco-editor .current-line ~ .line-numbers span {
-    text-align: right !important;
   }
 
   /* Add padding between vertical line and code */
