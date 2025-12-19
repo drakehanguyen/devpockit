@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   CRON_FIELD_DEFINITIONS,
   type CronFieldValue
-} from '@/config/cron-builder-config';
+} from '@/config/cron-parser-config';
 import { cn } from '@/libs/utils';
 import * as React from 'react';
 

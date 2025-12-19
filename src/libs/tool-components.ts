@@ -10,7 +10,6 @@ export const getToolComponent = async (componentName: string) => {
     'QrCodeScanner': () => import('@/components/tools/QrCodeScanner').then(m => m.QrCodeScanner),
     'UrlEncoderTool': () => import('@/components/tools/UrlEncoderTool').then(m => m.UrlEncoderTool),
     'UrlDecoderTool': () => import('@/components/tools/UrlDecoderTool').then(m => m.UrlDecoderTool),
-    'CronParser': () => import('@/components/tools/CronParser').then(m => m.CronParser),
     'DataFormatConverter': () => import('@/components/tools/DataFormatConverter').then(m => m.DataFormatConverter),
     'CidrAnalyzer': () => import('@/components/tools/CidrAnalyzer').then(m => m.CidrAnalyzer),
     'IpToCidrConverter': () => import('@/components/tools/IpToCidrConverter').then(m => m.IpToCidrConverter),
@@ -22,7 +21,7 @@ export const getToolComponent = async (componentName: string) => {
     'JsonPathFinder': () => import('@/components/tools/JsonPathFinder').then(m => m.JsonPathFinder),
     'JsonSchemaGenerator': () => import('@/components/tools/JsonSchemaGenerator').then(m => m.JsonSchemaGenerator),
     'SchemaConverter': () => import('@/components/tools/SchemaConverter').then(m => m.SchemaConverter),
-    'CronBuilder': () => import('@/components/tools/CronBuilder').then(m => m.CronBuilder),
+    'CronParser': () => import('@/components/tools/CronParser').then(m => m.CronParser),
   };
 
   const loader = componentMap[componentName];

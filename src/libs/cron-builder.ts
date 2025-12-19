@@ -1,10 +1,10 @@
 import { parseExpression } from 'cron-parser';
-import type { CronBuilderOptions, CronFieldValue } from '@/config/cron-builder-config';
+import type { CronParserOptions, CronFieldValue } from '@/config/cron-parser-config';
 
 /**
- * Build a cron expression from builder options
+ * Build a cron expression from parser options
  */
-export function buildCronExpression(options: CronBuilderOptions): string {
+export function buildCronExpression(options: CronParserOptions): string {
   const minute = buildFieldExpression(options.minute, 0, 59);
   const hour = buildFieldExpression(options.hour, 0, 23);
   const day = buildFieldExpression(options.day, 1, 31);
@@ -71,10 +71,10 @@ export function validateCronExpression(expression: string): { isValid: boolean; 
 }
 
 /**
- * Parse a cron expression back into builder options
+ * Parse a cron expression back into parser options
  * This is useful for editing existing expressions
  */
-export function parseCronToBuilder(expression: string): CronBuilderOptions | null {
+export function parseCronToBuilder(expression: string): CronParserOptions | null {
   try {
     const parts = expression.trim().split(/\s+/);
     if (parts.length !== 5) {
@@ -140,59 +140,5 @@ function parseField(field: string, min: number, max: number): CronFieldValue {
 
   // Default to every
   return { type: 'every' };
-}
-
-/**
- * Get human-readable description of a field value
- */
-export function getFieldDescription(field: CronFieldValue, fieldName: 'minute' | 'hour' | 'day' | 'month' | 'weekday'): string {
-  switch (field.type) {
-    case 'every':
-      return 'Every';
-
-    case 'specific':
-      if (field.value === undefined) return 'Every';
-      const value = typeof field.value === 'number' ? field.value : parseInt(field.value.toString());
-      if (fieldName === 'month' && value >= 1 && value <= 12) {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        return monthNames[value - 1];
-      }
-      if (fieldName === 'weekday' && value >= 0 && value <= 6) {
-        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        return dayNames[value];
-      }
-      return value.toString();
-
-    case 'range':
-      if (field.start === undefined || field.end === undefined) return 'Every';
-      if (fieldName === 'month') {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        return `${monthNames[field.start - 1]} - ${monthNames[field.end - 1]}`;
-      }
-      if (fieldName === 'weekday') {
-        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        return `${dayNames[field.start]} - ${dayNames[field.end]}`;
-      }
-      return `${field.start} - ${field.end}`;
-
-    case 'step':
-      if (field.step === undefined) return 'Every';
-      return `Every ${field.step}`;
-
-    case 'list':
-      if (!field.list || field.list.length === 0) return 'Every';
-      if (fieldName === 'month') {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        return field.list.map(v => monthNames[v - 1]).join(', ');
-      }
-      if (fieldName === 'weekday') {
-        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        return field.list.map(v => dayNames[v]).join(', ');
-      }
-      return field.list.join(', ');
-
-    default:
-      return 'Every';
-  }
 }
 

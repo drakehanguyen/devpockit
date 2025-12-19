@@ -1,4 +1,4 @@
-import type { CronBuilderOptions } from '@/config/cron-builder-config';
+import type { CronParserOptions } from '@/config/cron-parser-config';
 
 export interface ExportFormat {
   id: string;
@@ -70,7 +70,7 @@ export const EXPORT_FORMATS: ExportFormat[] = [
 export function exportCronExpression(
   expression: string,
   format: string,
-  options?: CronBuilderOptions
+  options?: CronParserOptions
 ): string {
   switch (format) {
     case 'plain':
@@ -105,7 +105,7 @@ export function exportCronExpression(
   }
 }
 
-function exportAsJson(expression: string, options?: CronBuilderOptions): string {
+function exportAsJson(expression: string, options?: CronParserOptions): string {
   const config = {
     cron: expression,
     description: 'Generated cron expression',
