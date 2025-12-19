@@ -3,6 +3,7 @@
  * Functions for converting lists between different formats
  */
 
+import { stringify } from 'yaml';
 import { parseListInput, type InputFormat } from './list-comparison';
 
 export interface ConversionResult {
@@ -134,6 +135,26 @@ export function formatListOutput(
       return `[${formatted.join(', ')}]`;
     }
 
+    case 'yaml-array': {
+      // Convert to YAML array format
+      // If preserveTypes is enabled, try to preserve numeric types
+      const yamlValues = options.preserveTypes
+        ? processed.map(item => {
+            const num = Number(item);
+            if (!isNaN(num) && item.trim() === num.toString()) {
+              return num;
+            }
+            return item;
+          })
+        : processed;
+
+      // Use YAML library to format as array
+      return stringify(yamlValues, {
+        indent: 2,
+        lineWidth: 0,
+      });
+    }
+
     default:
       return processed.join('\n');
   }
@@ -191,6 +212,8 @@ export function getLanguageForFormat(format: InputFormat): string {
       return 'python';
     case 'javascript-array':
       return 'javascript';
+    case 'yaml-array':
+      return 'yaml';
     default:
       return 'plaintext';
   }

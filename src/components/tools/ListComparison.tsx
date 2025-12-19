@@ -25,6 +25,7 @@ import { cn } from '@/libs/utils';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Check, Copy, Download, Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { stringify } from 'yaml';
 
 interface ListComparisonProps {
   className?: string;
@@ -198,6 +199,22 @@ export function ListComparison({ className }: ListComparisonProps) {
         return `[${formatted.join(', ')}]`;
       }
 
+      case 'yaml-array': {
+        // Format as YAML array
+        // Try to preserve numeric types
+        const yamlValues = values.map(item => {
+          const num = Number(item);
+          if (!isNaN(num) && item.trim() === num.toString()) {
+            return num;
+          }
+          return item;
+        });
+        return stringify(yamlValues, {
+          indent: 2,
+          lineWidth: 0,
+        });
+      }
+
       default:
         return values.join('\n');
     }
@@ -287,6 +304,8 @@ export function ListComparison({ className }: ListComparisonProps) {
         return 'python';
       case 'javascript-array':
         return 'javascript';
+      case 'yaml-array':
+        return 'yaml';
       default:
         return 'plaintext';
     }

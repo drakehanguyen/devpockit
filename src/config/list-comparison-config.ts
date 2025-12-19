@@ -3,7 +3,7 @@
  * Options and settings for list comparison tool
  */
 
-export type InputFormat = 'line-by-line' | 'comma-separated' | 'space-separated' | 'pipe-separated' | 'tab-separated' | 'json-array' | 'python-list' | 'javascript-array';
+export type InputFormat = 'line-by-line' | 'comma-separated' | 'space-separated' | 'pipe-separated' | 'tab-separated' | 'json-array' | 'python-list' | 'javascript-array' | 'yaml-array';
 export type ComparisonOperation = 'union' | 'intersection' | 'a-minus-b' | 'b-minus-a' | 'symmetric';
 
 export interface ListComparisonOptions {
@@ -23,6 +23,7 @@ export const LIST_COMPARISON_OPTIONS = {
     { value: 'json-array', label: 'JSON Array' },
     { value: 'python-list', label: 'Python List' },
     { value: 'javascript-array', label: 'JavaScript Array' },
+    { value: 'yaml-array', label: 'YAML Array' },
   ] as const,
   operations: [
     { value: 'union', label: 'Union', description: 'All unique items from both lists' },
@@ -54,6 +55,7 @@ cherry
     'json-array': `["apple", "banana", "cherry", 123, 456]`,
     'python-list': `['apple', 'banana', 'cherry', 123, 456]`,
     'javascript-array': `['apple', 'banana', 'cherry', 123, 456]`,
+    'yaml-array': `- apple\n- banana\n- cherry\n- 123\n- 456`,
   },
   'list-b': {
     'line-by-line': `Apple
@@ -69,6 +71,7 @@ date
     'json-array': `["Apple", "banana", "cherry", "date", 123, 789]`,
     'python-list': `['Apple', 'banana', 'cherry', 'date', 123, 789]`,
     'javascript-array': `['Apple', 'banana', 'cherry', 'date', 123, 789]`,
+    'yaml-array': `- Apple\n- banana\n- cherry\n- date\n- 123\n- 789`,
   },
 } as const;
 

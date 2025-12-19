@@ -121,6 +121,8 @@
   .monaco-editor .line-numbers {
     min-width: 36px !important;
     text-align: center !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
     width: 100% !important;
   }
 
@@ -143,10 +145,21 @@
     margin-right: 0 !important;
   }
 
-  /* Add padding between vertical line and code */
-  .monaco-editor .view-lines {
-    padding-left: 8px !important;
+  /* Center line number text */
+  .monaco-editor .line-numbers span {
+    text-align: center !important;
+    display: inline-block;
+    width: 100%;
   }
+
+  .monaco-editor .current-line ~ .line-numbers span {
+    text-align: right !important;
+  }
+
+  /* Add padding between vertical line and code */
+  /* .monaco-editor .view-lines {
+    padding-left: 8px !important;
+  } */
 
   /* Dark mode border color - more subtle */
   .dark .monaco-editor .margin {

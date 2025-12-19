@@ -3,6 +3,8 @@
  * Functions for parsing, comparing, and operating on lists
  */
 
+import { parse } from 'yaml';
+
 export interface ListComparisonStats {
   listASize: number;
   listBSize: number;
@@ -20,7 +22,7 @@ export interface ListItem {
   originalValue: string; // Preserve original for display
 }
 
-export type InputFormat = 'line-by-line' | 'comma-separated' | 'space-separated' | 'pipe-separated' | 'tab-separated' | 'json-array' | 'python-list' | 'javascript-array';
+export type InputFormat = 'line-by-line' | 'comma-separated' | 'space-separated' | 'pipe-separated' | 'tab-separated' | 'json-array' | 'python-list' | 'javascript-array' | 'yaml-array';
 
 /**
  * Parse input text into an array of strings based on format
@@ -78,6 +80,19 @@ export function parseListInput(input: string, format: InputFormat, caseSensitive
         }
       } catch (error) {
         throw new Error('Invalid JSON array format');
+      }
+      break;
+
+    case 'yaml-array':
+      try {
+        const parsed = parse(input);
+        if (Array.isArray(parsed)) {
+          items = parsed.map(item => String(item));
+        } else {
+          throw new Error('Input is not a valid YAML array');
+        }
+      } catch (error) {
+        throw new Error('Invalid YAML array format');
       }
       break;
 

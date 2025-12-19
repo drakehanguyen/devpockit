@@ -26,6 +26,7 @@ export const LIST_CONVERTER_OPTIONS = {
     { value: 'json-array', label: 'JSON Array' },
     { value: 'python-list', label: 'Python List' },
     { value: 'javascript-array', label: 'JavaScript Array' },
+    { value: 'yaml-array', label: 'YAML Array' },
   ] as const,
 } as const;
 
@@ -51,5 +52,6 @@ cherry
   'json-array': `["apple", "banana", "cherry", 123, 456]`,
   'python-list': `['apple', 'banana', 'cherry', 123, 456]`,
   'javascript-array': `['apple', 'banana', 'cherry', 123, 456]`,
+  'yaml-array': `- apple\n- banana\n- cherry\n- 123\n- 456`,
 };
 
