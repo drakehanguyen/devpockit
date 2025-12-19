@@ -9,7 +9,7 @@ export type ComparisonOperation = 'union' | 'intersection' | 'a-minus-b' | 'b-mi
 export interface ListComparisonOptions {
   inputFormat: InputFormat;
   caseSensitive: boolean;
-  sortLists: boolean;
+  sortOrder: 'none' | 'asc' | 'desc';
   operation: ComparisonOperation;
 }
 
@@ -36,7 +36,7 @@ export const LIST_COMPARISON_OPTIONS = {
 export const DEFAULT_LIST_COMPARISON_OPTIONS: ListComparisonOptions = {
   inputFormat: 'line-by-line',
   caseSensitive: false,
-  sortLists: false,
+  sortOrder: 'none',
   operation: 'union',
 };
 

@@ -361,7 +361,12 @@ export function performOperation(
 /**
  * Sort list items (preserving original values)
  */
-export function sortListItems(items: ListItem[], ascending: boolean = true): ListItem[] {
+export function sortListItems(items: ListItem[], sortOrder: 'none' | 'asc' | 'desc' = 'none'): ListItem[] {
+  if (sortOrder === 'none') {
+    return items;
+  }
+
+  const ascending = sortOrder === 'asc';
   const sorted = [...items].sort((a, b) => {
     // Try numeric comparison first
     const numA = Number(a.originalValue);

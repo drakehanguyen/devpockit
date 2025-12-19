@@ -97,10 +97,8 @@ export function ListComparison({ className }: ListComparisonProps) {
       // Perform operation
       let operationResults = performOperation(listA, listB, options.operation, options.caseSensitive);
 
-      // Sort if enabled
-      if (options.sortLists) {
-        operationResults = sortListItems(operationResults, true);
-      }
+      // Sort based on sort order
+      operationResults = sortListItems(operationResults, options.sortOrder);
 
       setResults(operationResults);
     } catch (error) {
@@ -313,7 +311,7 @@ export function ListComparison({ className }: ListComparisonProps) {
         <div className="flex flex-col gap-4">
           {/* Controls */}
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap min-h-[40px]">
               {/* Input Format Select */}
               <Select
                 value={options.inputFormat}
@@ -321,7 +319,7 @@ export function ListComparison({ className }: ListComparisonProps) {
                   setOptions((prev) => ({ ...prev, inputFormat: value as typeof options.inputFormat }))
                 }
               >
-                <SelectTrigger label="Input Format:">
+                <SelectTrigger label="Input Format:" className="min-w-[300px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -333,6 +331,23 @@ export function ListComparison({ className }: ListComparisonProps) {
                 </SelectContent>
               </Select>
 
+              {/* Sort Order Selector */}
+              <Select
+                value={options.sortOrder}
+                onValueChange={(value) =>
+                  setOptions((prev) => ({ ...prev, sortOrder: value as 'none' | 'asc' | 'desc' }))
+                }
+              >
+                <SelectTrigger label="Sort Order:" className="w-[220px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="asc">Ascending</SelectItem>
+                  <SelectItem value="desc">Descending</SelectItem>
+                </SelectContent>
+              </Select>
+
               {/* Case Sensitive Toggle */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Case Sensitive:</span>
@@ -340,17 +355,6 @@ export function ListComparison({ className }: ListComparisonProps) {
                   checked={options.caseSensitive}
                   onCheckedChange={(checked) =>
                     setOptions((prev) => ({ ...prev, caseSensitive: checked }))
-                  }
-                />
-              </div>
-
-              {/* Sort Lists Toggle */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Sort Lists:</span>
-                <Switch
-                  checked={options.sortLists}
-                  onCheckedChange={(checked) =>
-                    setOptions((prev) => ({ ...prev, sortLists: checked }))
                   }
                 />
               </div>
