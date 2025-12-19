@@ -17,6 +17,7 @@ import {
   ScanSearch,
   Timer,
   Unlock,
+  Wrench,
   type LucideIcon
 } from 'lucide-react';
 
@@ -32,6 +33,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'url-encoder': Link,
   'url-decoder': Unlock,
   'cron-parser': Clock,
+  'cron-builder': Wrench,
   'cidr-analyzer': Network,
   'ip-to-cidr-converter': Network,
   'ip-checker': MapPin,
@@ -205,6 +207,18 @@ export const toolCategories: ToolCategory[] = [
         isPopular: true,
         path: '/tools/converters/cron-parser',
         component: 'CronParser',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'cron-builder',
+        name: 'Cron Expression Builder',
+        description: 'Build cron expressions visually with a step-by-step form builder',
+        category: 'converters',
+        icon: '🔨',
+        isPopular: true,
+        path: '/tools/converters/cron-builder',
+        component: 'CronBuilder',
         supportsDesktop: true,
         supportsMobile: true,
       },

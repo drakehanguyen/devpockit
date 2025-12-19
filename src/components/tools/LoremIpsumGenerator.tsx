@@ -3,7 +3,7 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { CodeOutputPanel, type CodeOutputTab } from '@/components/ui/CodeOutputPanel';
-import { QuantityInput } from '@/components/ui/quantity-input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
@@ -214,7 +214,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </Select>
 
               {/* Quantity Input */}
-              <QuantityInput
+              <NumberInput
                 value={options.quantity}
                 onChange={handleQuantityChange}
                 min={1}

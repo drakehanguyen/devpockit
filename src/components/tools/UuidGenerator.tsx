@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LabeledInput } from '@/components/ui/labeled-input';
-import { QuantityInput } from '@/components/ui/quantity-input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DEFAULT_UUID_OPTIONS,
@@ -199,7 +199,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
               </Select>
 
               {/* Quantity Input */}
-              <QuantityInput
+              <NumberInput
                 value={options.quantity}
                 onChange={handleQuantityChange}
                 min={UUID_QUANTITY_LIMITS.min}

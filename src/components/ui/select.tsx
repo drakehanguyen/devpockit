@@ -16,21 +16,26 @@ const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
     label?: string;
+    valueAlign?: 'left' | 'right' | 'center';
   }
->(({ className, children, label, ...props }, ref) => (
+>(({ className, children, label, valueAlign = 'left', ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex h-10 items-center justify-between rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700",
+      "inline-flex h-10 items-center justify-between rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700",
       className
     )}
     {...props}
   >
-    <div className="flex items-end gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
+    <div className="flex items-end text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
       {label && (
         <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">{label}</span>
       )}
-      <span className="text-neutral-900 dark:text-neutral-100 truncate">
+      <span className={cn(
+        "text-neutral-900 dark:text-neutral-100 truncate",
+        valueAlign === 'right' && "ml-auto text-right",
+        valueAlign === 'center' && "flex-1 text-center"
+      )}>
         {children}
       </span>
     </div>

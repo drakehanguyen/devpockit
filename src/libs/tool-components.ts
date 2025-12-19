@@ -22,6 +22,7 @@ export const getToolComponent = async (componentName: string) => {
     'JsonPathFinder': () => import('@/components/tools/JsonPathFinder').then(m => m.JsonPathFinder),
     'JsonSchemaGenerator': () => import('@/components/tools/JsonSchemaGenerator').then(m => m.JsonSchemaGenerator),
     'SchemaConverter': () => import('@/components/tools/SchemaConverter').then(m => m.SchemaConverter),
+    'CronBuilder': () => import('@/components/tools/CronBuilder').then(m => m.CronBuilder),
   };
 
   const loader = componentMap[componentName];
