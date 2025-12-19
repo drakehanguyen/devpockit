@@ -11,7 +11,6 @@ export const getToolComponent = async (componentName: string) => {
     'UrlEncoderTool': () => import('@/components/tools/UrlEncoderTool').then(m => m.UrlEncoderTool),
     'UrlDecoderTool': () => import('@/components/tools/UrlDecoderTool').then(m => m.UrlDecoderTool),
     'CronParser': () => import('@/components/tools/CronParser').then(m => m.CronParser),
-    'JsonYamlConverter': () => import('@/components/tools/JsonYamlConverter').then(m => m.JsonYamlConverter),
     'DataFormatConverter': () => import('@/components/tools/DataFormatConverter').then(m => m.DataFormatConverter),
     'CidrAnalyzer': () => import('@/components/tools/CidrAnalyzer').then(m => m.CidrAnalyzer),
     'IpToCidrConverter': () => import('@/components/tools/IpToCidrConverter').then(m => m.IpToCidrConverter),
