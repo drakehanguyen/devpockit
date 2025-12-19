@@ -109,4 +109,60 @@
   .custom-scrollbar::-webkit-scrollbar-corner {
     background: hsl(var(--muted) / 0.5);
   }
+
+  /* Monaco Editor - Reduce line number gutter width and center alignment */
+  /* This complements the lineNumbersMinChars option for tighter control */
+  .monaco-editor .margin {
+    min-width: 36px !important;
+    border-right: 1px solid hsl(var(--muted-foreground) / 0.2) !important;
+    padding-right: 0 !important;
+  }
+
+  .monaco-editor .line-numbers {
+    min-width: 36px !important;
+    text-align: center !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Remove any spacing from line number cells and containers */
+  .monaco-editor .line-numbers .line-number {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .monaco-editor .margin-view-overlays {
+    padding-right: 0 !important;
+  }
+
+  .monaco-editor .margin-view-zones {
+    padding-right: 0 !important;
+  }
+
+  .monaco-editor .glyph-margin {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Center line number text */
+  .monaco-editor .line-numbers span {
+    text-align: center !important;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .monaco-editor .current-line ~ .line-numbers span {
+    text-align: right !important;
+  }
+
+  /* Add padding between vertical line and code */
+  .monaco-editor .view-lines {
+    padding-left: 8px !important;
+  }
+
+  /* Dark mode border color - more subtle */
+  .dark .monaco-editor .margin {
+    border-right-color: hsl(var(--muted-foreground) / 0.15) !important;
+  }
 }

@@ -164,6 +164,7 @@ export interface MonacoEditorOptions {
   theme?: string;
   readOnly?: boolean;
   lineNumbers?: 'on' | 'off' | 'relative' | 'interval';
+  lineNumbersMinChars?: number;
   wordWrap?: 'on' | 'off' | 'wordWrapColumn' | 'bounded';
   minimap?: { enabled: boolean };
   fontSize?: number;
@@ -197,6 +198,7 @@ export function createMonacoOptions(
     language: getMonacoLanguageId(language),
     readOnly,
     lineNumbers: showLineNumbers ? 'on' : 'off',
+    lineNumbersMinChars: 2, // Reduce line number gutter width (default is usually 5)
     wordWrap: wrapText ? 'on' : 'off',
     minimap: { enabled: false }, // Disable minimap for cleaner UI
     fontSize: 14,
