@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ContentPanel } from '@/components/ui/ContentPanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -630,11 +631,9 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
           {/* Main Content - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
-            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
-              <div className="flex items-center justify-between px-3 py-0">
-                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
-                  Input Data
-                </div>
+            <ContentPanel
+              title="Input Data"
+              headerActions={
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
@@ -650,14 +649,8 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </div>
-              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
-                <div className="h-full overflow-auto bg-white dark:bg-neutral-900 rounded-md p-4">
-                  {renderInputFields()}
-                </div>
-              </div>
-              {/* Footer with Generate Button */}
-              <div className="flex items-center justify-end px-3 py-2 min-h-[52px]">
+              }
+              footerRightContent={
                 <Button
                   onClick={handleGenerateQrCode}
                   disabled={isGenerating}
@@ -673,16 +666,16 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
                     'Generate'
                   )}
                 </Button>
-              </div>
-            </div>
+              }
+            >
+              {renderInputFields()}
+            </ContentPanel>
 
             {/* Output Panel */}
-            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
-              <div className="flex items-center justify-between px-3 py-0">
-                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
-                  Generated QR Code
-                </div>
-                {qrCodeResult && (
+            <ContentPanel
+              title="Generated QR Code"
+              headerActions={
+                qrCodeResult && (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleCopyOutput}
@@ -699,38 +692,35 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
                       <ArrowDownTrayIcon className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
                     </button>
                   </div>
+                )
+              }
+              footerLeftContent={
+                stats && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">{stats.type}</Badge>
+                    <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">{stats.size}px</Badge>
+                    <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">EC: {stats.errorCorrection}</Badge>
+                    <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">{stats.format.toUpperCase()}</Badge>
+                  </div>
+                )
+              }
+              alwaysShowFooter={true}
+            >
+              <div className="h-full flex flex-col items-center justify-center">
+                {qrCodeResult ? (
+                  <img
+                    src={qrCodeResult.dataUrl}
+                    alt="Generated QR Code"
+                    className="max-w-full h-auto border rounded-lg"
+                    style={{ maxHeight: '300px' }}
+                  />
+                ) : (
+                  <div className="text-muted-foreground text-sm">
+                    QR code will appear here after generation
+                  </div>
                 )}
               </div>
-              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
-                <div className="h-full overflow-auto bg-white dark:bg-neutral-900 rounded-md p-4 flex flex-col items-center justify-center">
-                  {qrCodeResult ? (
-                    <img
-                      src={qrCodeResult.dataUrl}
-                      alt="Generated QR Code"
-                      className="max-w-full h-auto border rounded-lg"
-                      style={{ maxHeight: '300px' }}
-                    />
-                  ) : (
-                    <div className="text-muted-foreground text-sm">
-                      QR code will appear here after generation
-                    </div>
-                  )}
-                </div>
-              </div>
-              {/* Footer with stats */}
-              <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
-                <div className="flex items-center gap-2">
-                  {stats && (
-                    <>
-                      <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">{stats.type}</Badge>
-                      <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">{stats.size}px</Badge>
-                      <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">EC: {stats.errorCorrection}</Badge>
-                      <Badge variant="secondary" className="bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100">{stats.format.toUpperCase()}</Badge>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+            </ContentPanel>
           </div>
 
           {/* Error Display */}
