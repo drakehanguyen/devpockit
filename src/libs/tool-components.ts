@@ -19,6 +19,9 @@ export const getToolComponent = async (componentName: string) => {
     'TimestampConverter': () => import('@/components/tools/TimestampConverter').then(m => m.TimestampConverter),
     'ListComparison': () => import('@/components/tools/ListComparison').then(m => m.ListComparison),
     'ListConverter': () => import('@/components/tools/ListConverter').then(m => m.ListConverter),
+    'JsonPathFinder': () => import('@/components/tools/JsonPathFinder').then(m => m.JsonPathFinder),
+    'JsonSchemaGenerator': () => import('@/components/tools/JsonSchemaGenerator').then(m => m.JsonSchemaGenerator),
+    'SchemaConverter': () => import('@/components/tools/SchemaConverter').then(m => m.SchemaConverter),
   };
 
   const loader = componentMap[componentName];
