@@ -1,15 +1,15 @@
 export interface JsonYamlOptions {
   input: string;
+  inputFormat: 'auto' | 'json' | 'yaml';
   outputFormat: 'json' | 'yaml';
-  autoDetect: boolean;
   indentSize: number;
   sortKeys: boolean;
 }
 
 export const DEFAULT_JSON_YAML_OPTIONS: JsonYamlOptions = {
   input: '',
+  inputFormat: 'auto',
   outputFormat: 'yaml',
-  autoDetect: true,
   indentSize: 2,
   sortKeys: false
 };
@@ -214,6 +214,12 @@ export const JSON_YAML_CATEGORIES = [
 export const JSON_YAML_FORMAT_OPTIONS = [
   { value: 'json', label: 'JSON', description: 'JavaScript Object Notation' },
   { value: 'yaml', label: 'YAML', description: 'YAML Ain\'t Markup Language' }
+];
+
+export const JSON_YAML_INPUT_FORMAT_OPTIONS = [
+  { value: 'auto', label: 'Auto', description: 'Auto-detect input format' },
+  { value: 'json', label: 'JSON', description: 'Input is JSON' },
+  { value: 'yaml', label: 'YAML', description: 'Input is YAML' }
 ];
 
 export const JSON_YAML_INDENT_OPTIONS = [

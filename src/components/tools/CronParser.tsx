@@ -4,6 +4,7 @@ import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   CRON_EXAMPLES,
@@ -165,17 +166,13 @@ export function CronParser({ className }: CronParserProps) {
           <div className="flex flex-col gap-4">
             {/* Expression Input Row */}
             <div className="flex items-center gap-3">
-              <div className="inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700 flex-1">
-                <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
-                  <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">Expression:</span>
-                  <input
-                    placeholder="e.g., 0 9 * * *"
-                    value={options.expression}
-                    onChange={(e) => setOptions(prev => ({ ...prev, expression: e.target.value }))}
-                    className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 placeholder:text-muted-foreground"
-                  />
-                </div>
-              </div>
+              <LabeledInput
+                label="Expression:"
+                value={options.expression}
+                onChange={(value) => setOptions(prev => ({ ...prev, expression: value }))}
+                placeholder="e.g., 0 9 * * *"
+                containerClassName="flex-1"
+              />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -205,37 +202,32 @@ export function CronParser({ className }: CronParserProps) {
 
             {/* Options Row */}
             <div className="flex items-center gap-3 flex-wrap">
-              {/* Show Next Runs */}
+              {/* Next Runs Configuration */}
               <Select
-                value={options.showNextRuns ? 'true' : 'false'}
-                onValueChange={(value) => setOptions(prev => ({ ...prev, showNextRuns: value === 'true' }))}
+                value={options.showNextRuns ? options.nextRunCount.toString() : 'none'}
+                onValueChange={(value) => {
+                  if (value === 'none') {
+                    setOptions(prev => ({ ...prev, showNextRuns: false }));
+                  } else {
+                    setOptions(prev => ({
+                      ...prev,
+                      showNextRuns: true,
+                      nextRunCount: parseInt(value)
+                    }));
+                  }
+                }}
               >
-                <SelectTrigger label="Show Next Runs:">
+                <SelectTrigger label="Next Runs:" className="min-w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="true">Yes</SelectItem>
-                  <SelectItem value="false">No</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="3">3 runs</SelectItem>
+                  <SelectItem value="5">5 runs</SelectItem>
+                  <SelectItem value="10">10 runs</SelectItem>
+                  <SelectItem value="20">20 runs</SelectItem>
                 </SelectContent>
               </Select>
-
-              {/* Next Run Count */}
-              {options.showNextRuns && (
-                <Select
-                  value={options.nextRunCount.toString()}
-                  onValueChange={(value) => setOptions(prev => ({ ...prev, nextRunCount: parseInt(value) }))}
-                >
-                  <SelectTrigger label="Run Count:">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="3">3 runs</SelectItem>
-                    <SelectItem value="5">5 runs</SelectItem>
-                    <SelectItem value="10">10 runs</SelectItem>
-                    <SelectItem value="20">20 runs</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
 
               {/* Parse Button */}
               <Button

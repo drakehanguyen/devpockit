@@ -4,8 +4,7 @@ import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DEFAULT_UUID_OPTIONS,
@@ -36,6 +35,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
   const [error, setError] = useState<string>('');
   const [stats, setStats] = useState<{ count: number; totalLength: number; averageLength: number; uniqueCount: number; duplicates: number } | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [quantityInput, setQuantityInput] = useState<string>('');
 
   // Editor settings
   const [theme] = useCodeEditorTheme('basicDark');
@@ -45,10 +45,16 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
   useEffect(() => {
     setIsHydrated(true);
     if (toolState) {
-      if (toolState.options) setOptions(toolState.options as UuidGenerationOptions);
+      if (toolState.options) {
+        const opts = toolState.options as UuidGenerationOptions;
+        setOptions(opts);
+        setQuantityInput(opts.quantity.toString());
+      }
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
       if (toolState.stats) setStats(toolState.stats as typeof stats);
+    } else {
+      setQuantityInput(UUID_QUANTITY_LIMITS.default.toString());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -70,11 +76,17 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
       setOptions(DEFAULT_UUID_OPTIONS);
+      setQuantityInput(UUID_QUANTITY_LIMITS.default.toString());
       setOutput('');
       setError('');
       setStats(null);
     }
   }, [toolState, isHydrated]);
+
+  // Sync quantityInput when options.quantity changes externally
+  useEffect(() => {
+    setQuantityInput(options.quantity.toString());
+  }, [options.quantity]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -116,6 +128,49 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
     setOptions(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleQuantityChange = (value: string) => {
+    // Allow empty string for deletion
+    setQuantityInput(value);
+
+    // Only update options if it's a valid number
+    if (value === '') {
+      return; // Keep input empty, will be validated on blur
+    }
+
+    const quantity = parseInt(value, 10);
+    if (!isNaN(quantity) && quantity >= UUID_QUANTITY_LIMITS.min && quantity <= UUID_QUANTITY_LIMITS.max) {
+      setOptions(prev => ({ ...prev, quantity }));
+    }
+  };
+
+  const handleQuantityBlur = () => {
+    // If empty on blur, set to minimum value
+    if (quantityInput === '' || quantityInput.trim() === '') {
+      setQuantityInput(UUID_QUANTITY_LIMITS.min.toString());
+      setOptions(prev => ({ ...prev, quantity: UUID_QUANTITY_LIMITS.min }));
+      return;
+    }
+
+    const quantity = parseInt(quantityInput, 10);
+
+    // If invalid or less than min, set to min
+    if (isNaN(quantity) || quantity < UUID_QUANTITY_LIMITS.min) {
+      setQuantityInput(UUID_QUANTITY_LIMITS.min.toString());
+      setOptions(prev => ({ ...prev, quantity: UUID_QUANTITY_LIMITS.min }));
+      return;
+    }
+
+    // If exceeds max, set to max
+    if (quantity > UUID_QUANTITY_LIMITS.max) {
+      setQuantityInput(UUID_QUANTITY_LIMITS.max.toString());
+      setOptions(prev => ({ ...prev, quantity: UUID_QUANTITY_LIMITS.max }));
+      return;
+    }
+
+    // Valid value, ensure it's synced
+    setOptions(prev => ({ ...prev, quantity }));
+  };
+
   const getLineCount = (text: string): number => {
     if (!text) return 0;
     return text.split('\n').length;
@@ -145,7 +200,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                 value={options.version}
                 onValueChange={(value) => handleOptionChange('version', value)}
               >
-                <SelectTrigger label="Version:">
+                <SelectTrigger label="Version:" className="min-w-[300px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,7 +217,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                 value={options.format}
                 onValueChange={(value) => handleOptionChange('format', value)}
               >
-                <SelectTrigger label="Format:">
+                <SelectTrigger label="Format:" className="min-w-[150px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -179,7 +234,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                 value={options.hyphens}
                 onValueChange={(value) => handleOptionChange('hyphens', value)}
               >
-                <SelectTrigger label="Hyphens:">
+                <SelectTrigger label="Hyphens:" className="min-w-[250px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -192,37 +247,18 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
               </Select>
 
               {/* Quantity Input */}
-              <div className="flex items-center gap-2">
-                <Label className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
-                  Quantity:
-                </Label>
-                <div className="flex items-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleOptionChange('quantity', Math.max(UUID_QUANTITY_LIMITS.min, options.quantity - 1))}
-                    disabled={options.quantity <= UUID_QUANTITY_LIMITS.min}
-                    className="h-8 w-8 p-0 rounded-r-none"
-                  >
-                    -
-                  </Button>
-                  <Input
+              <div className="inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700 w-[140px]">
+                <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
+                  <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">Quantity:</span>
+                  <input
                     type="number"
                     min={UUID_QUANTITY_LIMITS.min}
                     max={UUID_QUANTITY_LIMITS.max}
-                    value={options.quantity}
-                    onChange={(e) => handleOptionChange('quantity', parseInt(e.target.value) || 1)}
-                    className="h-8 w-16 text-center rounded-none border-x-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    value={quantityInput}
+                    onChange={(e) => handleQuantityChange(e.target.value)}
+                    onBlur={handleQuantityBlur}
+                    className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleOptionChange('quantity', Math.min(UUID_QUANTITY_LIMITS.max, options.quantity + 1))}
-                    disabled={options.quantity >= UUID_QUANTITY_LIMITS.max}
-                    className="h-8 w-8 p-0 rounded-l-none"
-                  >
-                    +
-                  </Button>
                 </div>
               </div>
 
@@ -252,7 +288,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                   value={options.namespace}
                   onValueChange={(value) => handleOptionChange('namespace', value)}
                 >
-                  <SelectTrigger label="Namespace:">
+                  <SelectTrigger label="Namespace:" className="min-w-[380px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -265,17 +301,13 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                 </Select>
 
                 {/* Name Input */}
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
-                    Name:
-                  </Label>
-                  <Input
-                    value={options.name || ''}
-                    onChange={(e) => handleOptionChange('name', e.target.value)}
-                    placeholder="Enter name for v5 UUID"
-                    className="h-8 w-48"
-                  />
-                </div>
+                <LabeledInput
+                  label="Name:"
+                  value={options.name || ''}
+                  onChange={(value) => handleOptionChange('name', value)}
+                  placeholder="Enter name for v5 UUID"
+                  containerClassName="min-w-[380px]"
+                />
               </div>
             )}
           </div>

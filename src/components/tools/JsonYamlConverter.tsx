@@ -11,6 +11,7 @@ import {
   JSON_YAML_EXAMPLES,
   JSON_YAML_FORMAT_OPTIONS,
   JSON_YAML_INDENT_OPTIONS,
+  JSON_YAML_INPUT_FORMAT_OPTIONS,
   type JsonYamlOptions
 } from '@/config/json-yaml-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
@@ -105,15 +106,31 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
 
       let result: JsonYamlConversionResult;
 
-      if (options.autoDetect) {
+      if (options.inputFormat === 'auto') {
+        // Auto-detect input format
         result = convertFormat(input, options.outputFormat);
       } else {
-        if (options.outputFormat === 'yaml') {
+        // Use specified input format
+        if (options.inputFormat === 'json' && options.outputFormat === 'yaml') {
           const { jsonToYaml } = await import('@/libs/json-yaml');
           result = jsonToYaml(input);
-        } else {
+        } else if (options.inputFormat === 'yaml' && options.outputFormat === 'json') {
           const { yamlToJson } = await import('@/libs/json-yaml');
           result = yamlToJson(input);
+        } else if (options.inputFormat === options.outputFormat) {
+          // Same format, just return the input
+          result = {
+            success: true,
+            output: input,
+            format: options.outputFormat
+          };
+        } else {
+          result = {
+            success: false,
+            output: '',
+            error: 'Invalid format combination',
+            format: options.outputFormat
+          };
         }
       }
 
@@ -135,7 +152,14 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
   };
 
   const handleLoadExample = (example: { json: string; yaml: string }) => {
-    const exampleInput = options.outputFormat === 'yaml' ? example.json : example.yaml;
+    // Load example based on input format (or auto-detect by using opposite of output format)
+    const exampleInput = options.inputFormat === 'json'
+      ? example.json
+      : options.inputFormat === 'yaml'
+      ? example.yaml
+      : options.outputFormat === 'yaml'
+      ? example.json
+      : example.yaml;
     setInput(exampleInput);
     setError('');
     setOutput('');
@@ -170,6 +194,25 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
           <div className="flex flex-col gap-4">
             {/* Main Controls Row */}
             <div className="flex items-center gap-3 flex-wrap">
+              {/* Input Format Select */}
+              <Select
+                value={options.inputFormat}
+                onValueChange={(value: 'auto' | 'json' | 'yaml') =>
+                  setOptions(prev => ({ ...prev, inputFormat: value }))
+                }
+              >
+                <SelectTrigger label="Input Format:" className="min-w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {JSON_YAML_INPUT_FORMAT_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               {/* Output Format Select */}
               <Select
                 value={options.outputFormat}
@@ -177,7 +220,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
                   setOptions(prev => ({ ...prev, outputFormat: value }))
                 }
               >
-                <SelectTrigger label="Output Format:">
+                <SelectTrigger label="Output Format:" className="min-w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -196,7 +239,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
                   setOptions(prev => ({ ...prev, indentSize: parseInt(value) }))
                 }
               >
-                <SelectTrigger label="Indent Size:">
+                <SelectTrigger label="Indent Size:" className="min-w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -205,22 +248,6 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
                       {option.label}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-
-              {/* Auto Detect */}
-              <Select
-                value={options.autoDetect ? 'true' : 'false'}
-                onValueChange={(value) =>
-                  setOptions(prev => ({ ...prev, autoDetect: value === 'true' }))
-                }
-              >
-                <SelectTrigger label="Auto Detect:">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Yes</SelectItem>
-                  <SelectItem value="false">No</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -233,7 +260,9 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
               title="Input (JSON/YAML)"
               value={input}
               onChange={setInput}
-              language={options.outputFormat === 'yaml' ? 'json' : 'yaml'}
+              language={options.inputFormat === 'auto'
+                ? (options.outputFormat === 'yaml' ? 'json' : 'yaml')
+                : options.inputFormat}
               height="500px"
               theme={theme}
               wrapText={inputWrapText}

@@ -28,7 +28,7 @@ import {
   type QrCodeResult
 } from '@/libs/qr-code-generator';
 import { cn } from '@/libs/utils';
-import { ArrowDownTrayIcon, ArrowPathIcon, ChevronDownIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon, ArrowPathIcon, ChevronDownIcon, ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
 interface QrCodeGeneratorProps {
@@ -70,12 +70,20 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
   const [copySuccess, setCopySuccess] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [sizeInput, setSizeInput] = useState<string>('');
+  const [showWifiPassword, setShowWifiPassword] = useState(false);
 
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
   useEffect(() => {
     setIsHydrated(true);
+    if (toolState?.options) {
+      const opts = toolState.options as QrCodeOptions;
+      setSizeInput(opts.size.toString());
+    } else {
+      setSizeInput(DEFAULT_QR_OPTIONS.size.toString());
+    }
   }, []);
 
   useEffect(() => {
@@ -94,6 +102,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
       setOptions(DEFAULT_QR_OPTIONS);
+      setSizeInput(DEFAULT_QR_OPTIONS.size.toString());
       setInput({ text: '' });
       setOutput('');
       setQrCodeResult(null);
@@ -101,6 +110,11 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
       setStats(null);
     }
   }, [toolState, isHydrated]);
+
+  // Sync sizeInput when options.size changes externally
+  useEffect(() => {
+    setSizeInput(options.size.toString());
+  }, [options.size]);
 
   const handleGenerateQrCode = async () => {
     setIsGenerating(true);
@@ -169,6 +183,37 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
 
   const handleOptionChange = (key: keyof QrCodeOptions, value: any) => {
     setOptions(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSizeChange = (value: string) => {
+    setSizeInput(value);
+    if (value === '') {
+      return;
+    }
+    const size = parseInt(value, 10);
+    if (!isNaN(size) && size >= QR_CODE_SIZE_LIMITS.min && size <= QR_CODE_SIZE_LIMITS.max) {
+      handleOptionChange('size', size);
+    }
+  };
+
+  const handleSizeBlur = () => {
+    if (sizeInput === '' || sizeInput.trim() === '') {
+      setSizeInput(QR_CODE_SIZE_LIMITS.min.toString());
+      handleOptionChange('size', QR_CODE_SIZE_LIMITS.min);
+      return;
+    }
+
+    const size = parseInt(sizeInput, 10);
+
+    if (isNaN(size) || size < QR_CODE_SIZE_LIMITS.min) {
+      setSizeInput(QR_CODE_SIZE_LIMITS.min.toString());
+      handleOptionChange('size', QR_CODE_SIZE_LIMITS.min);
+    } else if (size > QR_CODE_SIZE_LIMITS.max) {
+      setSizeInput(QR_CODE_SIZE_LIMITS.max.toString());
+      handleOptionChange('size', QR_CODE_SIZE_LIMITS.max);
+    } else {
+      handleOptionChange('size', size);
+    }
   };
 
   const handleInputChange = (key: keyof QrCodeInput, value: any) => {
@@ -345,13 +390,28 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="wifi-password">Password</Label>
-                <Input
-                  id="wifi-password"
-                  type="password"
-                  placeholder="password123"
-                  value={input.wifi?.password || ''}
-                  onChange={(e) => handleWifiChange('password', e.target.value)}
-                />
+                <div className="relative">
+                  <Input
+                    id="wifi-password"
+                    type={showWifiPassword ? 'text' : 'password'}
+                    placeholder="password123"
+                    value={input.wifi?.password || ''}
+                    onChange={(e) => handleWifiChange('password', e.target.value)}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowWifiPassword(!showWifiPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                    aria-label={showWifiPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showWifiPassword ? (
+                      <EyeSlashIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                    ) : (
+                      <EyeIcon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                    )}
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="wifi-security">Security Type</Label>
@@ -484,18 +544,21 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
               </SelectContent>
             </Select>
 
-            {/* Size */}
-            <div className="flex items-center gap-2">
-              <Label className="text-sm whitespace-nowrap">Size:</Label>
-              <Input
-                type="number"
-                min={QR_CODE_SIZE_LIMITS.min}
-                max={QR_CODE_SIZE_LIMITS.max}
-                value={options.size}
-                onChange={(e) => handleOptionChange('size', parseInt(e.target.value) || 256)}
-                className="w-20 h-9"
-              />
-              <span className="text-sm text-muted-foreground">px</span>
+            {/* Size Input with inline label */}
+            <div className="inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700 w-[160px]">
+              <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
+                <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">Size:</span>
+                <input
+                  type="number"
+                  min={QR_CODE_SIZE_LIMITS.min}
+                  max={QR_CODE_SIZE_LIMITS.max}
+                  value={sizeInput}
+                  onChange={(e) => handleSizeChange(e.target.value)}
+                  onBlur={handleSizeBlur}
+                  className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400 text-xs">px</span>
+              </div>
             </div>
 
             {/* Error Correction */}

@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button';
 import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
 import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { URL_ENCODING_TYPES, URL_ENCODED_EXAMPLES, DEFAULT_URL_OPTIONS } from '@/config/url-encoder-config';
+import { DEFAULT_URL_OPTIONS, URL_ENCODED_EXAMPLES, URL_ENCODING_TYPES } from '@/config/url-encoder-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { decodeUrl, type UrlEncoderOptions, type UrlEncoderResult } from '@/libs/url-encoder';
 import { cn } from '@/libs/utils';
@@ -136,7 +135,7 @@ export function UrlDecoderTool({ className }: UrlDecoderToolProps) {
                   setOptions(prev => ({ ...prev, encodingType: value }))
                 }
               >
-                <SelectTrigger label="Encoding Type:">
+                <SelectTrigger label="Encoding Type:" className="min-w-[420px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -147,21 +146,18 @@ export function UrlDecoderTool({ className }: UrlDecoderToolProps) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
 
-            {/* Custom Characters (only for custom encoding) */}
-            {options.encodingType === 'custom' && (
-              <div className="flex items-center gap-2">
-                <Label htmlFor="custom-chars" className="text-sm whitespace-nowrap">Custom Characters:</Label>
-                <Input
-                  id="custom-chars"
+              {/* Custom Characters (only for custom encoding) */}
+              {options.encodingType === 'custom' && (
+                <LabeledInput
+                  label="Custom Characters:"
                   value={options.customChars}
-                  onChange={(e) => setOptions(prev => ({ ...prev, customChars: e.target.value }))}
+                  onChange={(value) => setOptions(prev => ({ ...prev, customChars: value }))}
                   placeholder="Enter characters to decode (e.g., ' &?=#/:;,')"
-                  className="max-w-md"
+                  containerClassName="w-[280px]"
                 />
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Side-by-side Editor Panels */}

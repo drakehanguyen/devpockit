@@ -144,7 +144,7 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
                   setOptions(prev => ({ ...prev, format: value }))
                 }
               >
-                <SelectTrigger label="Format Type:">
+                <SelectTrigger label="Format Type:" className="min-w-[300px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -164,7 +164,7 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
                     setOptions(prev => ({ ...prev, indentSize: parseInt(value) }))
                   }
                 >
-                  <SelectTrigger label="Indent Size:">
+                  <SelectTrigger label="Indent Size:" className="min-w-[180px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -180,17 +180,17 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
               {/* Sort Keys (only for beautify) */}
               {options.format === 'beautify' && (
                 <Select
-                  value={options.sortKeys.toString()}
-                  onValueChange={(value) =>
-                    setOptions(prev => ({ ...prev, sortKeys: value === 'true' }))
+                  value={options.sortKeys}
+                  onValueChange={(value: 'none' | 'asc' | 'desc') =>
+                    setOptions(prev => ({ ...prev, sortKeys: value }))
                   }
                 >
-                  <SelectTrigger label="Key Sorting:">
+                  <SelectTrigger label="Key Sorting:" className="min-w-[260px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {JSON_FORMAT_OPTIONS.sortKeys.map((sort) => (
-                      <SelectItem key={sort.value.toString()} value={sort.value.toString()}>
+                      <SelectItem key={sort.value} value={sort.value}>
                         {sort.label}
                       </SelectItem>
                     ))}

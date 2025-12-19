@@ -4,6 +4,7 @@ import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DEFAULT_OPTIONS,
@@ -273,18 +274,14 @@ export function TimestampConverter({ className }: TimestampConverterProps) {
                 </SelectContent>
               </Select>
 
-              <div className="inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700 flex-1 min-w-[200px]">
-                <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
-                  <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">Timestamp:</span>
-                  <input
-                    placeholder="e.g., 1734537600"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleConvert()}
-                    className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 placeholder:text-muted-foreground"
-                  />
-                </div>
-              </div>
+              <LabeledInput
+                label="Timestamp:"
+                value={input}
+                onChange={setInput}
+                placeholder="e.g., 1734537600"
+                onKeyDown={(e) => e.key === 'Enter' && handleConvert()}
+                containerClassName="flex-1 min-w-[200px]"
+              />
 
               <Button variant="outline" size="sm" className="h-10 w-[60px] shrink-0 px-3 text-xs" onClick={handleUseNow}>
                 Now

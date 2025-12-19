@@ -8,8 +8,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_XML_OPTIONS, XML_EXAMPLES, XML_FORMAT_OPTIONS } from '@/config/xml-formatter-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
-import { formatXml, getXmlStats, type XmlFormatOptions, type XmlFormatResult } from '@/libs/xml-formatter';
 import { cn } from '@/libs/utils';
+import { formatXml, getXmlStats, type XmlFormatOptions, type XmlFormatResult } from '@/libs/xml-formatter';
 import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
@@ -144,7 +144,7 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                   setOptions(prev => ({ ...prev, format: value }))
                 }
               >
-                <SelectTrigger label="Format Type:">
+                <SelectTrigger label="Format Type:" className="min-w-[300px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -156,27 +156,6 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                 </SelectContent>
               </Select>
 
-              {/* Indent Size (only for beautify) */}
-              {options.format === 'beautify' && (
-                <Select
-                  value={options.indentSize.toString()}
-                  onValueChange={(value) =>
-                    setOptions(prev => ({ ...prev, indentSize: parseInt(value) }))
-                  }
-                >
-                  <SelectTrigger label="Indent Size:">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {XML_FORMAT_OPTIONS.indentSizes.map((indent) => (
-                      <SelectItem key={indent.value} value={indent.value.toString()}>
-                        {indent.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
               {/* Preserve Whitespace */}
               <Select
                 value={options.preserveWhitespace.toString()}
@@ -184,7 +163,7 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                   setOptions(prev => ({ ...prev, preserveWhitespace: value === 'true' }))
                 }
               >
-                <SelectTrigger label="Whitespace:">
+                <SelectTrigger label="Whitespace:" className="min-w-[300px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -203,7 +182,7 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                   setOptions(prev => ({ ...prev, selfClosingTags: value }))
                 }
               >
-                <SelectTrigger label="Self-Closing:">
+                <SelectTrigger label="Self-Closing:" className="min-w-[300px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -214,6 +193,27 @@ export function XmlFormatter({ className }: XmlFormatterProps) {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Indent Size (only for beautify) */}
+              {options.format === 'beautify' && (
+                <Select
+                  value={options.indentSize.toString()}
+                  onValueChange={(value) =>
+                    setOptions(prev => ({ ...prev, indentSize: parseInt(value) }))
+                  }
+                >
+                  <SelectTrigger label="Indent Size:" className="min-w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {XML_FORMAT_OPTIONS.indentSizes.map((indent) => (
+                      <SelectItem key={indent.value} value={indent.value.toString()}>
+                        {indent.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 

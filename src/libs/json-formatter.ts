@@ -6,7 +6,7 @@
 export interface JsonFormatOptions {
   format: 'beautify' | 'minify';
   indentSize: number;
-  sortKeys: boolean;
+  sortKeys: 'none' | 'asc' | 'desc';
 }
 
 export interface JsonFormatResult {
@@ -39,8 +39,8 @@ export function formatJson(jsonString: string, options: JsonFormatOptions): Json
     }
 
     // Sort keys if requested
-    if (options.sortKeys && options.format === 'beautify') {
-      const sortedParsed = sortObjectKeys(parsed);
+    if (options.sortKeys !== 'none' && options.format === 'beautify') {
+      const sortedParsed = sortObjectKeys(parsed, options.sortKeys);
       const indent = ' '.repeat(options.indentSize);
       formatted = JSON.stringify(sortedParsed, null, indent);
     }
@@ -85,20 +85,26 @@ export function validateJson(jsonString: string): { isValid: boolean; error?: st
 /**
  * Sort object keys recursively
  */
-function sortObjectKeys(obj: any): any {
+function sortObjectKeys(obj: any, sortOrder: 'asc' | 'desc'): any {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(sortObjectKeys);
+    return obj.map(item => sortObjectKeys(item, sortOrder));
   }
 
   const sorted: any = {};
-  const keys = Object.keys(obj).sort();
+  const keys = Object.keys(obj);
+
+  if (sortOrder === 'asc') {
+    keys.sort();
+  } else {
+    keys.sort().reverse();
+  }
 
   for (const key of keys) {
-    sorted[key] = sortObjectKeys(obj[key]);
+    sorted[key] = sortObjectKeys(obj[key], sortOrder);
   }
 
   return sorted;
