@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LabeledInput } from '@/components/ui/labeled-input';
+import { QuantityInput } from '@/components/ui/quantity-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DEFAULT_UUID_OPTIONS,
@@ -35,7 +36,6 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
   const [error, setError] = useState<string>('');
   const [stats, setStats] = useState<{ count: number; totalLength: number; averageLength: number; uniqueCount: number; duplicates: number } | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [quantityInput, setQuantityInput] = useState<string>('');
 
   // Editor settings
   const [theme] = useCodeEditorTheme('basicDark');
@@ -48,13 +48,10 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
       if (toolState.options) {
         const opts = toolState.options as UuidGenerationOptions;
         setOptions(opts);
-        setQuantityInput(opts.quantity.toString());
       }
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
       if (toolState.stats) setStats(toolState.stats as typeof stats);
-    } else {
-      setQuantityInput(UUID_QUANTITY_LIMITS.default.toString());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -76,17 +73,11 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
       setOptions(DEFAULT_UUID_OPTIONS);
-      setQuantityInput(UUID_QUANTITY_LIMITS.default.toString());
       setOutput('');
       setError('');
       setStats(null);
     }
   }, [toolState, isHydrated]);
-
-  // Sync quantityInput when options.quantity changes externally
-  useEffect(() => {
-    setQuantityInput(options.quantity.toString());
-  }, [options.quantity]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -128,46 +119,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
     setOptions(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleQuantityChange = (value: string) => {
-    // Allow empty string for deletion
-    setQuantityInput(value);
-
-    // Only update options if it's a valid number
-    if (value === '') {
-      return; // Keep input empty, will be validated on blur
-    }
-
-    const quantity = parseInt(value, 10);
-    if (!isNaN(quantity) && quantity >= UUID_QUANTITY_LIMITS.min && quantity <= UUID_QUANTITY_LIMITS.max) {
-      setOptions(prev => ({ ...prev, quantity }));
-    }
-  };
-
-  const handleQuantityBlur = () => {
-    // If empty on blur, set to minimum value
-    if (quantityInput === '' || quantityInput.trim() === '') {
-      setQuantityInput(UUID_QUANTITY_LIMITS.min.toString());
-      setOptions(prev => ({ ...prev, quantity: UUID_QUANTITY_LIMITS.min }));
-      return;
-    }
-
-    const quantity = parseInt(quantityInput, 10);
-
-    // If invalid or less than min, set to min
-    if (isNaN(quantity) || quantity < UUID_QUANTITY_LIMITS.min) {
-      setQuantityInput(UUID_QUANTITY_LIMITS.min.toString());
-      setOptions(prev => ({ ...prev, quantity: UUID_QUANTITY_LIMITS.min }));
-      return;
-    }
-
-    // If exceeds max, set to max
-    if (quantity > UUID_QUANTITY_LIMITS.max) {
-      setQuantityInput(UUID_QUANTITY_LIMITS.max.toString());
-      setOptions(prev => ({ ...prev, quantity: UUID_QUANTITY_LIMITS.max }));
-      return;
-    }
-
-    // Valid value, ensure it's synced
+  const handleQuantityChange = (quantity: number) => {
     setOptions(prev => ({ ...prev, quantity }));
   };
 
@@ -247,20 +199,12 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
               </Select>
 
               {/* Quantity Input */}
-              <div className="inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700 w-[140px]">
-                <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
-                  <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">Quantity:</span>
-                  <input
-                    type="number"
-                    min={UUID_QUANTITY_LIMITS.min}
-                    max={UUID_QUANTITY_LIMITS.max}
-                    value={quantityInput}
-                    onChange={(e) => handleQuantityChange(e.target.value)}
-                    onBlur={handleQuantityBlur}
-                    className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
-              </div>
+              <QuantityInput
+                value={options.quantity}
+                onChange={handleQuantityChange}
+                min={UUID_QUANTITY_LIMITS.min}
+                max={UUID_QUANTITY_LIMITS.max}
+              />
 
               {/* Generate Button */}
               <Button
