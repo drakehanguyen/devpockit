@@ -18,7 +18,7 @@ const SelectTrigger = React.forwardRef<
     label?: string;
     valueAlign?: 'left' | 'right' | 'center';
   }
->(({ className, children, label, valueAlign = 'left', ...props }, ref) => (
+>(({ className, children, label, valueAlign = 'center', ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(

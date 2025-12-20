@@ -22,6 +22,8 @@ export const getToolComponent = async (componentName: string) => {
     'JsonSchemaGenerator': () => import('@/components/tools/JsonSchemaGenerator').then(m => m.JsonSchemaGenerator),
     'SchemaConverter': () => import('@/components/tools/SchemaConverter').then(m => m.SchemaConverter),
     'CronParser': () => import('@/components/tools/CronParser').then(m => m.CronParser),
+    'JwtDecoder': () => import('@/components/tools/JwtDecoder').then(m => m.JwtDecoder),
+    'JwtEncoder': () => import('@/components/tools/JwtEncoder').then(m => m.JwtEncoder),
   };
 
   const loader = componentMap[componentName];
