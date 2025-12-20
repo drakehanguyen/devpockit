@@ -16,7 +16,7 @@ import { CODE_EDITOR_THEMES, type CodeEditorTheme } from '@/config/code-editor-t
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { cn } from '@/libs/utils';
 import { CheckIcon, ClipboardDocumentIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, startTransition } from 'react';
 
 export interface CodeEditorProps {
   // Content
@@ -96,7 +96,9 @@ export function CodeEditor({
   // Sync internal state when wrapText prop changes
   useEffect(() => {
     if (wrapText !== undefined) {
-      setInternalWrapText(wrapText);
+      startTransition(() => {
+        setInternalWrapText(wrapText);
+      });
     }
   }, [wrapText]);
 

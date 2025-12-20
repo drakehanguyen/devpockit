@@ -3,13 +3,13 @@
  * Manages Monaco Editor instance lifecycle and configuration
  */
 
-import { useEffect, useRef, useState } from 'react';
 import type { CodeEditorTheme } from '@/config/code-editor-themes';
-import { getMonacoLanguageId, createMonacoOptions, type MonacoEditorOptions } from '@/libs/monaco-utils';
 import { getMonacoTheme } from '@/config/monaco-themes';
-import { initializeShiki, getShikiHighlighter, isShikiInitialized } from '@/libs/shiki-init';
 import { connectShikiToMonaco, isShikiConnectedToMonaco } from '@/libs/monaco-shiki-bridge';
+import { createMonacoOptions, getMonacoLanguageId } from '@/libs/monaco-utils';
+import { getShikiHighlighter, initializeShiki, isShikiInitialized } from '@/libs/shiki-init';
 import type * as Monaco from 'monaco-editor';
+import { useEffect, useRef, useState } from 'react';
 
 export interface UseMonacoEditorOptions {
   language?: string;
@@ -21,7 +21,7 @@ export interface UseMonacoEditorOptions {
 }
 
 export interface UseMonacoEditorReturn {
-  editorRef: React.RefObject<HTMLDivElement>;
+  editorRef: React.RefObject<HTMLDivElement | null>;
   isLoading: boolean;
   error: Error | null;
   editorInstance: Monaco.editor.IStandaloneCodeEditor | null;

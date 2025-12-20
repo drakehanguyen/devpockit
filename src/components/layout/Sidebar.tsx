@@ -20,7 +20,7 @@ import {
   Sun
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import React, { useState } from 'react';
+import React, { useState, startTransition } from 'react';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -38,30 +38,29 @@ interface CategoryItemProps {
   onToolSelect: (toolId: string) => void;
 }
 
-// Map category IDs to lucide icons
-const getCategoryIcon = (categoryId: string) => {
-  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-    'text-tools': FileText,
-    'formatters': Code,
-    'cryptography': Lock,
-    'encoders': RefreshCw,
-    'converters': ArrowLeftRight,
-    'network': Globe,
-    'utilities': Settings,
-  };
-  return iconMap[categoryId] || FileText;
+// Map category IDs to lucide icons - defined outside component to avoid "creating components during render"
+const CATEGORY_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  'text-tools': FileText,
+  'formatters': Code,
+  'cryptography': Lock,
+  'encoders': RefreshCw,
+  'converters': ArrowLeftRight,
+  'network': Globe,
+  'utilities': Settings,
 };
 
 const CategoryItem = ({ category, isCollapsed, selectedTool, onToolSelect }: CategoryItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const IconComponent = getCategoryIcon(category.id);
+  const IconComponent = CATEGORY_ICON_MAP[category.id] || FileText;
 
   // Auto-expand category if it contains the selected tool
   React.useEffect(() => {
     if (selectedTool && !isCollapsed) {
       const hasSelectedTool = category.tools.some(tool => tool.id === selectedTool);
       if (hasSelectedTool) {
-        setIsExpanded(true);
+        startTransition(() => {
+          setIsExpanded(true);
+        });
       }
     }
   }, [selectedTool, category.tools, isCollapsed]);

@@ -7,8 +7,8 @@ import { getCategoryById, searchTools, toolIcons } from '@/libs/tools-data';
 import { cn } from '@/libs/utils';
 import { type Tool } from '@/types/tools';
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import * as React from 'react';
+import { startTransition, useEffect, useState } from 'react';
 
 interface SearchToolsProps {
   onToolSelect: (toolId: string) => void;
@@ -104,13 +104,17 @@ export function SearchTools({ onToolSelect, className }: SearchToolsProps) {
   useEffect(() => {
     if (query.trim().length > 0) {
       const searchResults = searchTools(query);
-      setResults(searchResults);
-      setIsOpen(true);
-      setSelectedIndex(0); // Reset to first result when query changes
+      startTransition(() => {
+        setResults(searchResults);
+        setIsOpen(true);
+        setSelectedIndex(0); // Reset to first result when query changes
+      });
     } else {
-      setResults([]);
-      setIsOpen(false);
-      setSelectedIndex(0);
+      startTransition(() => {
+        setResults([]);
+        setIsOpen(false);
+        setSelectedIndex(0);
+      });
     }
   }, [query]);
 

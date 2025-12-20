@@ -226,7 +226,7 @@ export function RegexTester({ className }: RegexTesterProps) {
     }, 500); // 500ms debounce for explanation
 
     return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [options.pattern, options.flags]);
 
   const handleTest = () => {

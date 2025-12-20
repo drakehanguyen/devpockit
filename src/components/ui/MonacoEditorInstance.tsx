@@ -198,7 +198,7 @@ export function MonacoEditorInstance({
     };
 
     updateTheme();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [theme, monacoTheme]);
 
   const monacoOptions = createMonacoOptions(

@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -11,7 +11,9 @@ export function ThemeToggle() {
 
   // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
-    setMounted(true);
+    startTransition(() => {
+      setMounted(true);
+    });
   }, []);
 
   if (!mounted) {

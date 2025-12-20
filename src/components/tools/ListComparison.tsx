@@ -82,7 +82,7 @@ export function ListComparison({ className }: ListComparisonProps) {
       setResults([]);
       setSearchQuery('');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [toolState, isHydrated]);
 
   // Parse lists and calculate comparison
@@ -118,7 +118,7 @@ export function ListComparison({ className }: ListComparisonProps) {
       setResults([]);
     }
     // compareLists already includes listAText, listBText, and options in its dependencies
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [compareLists, isHydrated, listAText, listBText]);
 
   // Filter results based on search query
