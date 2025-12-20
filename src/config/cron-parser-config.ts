@@ -1,214 +1,276 @@
+export interface CronFieldValue {
+  type: 'every' | 'specific' | 'range' | 'step' | 'list';
+  value?: string | number;
+  start?: number;
+  end?: number;
+  step?: number;
+  list?: number[];
+}
+
 export interface CronParserOptions {
-  expression: string;
-  showNextRuns: boolean;
-  nextRunCount: number;
+  minute: CronFieldValue;
+  hour: CronFieldValue;
+  day: CronFieldValue;
+  month: CronFieldValue;
+  weekday: CronFieldValue;
   timezone?: string;
 }
 
-export const DEFAULT_CRON_OPTIONS: CronParserOptions = {
-  expression: '',
-  showNextRuns: true,
-  nextRunCount: 5,
+export const DEFAULT_CRON_PARSER_OPTIONS: CronParserOptions = {
+  minute: { type: 'every' },
+  hour: { type: 'every' },
+  day: { type: 'every' },
+  month: { type: 'every' },
+  weekday: { type: 'every' },
   timezone: 'UTC'
 };
 
-export const CRON_EXAMPLES = [
+export interface CronPreset {
+  name: string;
+  description: string;
+  expression: string;
+  category: string;
+  options: CronParserOptions;
+}
+
+export const CRON_PRESETS: CronPreset[] = [
   {
     name: 'Every Minute',
-    expression: '* * * * *',
     description: 'Runs every minute',
-    category: 'Common'
+    expression: '* * * * *',
+    category: 'Common',
+    options: {
+      minute: { type: 'every' },
+      hour: { type: 'every' },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'every' }
+    }
   },
   {
     name: 'Every Hour',
-    expression: '0 * * * *',
     description: 'Runs at the top of every hour',
-    category: 'Common'
+    expression: '0 * * * *',
+    category: 'Common',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'every' },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'every' }
+    }
   },
   {
     name: 'Every Day at Midnight',
-    expression: '0 0 * * *',
     description: 'Runs every day at midnight',
-    category: 'Daily'
+    expression: '0 0 * * *',
+    category: 'Daily',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'specific', value: 0 },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'every' }
+    }
   },
   {
     name: 'Every Day at 9 AM',
-    expression: '0 9 * * *',
     description: 'Runs every day at 9:00 AM',
-    category: 'Daily'
+    expression: '0 9 * * *',
+    category: 'Daily',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'specific', value: 9 },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'every' }
+    }
   },
   {
     name: 'Every Monday at 9 AM',
-    expression: '0 9 * * 1',
     description: 'Runs every Monday at 9:00 AM',
-    category: 'Weekly'
-  },
-  {
-    name: 'Every Sunday at Midnight',
-    expression: '0 0 * * 0',
-    description: 'Runs every Sunday at midnight',
-    category: 'Weekly'
-  },
-  {
-    name: 'First Day of Month',
-    expression: '0 0 1 * *',
-    description: 'Runs on the 1st of every month at midnight',
-    category: 'Monthly'
+    expression: '0 9 * * 1',
+    category: 'Weekly',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'specific', value: 9 },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'specific', value: 1 }
+    }
   },
   {
     name: 'Every 15 Minutes',
-    expression: '*/15 * * * *',
     description: 'Runs every 15 minutes',
-    category: 'Interval'
+    expression: '*/15 * * * *',
+    category: 'Interval',
+    options: {
+      minute: { type: 'step', step: 15 },
+      hour: { type: 'every' },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'every' }
+    }
+  },
+  {
+    name: 'Every 30 Minutes',
+    description: 'Runs every 30 minutes',
+    expression: '*/30 * * * *',
+    category: 'Interval',
+    options: {
+      minute: { type: 'step', step: 30 },
+      hour: { type: 'every' },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'every' }
+    }
   },
   {
     name: 'Every 2 Hours',
-    expression: '0 */2 * * *',
     description: 'Runs every 2 hours',
-    category: 'Interval'
+    expression: '0 */2 * * *',
+    category: 'Interval',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'step', step: 2 },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'every' }
+    }
   },
   {
     name: 'Weekdays at 6 PM',
-    expression: '0 18 * * 1-5',
     description: 'Runs Monday to Friday at 6:00 PM',
-    category: 'Business'
+    expression: '0 18 * * 1-5',
+    category: 'Business',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'specific', value: 18 },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'range', start: 1, end: 5 }
+    }
+  },
+  {
+    name: 'Business Hours (9 AM - 5 PM)',
+    description: 'Runs every hour from 9 AM to 5 PM, Monday to Friday',
+    expression: '0 9-17 * * 1-5',
+    category: 'Business',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'range', start: 9, end: 17 },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'range', start: 1, end: 5 }
+    }
+  },
+  {
+    name: 'First Day of Month',
+    description: 'Runs on the 1st of every month at midnight',
+    expression: '0 0 1 * *',
+    category: 'Monthly',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'specific', value: 0 },
+      day: { type: 'specific', value: 1 },
+      month: { type: 'every' },
+      weekday: { type: 'every' }
+    }
   },
   {
     name: 'Backup at 2 AM',
-    expression: '0 2 * * *',
     description: 'Runs daily backup at 2:00 AM',
-    category: 'Maintenance'
+    expression: '0 2 * * *',
+    category: 'Maintenance',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'specific', value: 2 },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'every' }
+    }
   },
   {
     name: 'Quarterly Report',
-    expression: '0 9 1 1,4,7,10 *',
     description: 'Runs quarterly on the 1st of Jan, Apr, Jul, Oct at 9 AM',
-    category: 'Reports'
+    expression: '0 9 1 1,4,7,10 *',
+    category: 'Reports',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'specific', value: 9 },
+      day: { type: 'specific', value: 1 },
+      month: { type: 'list', list: [1, 4, 7, 10] },
+      weekday: { type: 'every' }
+    }
+  },
+  {
+    name: 'Weekend Backup',
+    description: 'Runs on Saturday and Sunday at 2:00 AM',
+    expression: '0 2 * * 0,6',
+    category: 'Maintenance',
+    options: {
+      minute: { type: 'specific', value: 0 },
+      hour: { type: 'specific', value: 2 },
+      day: { type: 'every' },
+      month: { type: 'every' },
+      weekday: { type: 'list', list: [0, 6] }
+    }
   }
 ];
 
-export const CRON_CATEGORIES = [
-  { name: 'Common', description: 'Frequently used expressions', icon: '⭐' },
-  { name: 'Daily', description: 'Daily schedules', icon: '📅' },
-  { name: 'Weekly', description: 'Weekly schedules', icon: '📆' },
-  { name: 'Monthly', description: 'Monthly schedules', icon: '🗓️' },
-  { name: 'Interval', description: 'Interval-based schedules', icon: '⏰' },
-  { name: 'Business', description: 'Business hours schedules', icon: '💼' },
-  { name: 'Maintenance', description: 'System maintenance schedules', icon: '🔧' },
-  { name: 'Reports', description: 'Report generation schedules', icon: '📊' }
-];
-
-export const CRON_VALIDATION_RULES = [
-  {
-    field: 'minute',
-    range: '0-59',
-    description: 'Minute field (0-59)',
-    examples: ['0', '30', '*/15', '0,30']
+export const CRON_FIELD_DEFINITIONS = {
+  minute: {
+    label: 'Minute',
+    range: { min: 0, max: 59 },
+    description: 'Minute of the hour (0-59)'
   },
-  {
-    field: 'hour',
-    range: '0-23',
-    description: 'Hour field (0-23)',
-    examples: ['0', '12', '*/2', '9-17']
+  hour: {
+    label: 'Hour',
+    range: { min: 0, max: 23 },
+    description: 'Hour of the day (0-23)'
   },
-  {
-    field: 'day',
-    range: '1-31',
-    description: 'Day of month (1-31)',
-    examples: ['1', '15', '*/5', '1,15,30']
+  day: {
+    label: 'Month-Day',
+    range: { min: 1, max: 31 },
+    description: 'Day of the month (1-31)'
   },
-  {
-    field: 'month',
-    range: '1-12',
-    description: 'Month field (1-12)',
-    examples: ['1', '6', '*/3', '1,6,12']
+  month: {
+    label: 'Month',
+    range: { min: 1, max: 12 },
+    description: 'Month of the year (1-12)',
+    names: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   },
-  {
-    field: 'weekday',
-    range: '0-6',
-    description: 'Day of week (0=Sunday, 6=Saturday)',
-    examples: ['0', '1', '1-5', '0,6']
+  weekday: {
+    label: 'Week-Day',
+    range: { min: 0, max: 6 },
+    description: 'Day of the week (0=Sunday, 6=Saturday)',
+    names: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   }
-];
-
-export const CRON_SPECIAL_CHARACTERS = [
-  {
-    character: '*',
-    name: 'Asterisk',
-    description: 'Matches any value',
-    example: '* * * * * (every minute)'
-  },
-  {
-    character: ',',
-    name: 'Comma',
-    description: 'List of values',
-    example: '0,30 * * * * (at 0 and 30 minutes)'
-  },
-  {
-    character: '-',
-    name: 'Hyphen',
-    description: 'Range of values',
-    example: '0 9-17 * * * (9 AM to 5 PM)'
-  },
-  {
-    character: '/',
-    name: 'Slash',
-    description: 'Step values',
-    example: '*/15 * * * * (every 15 minutes)'
-  },
-  {
-    character: '?',
-    name: 'Question Mark',
-    description: 'No specific value (day or weekday)',
-    example: '0 9 ? * 1 (Mondays at 9 AM)'
-  }
-];
-
-export const CRON_TOOL_DESCRIPTIONS = {
-  title: 'Cron Expression Parser',
-  description: 'Parse and validate cron expressions with human-readable descriptions and next execution times.',
-  features: [
-    'Parse any valid cron expression',
-    'Generate human-readable descriptions',
-    'Calculate next execution times',
-    'Validate expression format',
-    'Support all standard cron syntax'
-  ],
-  useCases: [
-    'Scheduling automated tasks',
-    'Setting up job queues',
-    'Planning maintenance windows',
-    'Creating backup schedules',
-    'Configuring monitoring alerts'
-  ]
 };
 
-export const CRON_EXAMPLE_SETS = {
-  beginner: [
-    { name: 'Every Minute', expression: '* * * * *' },
-    { name: 'Every Hour', expression: '0 * * * *' },
-    { name: 'Daily at Midnight', expression: '0 0 * * *' }
-  ],
-  intermediate: [
-    { name: 'Every 15 Minutes', expression: '*/15 * * * *' },
-    { name: 'Business Hours', expression: '0 9-17 * * 1-5' },
-    { name: 'Weekend Backup', expression: '0 2 * * 0,6' }
-  ],
-  advanced: [
-    { name: 'Complex Interval', expression: '0 0 */3 * *' },
-    { name: 'Multiple Times', expression: '0 9,12,15 * * 1-5' },
-    { name: 'Quarterly', expression: '0 9 1 1,4,7,10 *' }
-  ]
-};
-
-export const CRON_FORMAT_HELP = {
-  format: 'minute hour day month weekday',
-  description: 'Five fields separated by spaces',
-  examples: [
-    { expression: '0 9 * * *', description: 'Every day at 9:00 AM' },
-    { expression: '30 14 * * 1', description: 'Every Monday at 2:30 PM' },
-    { expression: '0 0 1 * *', description: 'First day of every month at midnight' },
-    { expression: '*/15 * * * *', description: 'Every 15 minutes' },
-    { expression: '0 9-17 * * 1-5', description: 'Every hour from 9 AM to 5 PM, Monday to Friday' }
-  ]
-};
+// Timezone options for cron parser
+export const TIMEZONES = [
+  { value: 'UTC', label: 'UTC' },
+  { value: 'local', label: 'Local Time' },
+  { value: 'America/New_York', label: 'Eastern (ET)' },
+  { value: 'America/Chicago', label: 'Central (CT)' },
+  { value: 'America/Denver', label: 'Mountain (MT)' },
+  { value: 'America/Los_Angeles', label: 'Pacific (PT)' },
+  { value: 'Europe/London', label: 'London (GMT/BST)' },
+  { value: 'Europe/Paris', label: 'Paris (CET)' },
+  { value: 'Europe/Berlin', label: 'Berlin (CET)' },
+  { value: 'Europe/Amsterdam', label: 'Amsterdam (CET)' },
+  { value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+  { value: 'Asia/Shanghai', label: 'Shanghai (CST)' },
+  { value: 'Asia/Singapore', label: 'Singapore (SGT)' },
+  { value: 'Asia/Kolkata', label: 'India (IST)' },
+  { value: 'Asia/Dubai', label: 'Dubai (GST)' },
+  { value: 'Asia/Hong_Kong', label: 'Hong Kong (HKT)' },
+  { value: 'Asia/Seoul', label: 'Seoul (KST)' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
+  { value: 'Australia/Melbourne', label: 'Melbourne (AEST)' },
+  { value: 'Pacific/Auckland', label: 'Auckland (NZST)' },
+  { value: 'America/Sao_Paulo', label: 'São Paulo (BRT)' },
+  { value: 'America/Toronto', label: 'Toronto (ET)' },
+  { value: 'America/Vancouver', label: 'Vancouver (PT)' },
+] as const;

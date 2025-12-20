@@ -45,9 +45,8 @@ export function CidrAnalyzer({ className }: CidrAnalyzerProps) {
   const [error, setError] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showNetworkInfo, setShowNetworkInfo] = useState(true);
-  const [showSubnetInfo, setShowSubnetInfo] = useState(false);
   const [showStatistics, setShowStatistics] = useState(false);
-  const [maxSubnets, setMaxSubnets] = useState(8);
+  const [maxSubnets, setMaxSubnets] = useState(0); // 0 means None
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Editor settings
@@ -64,7 +63,6 @@ export function CidrAnalyzer({ className }: CidrAnalyzerProps) {
       if (toolState.options) {
         const opts = toolState.options as Record<string, unknown>;
         if (opts.showNetworkInfo !== undefined) setShowNetworkInfo(opts.showNetworkInfo as boolean);
-        if (opts.showSubnetInfo !== undefined) setShowSubnetInfo(opts.showSubnetInfo as boolean);
         if (opts.showStatistics !== undefined) setShowStatistics(opts.showStatistics as boolean);
         if (opts.maxSubnets !== undefined) setMaxSubnets(opts.maxSubnets as number);
       }
@@ -79,11 +77,11 @@ export function CidrAnalyzer({ className }: CidrAnalyzerProps) {
         input,
         output,
         error,
-        options: { showNetworkInfo, showSubnetInfo, showStatistics, maxSubnets }
+        options: { showNetworkInfo, showStatistics, maxSubnets }
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input, output, error, showNetworkInfo, showSubnetInfo, showStatistics, maxSubnets, isHydrated]);
+  }, [input, output, error, showNetworkInfo, showStatistics, maxSubnets, isHydrated]);
 
   // Reset state when tool is cleared
   useEffect(() => {
@@ -92,9 +90,8 @@ export function CidrAnalyzer({ className }: CidrAnalyzerProps) {
       setOutput('');
       setError('');
       setShowNetworkInfo(true);
-      setShowSubnetInfo(false);
       setShowStatistics(false);
-      setMaxSubnets(8);
+      setMaxSubnets(0);
     }
   }, [toolState, isHydrated]);
 
@@ -143,7 +140,7 @@ export function CidrAnalyzer({ className }: CidrAnalyzerProps) {
       }
 
       // Add subnet information if enabled
-      if (showSubnetInfo && analysisResult?.isValid && analysisResult.totalHosts > 2) {
+      if (maxSubnets > 0 && analysisResult?.isValid && analysisResult.totalHosts > 2) {
         const subnetCount = Math.min(maxSubnets, Math.floor(Math.log2(analysisResult.totalHosts)));
         if (subnetCount > 1) {
           const subnetResult = calculateSubnets(input, subnetCount);
@@ -249,7 +246,7 @@ export function CidrAnalyzer({ className }: CidrAnalyzerProps) {
             </div>
 
             {/* Options Row */}
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap min-h-[40px]">
               <div className="flex items-center gap-2">
                 <Switch
                   checked={showNetworkInfo}
@@ -268,31 +265,21 @@ export function CidrAnalyzer({ className }: CidrAnalyzerProps) {
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">Statistics</span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={showSubnetInfo}
-                  onCheckedChange={setShowSubnetInfo}
-                  size="sm"
-                />
-                <span className="text-sm text-neutral-600 dark:text-neutral-400">Subnets</span>
-              </div>
-
-              {showSubnetInfo && (
-                <Select
-                  value={maxSubnets.toString()}
-                  onValueChange={(value) => setMaxSubnets(parseInt(value))}
-                >
-                  <SelectTrigger label="Max Subnets:">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2">2</SelectItem>
-                    <SelectItem value="4">4</SelectItem>
-                    <SelectItem value="8">8</SelectItem>
-                    <SelectItem value="16">16</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+              <Select
+                value={maxSubnets.toString()}
+                onValueChange={(value) => setMaxSubnets(parseInt(value))}
+              >
+                <SelectTrigger label="Max Subnets:" className="min-w-[190px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">None</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
+                  <SelectItem value="8">8</SelectItem>
+                  <SelectItem value="16">16</SelectItem>
+                </SelectContent>
+              </Select>
 
               <Button
                 onClick={handleAnalyze}

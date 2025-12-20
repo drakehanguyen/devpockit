@@ -10,13 +10,21 @@ export const getToolComponent = async (componentName: string) => {
     'QrCodeScanner': () => import('@/components/tools/QrCodeScanner').then(m => m.QrCodeScanner),
     'UrlEncoderTool': () => import('@/components/tools/UrlEncoderTool').then(m => m.UrlEncoderTool),
     'UrlDecoderTool': () => import('@/components/tools/UrlDecoderTool').then(m => m.UrlDecoderTool),
-    'CronParser': () => import('@/components/tools/CronParser').then(m => m.CronParser),
-    'JsonYamlConverter': () => import('@/components/tools/JsonYamlConverter').then(m => m.JsonYamlConverter),
+    'DataFormatConverter': () => import('@/components/tools/DataFormatConverter').then(m => m.DataFormatConverter),
     'CidrAnalyzer': () => import('@/components/tools/CidrAnalyzer').then(m => m.CidrAnalyzer),
     'IpToCidrConverter': () => import('@/components/tools/IpToCidrConverter').then(m => m.IpToCidrConverter),
     'IpChecker': () => import('@/components/tools/IpChecker').then(m => m.IpChecker),
     'DiffChecker': () => import('@/components/tools/DiffChecker').then(m => m.DiffChecker),
     'TimestampConverter': () => import('@/components/tools/TimestampConverter').then(m => m.TimestampConverter),
+    'ListComparison': () => import('@/components/tools/ListComparison').then(m => m.ListComparison),
+    'ListConverter': () => import('@/components/tools/ListConverter').then(m => m.ListConverter),
+    'JsonPathFinder': () => import('@/components/tools/JsonPathFinder').then(m => m.JsonPathFinder),
+    'JsonSchemaGenerator': () => import('@/components/tools/JsonSchemaGenerator').then(m => m.JsonSchemaGenerator),
+    'SchemaConverter': () => import('@/components/tools/SchemaConverter').then(m => m.SchemaConverter),
+    'CronParser': () => import('@/components/tools/CronParser').then(m => m.CronParser),
+    'JwtDecoder': () => import('@/components/tools/JwtDecoder').then(m => m.JwtDecoder),
+    'JwtEncoder': () => import('@/components/tools/JwtEncoder').then(m => m.JwtEncoder),
+    'RegexTester': () => import('@/components/tools/RegexTester').then(m => m.RegexTester),
   };
 
   const loader = componentMap[componentName];

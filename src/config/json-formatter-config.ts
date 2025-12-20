@@ -14,15 +14,16 @@ export const JSON_FORMAT_OPTIONS = {
     { value: 8, label: '8 spaces' }
   ],
   sortKeys: [
-    { value: false, label: 'Keep original order' },
-    { value: true, label: 'Sort keys alphabetically' }
+    { value: 'none', label: 'Keep original order' },
+    { value: 'asc', label: 'Ascending (A-Z)' },
+    { value: 'desc', label: 'Descending (Z-A)' }
   ]
 } as const;
 
 export const DEFAULT_JSON_OPTIONS = {
   format: 'beautify' as const,
   indentSize: 2,
-  sortKeys: false
+  sortKeys: 'none' as const
 };
 
 export const JSON_EXAMPLES = {

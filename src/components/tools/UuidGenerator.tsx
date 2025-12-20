@@ -4,8 +4,8 @@ import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { LabeledInput } from '@/components/ui/labeled-input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DEFAULT_UUID_OPTIONS,
@@ -45,7 +45,10 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
   useEffect(() => {
     setIsHydrated(true);
     if (toolState) {
-      if (toolState.options) setOptions(toolState.options as UuidGenerationOptions);
+      if (toolState.options) {
+        const opts = toolState.options as UuidGenerationOptions;
+        setOptions(opts);
+      }
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
       if (toolState.stats) setStats(toolState.stats as typeof stats);
@@ -116,6 +119,10 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
     setOptions(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleQuantityChange = (quantity: number) => {
+    setOptions(prev => ({ ...prev, quantity }));
+  };
+
   const getLineCount = (text: string): number => {
     if (!text) return 0;
     return text.split('\n').length;
@@ -145,7 +152,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                 value={options.version}
                 onValueChange={(value) => handleOptionChange('version', value)}
               >
-                <SelectTrigger label="Version:">
+                <SelectTrigger label="Version:" className="min-w-[300px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,7 +169,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                 value={options.format}
                 onValueChange={(value) => handleOptionChange('format', value)}
               >
-                <SelectTrigger label="Format:">
+                <SelectTrigger label="Format:" className="min-w-[150px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -179,7 +186,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                 value={options.hyphens}
                 onValueChange={(value) => handleOptionChange('hyphens', value)}
               >
-                <SelectTrigger label="Hyphens:">
+                <SelectTrigger label="Hyphens:" className="min-w-[250px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -192,39 +199,12 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
               </Select>
 
               {/* Quantity Input */}
-              <div className="flex items-center gap-2">
-                <Label className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
-                  Quantity:
-                </Label>
-                <div className="flex items-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleOptionChange('quantity', Math.max(UUID_QUANTITY_LIMITS.min, options.quantity - 1))}
-                    disabled={options.quantity <= UUID_QUANTITY_LIMITS.min}
-                    className="h-8 w-8 p-0 rounded-r-none"
-                  >
-                    -
-                  </Button>
-                  <Input
-                    type="number"
-                    min={UUID_QUANTITY_LIMITS.min}
-                    max={UUID_QUANTITY_LIMITS.max}
-                    value={options.quantity}
-                    onChange={(e) => handleOptionChange('quantity', parseInt(e.target.value) || 1)}
-                    className="h-8 w-16 text-center rounded-none border-x-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleOptionChange('quantity', Math.min(UUID_QUANTITY_LIMITS.max, options.quantity + 1))}
-                    disabled={options.quantity >= UUID_QUANTITY_LIMITS.max}
-                    className="h-8 w-8 p-0 rounded-l-none"
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
+              <NumberInput
+                value={options.quantity}
+                onChange={handleQuantityChange}
+                min={UUID_QUANTITY_LIMITS.min}
+                max={UUID_QUANTITY_LIMITS.max}
+              />
 
               {/* Generate Button */}
               <Button
@@ -252,7 +232,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                   value={options.namespace}
                   onValueChange={(value) => handleOptionChange('namespace', value)}
                 >
-                  <SelectTrigger label="Namespace:">
+                  <SelectTrigger label="Namespace:" className="min-w-[380px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -265,17 +245,13 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
                 </Select>
 
                 {/* Name Input */}
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
-                    Name:
-                  </Label>
-                  <Input
-                    value={options.name || ''}
-                    onChange={(e) => handleOptionChange('name', e.target.value)}
-                    placeholder="Enter name for v5 UUID"
-                    className="h-8 w-48"
-                  />
-                </div>
+                <LabeledInput
+                  label="Name:"
+                  value={options.name || ''}
+                  onChange={(value) => handleOptionChange('name', value)}
+                  placeholder="Enter name for v5 UUID"
+                  containerClassName="min-w-[380px]"
+                />
               </div>
             )}
           </div>

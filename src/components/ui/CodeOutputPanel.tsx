@@ -55,6 +55,9 @@ export interface CodeOutputPanelProps {
 
   // Styling
   className?: string;
+
+  // Editor mount callback
+  onEditorMount?: (editor: any, monaco: any) => void;
 }
 
 export function CodeOutputPanel({
@@ -75,6 +78,7 @@ export function CodeOutputPanel({
   footerRightContent,
   showStats = false,
   className,
+  onEditorMount,
 }: CodeOutputPanelProps) {
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -180,6 +184,7 @@ export function CodeOutputPanel({
             wrapText={wrapText}
             readOnly={true}
             height={height}
+            onMount={onEditorMount}
           />
         </div>
       </div>

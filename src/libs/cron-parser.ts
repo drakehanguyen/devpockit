@@ -18,10 +18,14 @@ export interface CronStats {
 /**
  * Parse a cron expression and return human-readable description
  */
-export function parseCronExpression(expression: string, nextRunCount: number = 5): CronParseResult {
+export function parseCronExpression(expression: string, nextRunCount: number = 5, timezone?: string): CronParseResult {
   try {
     // Validate and parse the cron expression
-    const interval = parseExpression(expression);
+    const options: any = {};
+    if (timezone && timezone !== 'local') {
+      options.tz = timezone;
+    }
+    const interval = parseExpression(expression, options);
 
     // Generate human-readable description
     const humanReadable = generateHumanReadable(expression);
@@ -95,13 +99,13 @@ export function getNextCronRuns(expression: string, count: number = 5): Date[] {
  * Generate human-readable description of cron expression
  */
 function generateHumanReadable(expression: string): string {
-  const parts = expression.trim().split(/\s+/);
+  const expressionParts = expression.trim().split(/\s+/);
 
-  if (parts.length !== 5) {
+  if (expressionParts.length !== 5) {
     return 'Invalid cron expression format';
   }
 
-  const [minute, hour, day, month, weekday] = parts;
+  const [minute, hour, day, month, weekday] = expressionParts;
 
   // Handle special cases
   if (expression === '* * * * *') {
@@ -125,58 +129,173 @@ function generateHumanReadable(expression: string): string {
   }
 
   // Generate custom description
-  let description = '';
+  const parts: string[] = [];
+
+  // Helper function to parse field value
+  const parseField = (field: string, fieldName: string, min: number, max: number): { type: 'every' | 'step' | 'range' | 'list' | 'specific', value?: any } => {
+    // Every
+    if (field === '*') {
+      return { type: 'every' };
+    }
+
+    // Step: */n
+    if (field.startsWith('*/')) {
+      const step = parseInt(field.substring(2));
+      if (!isNaN(step) && step > 0) {
+        return { type: 'step', value: step };
+      }
+      return { type: 'every' };
+    }
+
+    // Range: n-m
+    if (field.includes('-') && !field.includes(',')) {
+      const [startStr, endStr] = field.split('-');
+      const start = parseInt(startStr);
+      const end = parseInt(endStr);
+      if (!isNaN(start) && !isNaN(end)) {
+        return { type: 'range', value: { start, end } };
+      }
+    }
+
+    // List: n,m,o
+    if (field.includes(',')) {
+      const values = field.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
+      if (values.length > 0) {
+        return { type: 'list', value: values };
+      }
+    }
+
+    // Specific value
+    const value = parseInt(field);
+    if (!isNaN(value)) {
+      return { type: 'specific', value };
+    }
+
+    return { type: 'every' };
+  };
 
   // Minute
-  if (minute === '*') {
-    description += 'every minute';
-  } else if (minute === '0') {
-    description += 'at the top of the hour';
-  } else {
-    description += `at minute ${minute}`;
+  const minuteParsed = parseField(minute, 'minute', 0, 59);
+  if (minuteParsed.type === 'every') {
+    parts.push('Every minute');
+  } else if (minuteParsed.type === 'step') {
+    parts.push(`Every ${minuteParsed.value} minute${minuteParsed.value > 1 ? 's' : ''}`);
+  } else if (minuteParsed.type === 'range') {
+    const { start, end } = minuteParsed.value;
+    parts.push(`Every minutes from ${start} to ${end}`);
+  } else if (minuteParsed.type === 'list') {
+    const values = minuteParsed.value.join(', ');
+    parts.push(`Every minutes at ${values}`);
+  } else if (minuteParsed.type === 'specific') {
+    if (minuteParsed.value === 0) {
+      parts.push('At the top of the hour');
+    } else {
+      parts.push(`At ${minuteParsed.value} minutes past the hour`);
+    }
   }
 
   // Hour
-  if (hour !== '*') {
-    if (description) description += ' ';
-    if (hour === '0') {
-      description += 'at midnight';
+  const hourParsed = parseField(hour, 'hour', 0, 23);
+  if (hourParsed.type === 'every') {
+    // Already covered by "Every minutes"
+  } else if (hourParsed.type === 'step') {
+    parts.push(`every ${hourParsed.value} hour${hourParsed.value > 1 ? 's' : ''}`);
+  } else if (hourParsed.type === 'range') {
+    const { start, end } = hourParsed.value;
+    parts.push(`between ${start} o'clock and ${end} o'clock`);
+  } else if (hourParsed.type === 'list') {
+    const values = hourParsed.value.map((v: number) => `${v} o'clock`).join(', ');
+    parts.push(`at ${values}`);
+  } else if (hourParsed.type === 'specific') {
+    const hourNum = hourParsed.value;
+    if (hourNum === 0) {
+      parts.push('at midnight');
+    } else if (hourNum === 12) {
+      parts.push('at 12 o\'clock PM');
+    } else if (hourNum < 12) {
+      parts.push(`at ${hourNum} o'clock AM`);
     } else {
-      description += `at ${hour}:00`;
+      parts.push(`at ${hourNum - 12} o'clock PM`);
     }
   }
 
   // Day
-  if (day !== '*') {
-    if (description) description += ' ';
-    description += `on day ${day}`;
+  const dayParsed = parseField(day, 'day', 1, 31);
+  if (dayParsed.type === 'range') {
+    const { start, end } = dayParsed.value;
+    parts.push(`day ${start} to ${end}`);
+  } else if (dayParsed.type === 'list') {
+    const values = dayParsed.value.join(', ');
+    parts.push(`day ${values}`);
+  } else if (dayParsed.type === 'specific') {
+    parts.push(`day ${dayParsed.value}`);
+  } else if (dayParsed.type === 'step') {
+    parts.push(`every ${dayParsed.value} day${dayParsed.value > 1 ? 's' : ''}`);
   }
 
   // Month
-  if (month !== '*') {
-    if (description) description += ' ';
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    const monthIndex = parseInt(month) - 1;
-    if (monthIndex >= 0 && monthIndex < 12) {
-      description += `in ${monthNames[monthIndex]}`;
+  const monthParsed = parseField(month, 'month', 1, 12);
+  if (monthParsed.type === 'range') {
+    const { start, end } = monthParsed.value;
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    if (start >= 1 && start <= 12 && end >= 1 && end <= 12) {
+      parts.push(`from ${monthNames[start - 1]} to ${monthNames[end - 1]}`);
     } else {
-      description += `in month ${month}`;
+      parts.push(`from ${start} to ${end}`);
     }
+  } else if (monthParsed.type === 'list') {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthList = monthParsed.value.filter((v: number) => v >= 1 && v <= 12).map((v: number) => monthNames[v - 1]).join(', ');
+    if (monthList) {
+      parts.push(`in ${monthList}`);
+    }
+  } else if (monthParsed.type === 'specific') {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    if (monthParsed.value >= 1 && monthParsed.value <= 12) {
+      parts.push(`in ${monthNames[monthParsed.value - 1]}`);
+    }
+  } else if (monthParsed.type === 'step') {
+    parts.push(`every ${monthParsed.value} month${monthParsed.value > 1 ? 's' : ''}`);
   }
 
   // Weekday
-  if (weekday !== '*') {
-    if (description) description += ' ';
+  const weekdayParsed = parseField(weekday, 'weekday', 0, 6);
+  if (weekdayParsed.type === 'range') {
+    const { start, end } = weekdayParsed.value;
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const dayIndex = parseInt(weekday);
-    if (dayIndex >= 0 && dayIndex < 7) {
-      description += `on ${dayNames[dayIndex]}`;
+    if (start >= 0 && start <= 6 && end >= 0 && end <= 6) {
+      parts.push(`on ${dayNames[start]} through ${dayNames[end]}`);
     } else {
-      description += `on weekday ${weekday}`;
+      parts.push(`on ${start} through ${end}`);
     }
+  } else if (weekdayParsed.type === 'list') {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const filteredDays = weekdayParsed.value.filter((v: number) => v >= 0 && v <= 6).map((v: number) => dayNames[v]);
+    if (filteredDays.length > 0) {
+      if (filteredDays.length === 1) {
+        parts.push(`on ${filteredDays[0]}`);
+      } else {
+        // Space-separated with comma before last item: "Monday Tuesday, Friday"
+        const lastDay = filteredDays.pop();
+        const dayList = filteredDays.join(' ') + (filteredDays.length > 0 ? ', ' : '') + lastDay;
+        parts.push(`on ${dayList}`);
+      }
+    }
+  } else if (weekdayParsed.type === 'specific') {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    if (weekdayParsed.value >= 0 && weekdayParsed.value <= 6) {
+      parts.push(`on ${dayNames[weekdayParsed.value]}`);
+    }
+  } else if (weekdayParsed.type === 'step') {
+    parts.push(`every ${weekdayParsed.value} weekday${weekdayParsed.value > 1 ? 's' : ''}`);
+  }
+
+  // Join parts with commas
+  let description = parts.join(', ');
+
+  // Capitalize the first letter
+  if (description) {
+    description = description.charAt(0).toUpperCase() + description.slice(1);
   }
 
   return description || 'Custom schedule';

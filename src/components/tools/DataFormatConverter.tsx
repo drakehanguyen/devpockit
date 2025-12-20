@@ -7,31 +7,34 @@ import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  DEFAULT_JSON_YAML_OPTIONS,
-  JSON_YAML_EXAMPLES,
-  JSON_YAML_FORMAT_OPTIONS,
-  JSON_YAML_INDENT_OPTIONS,
-  type JsonYamlOptions
-} from '@/config/json-yaml-config';
+  DEFAULT_MULTI_FORMAT_OPTIONS,
+  FORMAT_OPTIONS,
+  INDENT_OPTIONS,
+  INPUT_FORMAT_OPTIONS,
+  MULTI_FORMAT_EXAMPLES,
+  PYTHON_QUOTE_STYLE_OPTIONS,
+  type MultiFormatOptions
+} from '@/config/data-format-converter-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import {
   convertFormat,
   getConversionStats,
-  type JsonYamlConversionResult
-} from '@/libs/json-yaml';
+  type FormatType,
+  type MultiFormatConversionResult
+} from '@/libs/data-format-converter';
 import { cn } from '@/libs/utils';
 import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
-interface JsonYamlConverterProps {
+interface DataFormatConverterProps {
   className?: string;
 }
 
-export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
-  const { toolState, updateToolState } = useToolState('json-yaml-converter');
+export function DataFormatConverter({ className }: DataFormatConverterProps) {
+  const { toolState, updateToolState } = useToolState('data-format-converter');
 
   // Initialize with defaults to avoid hydration mismatch
-  const [options, setOptions] = useState<JsonYamlOptions>(DEFAULT_JSON_YAML_OPTIONS);
+  const [options, setOptions] = useState<MultiFormatOptions>(DEFAULT_MULTI_FORMAT_OPTIONS);
   const [input, setInput] = useState<string>('');
   const [output, setOutput] = useState<string>('');
   const [isConverting, setIsConverting] = useState(false);
@@ -41,8 +44,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
     outputSize: number;
     inputLines: number;
     outputLines: number;
-    compressionRatio: number;
-    format: string;
+    format: FormatType;
   } | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -55,7 +57,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
   useEffect(() => {
     setIsHydrated(true);
     if (toolState) {
-      if (toolState.options) setOptions(toolState.options as JsonYamlOptions);
+      if (toolState.options) setOptions(toolState.options as MultiFormatOptions);
       if (toolState.input) setInput(toolState.input as string);
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
@@ -81,7 +83,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
   // Reset local state when tool state is cleared
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
-      setOptions(DEFAULT_JSON_YAML_OPTIONS);
+      setOptions(DEFAULT_MULTI_FORMAT_OPTIONS);
       setInput('');
       setOutput('');
       setError('');
@@ -91,7 +93,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
 
   const handleConvert = async () => {
     if (!input.trim()) {
-      setError('Please enter JSON or YAML content to convert');
+      setError('Please enter content to convert');
       setOutput('');
       setStats(null);
       return;
@@ -103,19 +105,13 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
     try {
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      let result: JsonYamlConversionResult;
-
-      if (options.autoDetect) {
-        result = convertFormat(input, options.outputFormat);
-      } else {
-        if (options.outputFormat === 'yaml') {
-          const { jsonToYaml } = await import('@/libs/json-yaml');
-          result = jsonToYaml(input);
-        } else {
-          const { yamlToJson } = await import('@/libs/json-yaml');
-          result = yamlToJson(input);
-        }
-      }
+      const result: MultiFormatConversionResult = convertFormat(
+        input,
+        options.inputFormat,
+        options.outputFormat,
+        options.indentSize,
+        options.pythonQuoteStyle
+      );
 
       if (result.success) {
         setOutput(result.output);
@@ -134,8 +130,24 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
     }
   };
 
-  const handleLoadExample = (example: { json: string; yaml: string }) => {
-    const exampleInput = options.outputFormat === 'yaml' ? example.json : example.yaml;
+  const handleLoadExample = (example: typeof MULTI_FORMAT_EXAMPLES[0]) => {
+    // Load example based on input format
+    let exampleInput = '';
+    if (options.inputFormat === 'json') {
+      exampleInput = example.json;
+    } else if (options.inputFormat === 'yaml') {
+      exampleInput = example.yaml;
+    } else if (options.inputFormat === 'python') {
+      exampleInput = example.python;
+    } else if (options.inputFormat === 'typescript') {
+      exampleInput = example.typescript;
+    } else if (options.inputFormat === 'xml') {
+      exampleInput = example.xml || example.json;
+    } else {
+      // Default to JSON
+      exampleInput = example.json;
+    }
+
     setInput(exampleInput);
     setError('');
     setOutput('');
@@ -151,15 +163,42 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
     return text.split('\n').length;
   };
 
+  // Get language for syntax highlighting
+  const getInputLanguage = (): string => {
+    if (options.inputFormat === 'python') {
+      return 'python';
+    }
+    if (options.inputFormat === 'typescript') {
+      return 'typescript';
+    }
+    if (options.inputFormat === 'xml') {
+      return 'xml';
+    }
+    return options.inputFormat;
+  };
+
+  const getOutputLanguage = (): string => {
+    if (options.outputFormat === 'python') {
+      return 'python';
+    }
+    if (options.outputFormat === 'typescript') {
+      return 'typescript';
+    }
+    if (options.outputFormat === 'xml') {
+      return 'xml';
+    }
+    return options.outputFormat;
+  };
+
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header Section */}
       <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
         <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
-          JSON ↔ YAML Converter
+          Data Format Converter
         </h1>
         <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
-          Convert between JSON and YAML formats with validation and formatting
+          Convert between JSON, YAML, Python Dictionary, TypeScript Map, and XML formats. JSON is used as the common intermediate format.
         </p>
       </div>
 
@@ -170,18 +209,37 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
           <div className="flex flex-col gap-4">
             {/* Main Controls Row */}
             <div className="flex items-center gap-3 flex-wrap">
-              {/* Output Format Select */}
+              {/* Input Format Select */}
               <Select
-                value={options.outputFormat}
-                onValueChange={(value: 'json' | 'yaml') =>
-                  setOptions(prev => ({ ...prev, outputFormat: value }))
+                value={options.inputFormat}
+                onValueChange={(value: FormatType) =>
+                  setOptions(prev => ({ ...prev, inputFormat: value }))
                 }
               >
-                <SelectTrigger label="Output Format:">
+                <SelectTrigger label="Input Format:" className="min-w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {JSON_YAML_FORMAT_OPTIONS.map((option) => (
+                  {INPUT_FORMAT_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Output Format Select */}
+              <Select
+                value={options.outputFormat}
+                onValueChange={(value: FormatType) =>
+                  setOptions(prev => ({ ...prev, outputFormat: value }))
+                }
+              >
+                <SelectTrigger label="Output Format:" className="min-w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FORMAT_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -196,11 +254,11 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
                   setOptions(prev => ({ ...prev, indentSize: parseInt(value) }))
                 }
               >
-                <SelectTrigger label="Indent Size:">
+                <SelectTrigger label="Indent Size:" className="min-w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {JSON_YAML_INDENT_OPTIONS.map((option) => (
+                  {INDENT_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value.toString()}>
                       {option.label}
                     </SelectItem>
@@ -208,21 +266,26 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
                 </SelectContent>
               </Select>
 
-              {/* Auto Detect */}
-              <Select
-                value={options.autoDetect ? 'true' : 'false'}
-                onValueChange={(value) =>
-                  setOptions(prev => ({ ...prev, autoDetect: value === 'true' }))
-                }
-              >
-                <SelectTrigger label="Auto Detect:">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Yes</SelectItem>
-                  <SelectItem value="false">No</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Python Quote Style - Only show when output format is Python */}
+              {options.outputFormat === 'python' && (
+                <Select
+                  value={options.pythonQuoteStyle}
+                  onValueChange={(value: 'single' | 'double') =>
+                    setOptions(prev => ({ ...prev, pythonQuoteStyle: value }))
+                  }
+                >
+                  <SelectTrigger label="Quote Style:" className="min-w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PYTHON_QUOTE_STYLE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
@@ -230,10 +293,10 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
             <CodeInputPanel
-              title="Input (JSON/YAML)"
+              title={`Input (${options.inputFormat.toUpperCase()})`}
               value={input}
               onChange={setInput}
-              language={options.outputFormat === 'yaml' ? 'json' : 'yaml'}
+              language={getInputLanguage()}
               height="500px"
               theme={theme}
               wrapText={inputWrapText}
@@ -253,7 +316,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto">
-                    {JSON_YAML_EXAMPLES.map((example, index) => (
+                    {MULTI_FORMAT_EXAMPLES.map((example, index) => (
                       <DropdownMenuItem
                         key={index}
                         onClick={() => handleLoadExample(example)}
@@ -291,7 +354,7 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
             <CodeOutputPanel
               title={`Output (${options.outputFormat.toUpperCase()})`}
               value={output}
-              language={options.outputFormat === 'json' ? 'json' : 'yaml'}
+              language={getOutputLanguage()}
               height="500px"
               theme={theme}
               wrapText={outputWrapText}
@@ -320,3 +383,4 @@ export function JsonYamlConverter({ className }: JsonYamlConverterProps) {
     </div>
   );
 }
+

@@ -3,7 +3,7 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { CodeOutputPanel, type CodeOutputTab } from '@/components/ui/CodeOutputPanel';
-import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
@@ -36,7 +36,10 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   useEffect(() => {
     setIsHydrated(true);
     if (toolState) {
-      if (toolState.options) setOptions(toolState.options as LoremOptions);
+      if (toolState.options) {
+        const opts = toolState.options as LoremOptions;
+        setOptions(opts);
+      }
       if (toolState.outputPlain) setOutputPlain(toolState.outputPlain as string);
       if (toolState.outputHtml) setOutputHtml(toolState.outputHtml as string);
       if (toolState.error) setError(toolState.error as string);
@@ -130,11 +133,8 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     }
   };
 
-  const handleQuantityChange = (value: string) => {
-    const quantity = parseInt(value, 10);
-    if (!isNaN(quantity) && quantity >= 1 && quantity <= 100) {
-      setOptions(prev => ({ ...prev, quantity }));
-    }
+  const handleQuantityChange = (quantity: number) => {
+    setOptions(prev => ({ ...prev, quantity }));
   };
 
   // Prepare tabs for CodeOutputPanel
@@ -182,7 +182,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                   setOptions(prev => ({ ...prev, type: value }))
                 }
               >
-                <SelectTrigger label="Ipsum Type:">
+                <SelectTrigger label="Ipsum Type:" className="min-w-[300px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -201,7 +201,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
                   setOptions(prev => ({ ...prev, unit: value }))
                 }
               >
-                <SelectTrigger label="Unit:">
+                <SelectTrigger label="Unit:" className="min-w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -214,13 +214,11 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </Select>
 
               {/* Quantity Input */}
-              <Input
-                type="number"
-                min="1"
-                max="100"
+              <NumberInput
                 value={options.quantity}
-                onChange={(e) => handleQuantityChange(e.target.value)}
-                className="w-[84px] text-center"
+                onChange={handleQuantityChange}
+                min={1}
+                max={100}
               />
 
               {/* Generate Button */}

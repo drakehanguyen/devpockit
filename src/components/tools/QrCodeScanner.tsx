@@ -3,6 +3,7 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ContentPanel } from '@/components/ui/ContentPanel';
 import { cn } from '@/libs/utils';
 import {
   CameraManager
@@ -361,12 +362,10 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
           {/* Main Content - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel - Camera */}
-            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
-              <div className="flex items-center justify-between px-3 py-0">
-                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
-                  Camera Scanner
-                </div>
-                {isCameraActive && (
+            <ContentPanel
+              title="Camera Scanner"
+              headerActions={
+                isCameraActive && (
                   <div className="flex items-center gap-1">
                     <button onClick={switchCamera} className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
                       <RotateCcw className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
@@ -378,53 +377,10 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
                       <CameraOff className="h-4 w-4 text-red-500" />
                     </button>
                   </div>
-                )}
-              </div>
-              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
-                <div className="h-full bg-white dark:bg-neutral-900 rounded-md p-4 flex flex-col">
-                  {/* Camera Video */}
-                  <div className="relative bg-black rounded-lg overflow-hidden flex-1 flex items-center justify-center">
-                    <video
-                      ref={videoRef}
-                      className={`w-full h-full object-contain ${!isCameraActive ? 'hidden' : ''}`}
-                      playsInline
-                      muted
-                    />
-                    {!isCameraActive && (
-                      <div className="text-center space-y-4">
-                        <Camera className="h-12 w-12 mx-auto text-white/50" />
-                        <p className="text-white/70 text-sm">Camera not active</p>
-                        {state === 'camera initializing' && (
-                          <div className="flex items-center justify-center gap-2 text-white/70">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">Initializing...</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Scanning Overlay */}
-                    {isScanning && (
-                      <div className="absolute inset-0 border-4 border-green-500 rounded-lg animate-pulse">
-                        <div className="absolute top-2 left-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">
-                          Scanning for QR codes...
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Camera Info */}
-                  {cameraStatus && isCameraActive && (
-                    <div className="text-xs text-muted-foreground mt-2 flex gap-4">
-                      <span>{cameraStatus.facingMode === 'environment' ? 'Back' : 'Front'} Camera</span>
-                      <span>{cameraStatus.width}x{cameraStatus.height}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {/* Footer with Scan Button */}
-              <div className="flex items-center justify-end gap-2 px-3 py-2 min-h-[52px]">
-                {!isCameraActive ? (
+                )
+              }
+              footerRightContent={
+                !isCameraActive ? (
                   <Button
                     onClick={initializeCamera}
                     size="sm"
@@ -453,17 +409,56 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
                     <CameraOff className="h-4 w-4 mr-2" />
                     Stop Scanning
                   </Button>
+                )
+              }
+            >
+              <div className="h-full flex flex-col">
+                {/* Camera Video */}
+                <div className="relative bg-black rounded-lg overflow-hidden flex-1 flex items-center justify-center">
+                  <video
+                    ref={videoRef}
+                    className={`w-full h-full object-contain ${!isCameraActive ? 'hidden' : ''}`}
+                    playsInline
+                    muted
+                  />
+                  {!isCameraActive && (
+                    <div className="text-center space-y-4">
+                      <Camera className="h-12 w-12 mx-auto text-white/50" />
+                      <p className="text-white/70 text-sm">Camera not active</p>
+                      {state === 'camera initializing' && (
+                        <div className="flex items-center justify-center gap-2 text-white/70">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Initializing...</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Scanning Overlay */}
+                  {isScanning && (
+                    <div className="absolute inset-0 border-4 border-green-500 rounded-lg animate-pulse">
+                      <div className="absolute top-2 left-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">
+                        Scanning for QR codes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Camera Info */}
+                {cameraStatus && isCameraActive && (
+                  <div className="text-xs text-muted-foreground mt-2 flex gap-4">
+                    <span>{cameraStatus.facingMode === 'environment' ? 'Back' : 'Front'} Camera</span>
+                    <span>{cameraStatus.width}x{cameraStatus.height}</span>
+                  </div>
                 )}
               </div>
-            </div>
+            </ContentPanel>
 
             {/* Output Panel - Results */}
-            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden h-[500px] flex flex-col">
-              <div className="flex items-center justify-between px-3 py-0">
-                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
-                  Scan Result
-                </div>
-                {results.length > 0 && (
+            <ContentPanel
+              title="Scan Result"
+              headerActions={
+                results.length > 0 && (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => copyToClipboard(results[0].data)}
@@ -475,69 +470,68 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
                       <Trash2 className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
                     </button>
                   </div>
-                )}
-              </div>
-              <div className="pt-px pb-1 px-1 flex-1 overflow-hidden">
-                <div className="h-full overflow-auto bg-white dark:bg-neutral-900 rounded-md p-4">
-                  {results.length > 0 ? (
-                    <div className="space-y-3">
-                      {results.map((result) => (
-                        <div key={result.id} className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <Badge variant="outline">{result.format}</Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(result.timestamp).toLocaleString()}
-                            </span>
-                          </div>
+                )
+              }
+              footerRightContent={
+                results.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => exportResults('json')}
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export JSON
+                    </Button>
+                    <Button
+                      onClick={() => shareResults(results[0])}
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                    >
+                      <Share className="h-4 w-4 mr-2" />
+                      Share
+                    </Button>
+                  </div>
+                )
+              }
+              alwaysShowFooter={true}
+            >
+              {results.length > 0 ? (
+                <div className="space-y-3">
+                  {results.map((result) => (
+                    <div key={result.id} className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <Badge variant="outline">{result.format}</Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(result.timestamp).toLocaleString()}
+                        </span>
+                      </div>
 
-                          <div className="font-mono text-sm bg-muted p-3 rounded break-all">
-                            {result.data}
-                          </div>
+                      <div className="font-mono text-sm bg-muted p-3 rounded break-all">
+                        {result.data}
+                      </div>
 
-                          {showParsedData && (
-                            <div className="text-sm space-y-1 text-muted-foreground">
-                              <div className="flex gap-4">
-                                <span>Confidence: {(result.confidence * 100).toFixed(1)}%</span>
-                                <span>Position: {result.position.x}, {result.position.y}</span>
-                              </div>
-                            </div>
-                          )}
+                      {showParsedData && (
+                        <div className="text-sm space-y-1 text-muted-foreground">
+                          <div className="flex gap-4">
+                            <span>Confidence: {(result.confidence * 100).toFixed(1)}%</span>
+                            <span>Position: {result.position.x}, {result.position.y}</span>
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
-                  ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm">
-                      <Camera className="h-12 w-12 mb-4 opacity-50" />
-                      Scanned QR content will appear here
-                    </div>
-                  )}
+                  ))}
                 </div>
-              </div>
-              {/* Footer with Export/Share buttons */}
-              {results.length > 0 && (
-                <div className="flex items-center justify-end gap-2 px-3 py-2 min-h-[52px]">
-                  <Button
-                    onClick={() => exportResults('json')}
-                    variant="outline"
-                    size="sm"
-                    className="h-8"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export JSON
-                  </Button>
-                  <Button
-                    onClick={() => shareResults(results[0])}
-                    variant="outline"
-                    size="sm"
-                    className="h-8"
-                  >
-                    <Share className="h-4 w-4 mr-2" />
-                    Share
-                  </Button>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm">
+                  <Camera className="h-12 w-12 mb-4 opacity-50" />
+                  Scanned QR content will appear here
                 </div>
               )}
-            </div>
+            </ContentPanel>
           </div>
 
           {/* Error Display */}
