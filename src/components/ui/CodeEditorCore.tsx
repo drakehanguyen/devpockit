@@ -20,6 +20,7 @@ export interface CodeEditorCoreProps {
   placeholder?: string;
   height?: string;
   className?: string;
+  onMount?: (editor: any, monaco: any) => void;
 }
 
 export function CodeEditorCore({
@@ -33,6 +34,7 @@ export function CodeEditorCore({
   placeholder,
   height = '100%',
   className,
+  onMount,
 }: CodeEditorCoreProps) {
   return (
     <div
@@ -54,6 +56,7 @@ export function CodeEditorCore({
         height="100%"
         className="h-full"
         padding={{ top: 8 }}
+        onMount={onMount}
       />
     </div>
   );

@@ -18,6 +18,7 @@ import {
   RefreshCw,
   ScanLine,
   ScanSearch,
+  Search,
   Timer,
   Unlock,
   Wrench,
@@ -49,6 +50,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'jwt-decoder': Key,
   'jwt-encoder': Lock,
   'data-format-converter': RefreshCw,
+  'regex-tester': Search,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -386,6 +388,18 @@ export const toolCategories: ToolCategory[] = [
         isPopular: true,
         path: '/tools/utilities/json-schema-generator',
         component: 'JsonSchemaGenerator',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'regex-tester',
+        name: 'Regex Tester',
+        description: 'Test and debug regular expressions with real-time matching, group extraction, and code generation',
+        category: 'utilities',
+        icon: '🔍',
+        isPopular: true,
+        path: '/tools/utilities/regex-tester',
+        component: 'RegexTester',
         supportsDesktop: true,
         supportsMobile: true,
       },

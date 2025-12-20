@@ -417,6 +417,8 @@ export const SCHEMA_CONVERSION_MATRIX: Record<SchemaFormat, SchemaFormat[]> = {
   'bigquery': ['json-schema', 'typescript', 'python', 'sql'],
   'typescript': ['json-schema', 'python', 'sql', 'spark'],
   'python': ['json-schema', 'typescript', 'sql', 'spark'],
-  'sql': ['json-schema', 'typescript', 'python', 'spark']
+  'sql': ['json-schema', 'typescript', 'python', 'spark'],
+  'pandas': ['json-schema', 'typescript', 'python', 'sql'],
+  'polars': ['json-schema', 'typescript', 'python', 'sql']
 };
 

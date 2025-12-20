@@ -14,8 +14,8 @@ export const LabeledInput = React.forwardRef<HTMLInputElement, LabeledInputProps
     return (
       <div
         className={cn(
-          'inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700',
-          containerClassName
+          'flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700',
+          containerClassName || 'w-full'
         )}
       >
         <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">

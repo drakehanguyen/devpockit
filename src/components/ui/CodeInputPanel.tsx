@@ -40,6 +40,9 @@ export interface CodeInputPanelProps {
   // Footer content - right side (e.g., generate button)
   footerRightContent?: React.ReactNode;
 
+  // Editor mount callback
+  onEditorMount?: (editor: any, monaco: any) => void;
+
   // Styling
   className?: string;
 }
@@ -60,6 +63,7 @@ export function CodeInputPanel({
   headerActions,
   footerLeftContent,
   footerRightContent,
+  onEditorMount,
   className,
 }: CodeInputPanelProps) {
   const [copySuccess, setCopySuccess] = useState(false);
@@ -145,6 +149,7 @@ export function CodeInputPanel({
             readOnly={false}
             placeholder={placeholder}
             height={height}
+            onMount={onEditorMount}
           />
         </div>
       </div>

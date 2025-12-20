@@ -14,8 +14,8 @@ import {
 } from '@/config/json-schema-generator-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import {
-  generateSchema,
   formatSchema,
+  generateSchema,
   type JsonSchemaResult
 } from '@/libs/json-schema-generator';
 import { detectFormat } from '@/libs/json-yaml';
@@ -118,9 +118,9 @@ export function JsonSchemaGenerator({ className }: JsonSchemaGeneratorProps) {
   };
 
   const handleLoadExample = (example: typeof SCHEMA_GENERATOR_EXAMPLES[0]) => {
-    if ('json' in example) {
+    if ('json' in example && example.json) {
       setInput(example.json);
-    } else if ('yaml' in example) {
+    } else if ('yaml' in example && example.yaml) {
       setInput(example.yaml);
     }
     setError('');
