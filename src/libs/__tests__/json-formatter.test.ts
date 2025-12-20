@@ -11,22 +11,22 @@ describe('JSON Formatter', () => {
 
   describe('formatJson', () => {
     it('should format valid JSON with default indent', () => {
-      const result = formatJson(validJson, { format: 'beautify', indentSize: 2, sortKeys: false })
+      const result = formatJson(validJson, { format: 'beautify', indentSize: 2, sortKeys: 'none' })
       expect(result.formatted).toBe(formattedJson)
     })
 
     it('should format JSON with custom indent', () => {
-      const result = formatJson(validJson, { format: 'beautify', indentSize: 4, sortKeys: false })
+      const result = formatJson(validJson, { format: 'beautify', indentSize: 4, sortKeys: 'none' })
       expect(result.formatted).toContain('    "name"') // 4 spaces
     })
 
     it('should handle already formatted JSON', () => {
-      const result = formatJson(formattedJson, { format: 'beautify', indentSize: 2, sortKeys: false })
+      const result = formatJson(formattedJson, { format: 'beautify', indentSize: 2, sortKeys: 'none' })
       expect(result.formatted).toBe(formattedJson)
     })
 
     it('should return error for invalid JSON', () => {
-      const result = formatJson(invalidJson, { format: 'beautify', indentSize: 2, sortKeys: false })
+      const result = formatJson(invalidJson, { format: 'beautify', indentSize: 2, sortKeys: 'none' })
       expect(result.isValid).toBe(false)
       expect(result.error).toBeDefined()
     })
@@ -34,17 +34,17 @@ describe('JSON Formatter', () => {
 
   describe('minifyJson', () => {
     it('should minify valid JSON', () => {
-      const result = formatJson(formattedJson, { format: 'minify', indentSize: 2, sortKeys: false })
+      const result = formatJson(formattedJson, { format: 'minify', indentSize: 2, sortKeys: 'none' })
       expect(result.formatted).toBe(validJson)
     })
 
     it('should handle already minified JSON', () => {
-      const result = formatJson(validJson, { format: 'minify', indentSize: 2, sortKeys: false })
+      const result = formatJson(validJson, { format: 'minify', indentSize: 2, sortKeys: 'none' })
       expect(result.formatted).toBe(validJson)
     })
 
     it('should return error for invalid JSON', () => {
-      const result = formatJson(invalidJson, { format: 'minify', indentSize: 2, sortKeys: false })
+      const result = formatJson(invalidJson, { format: 'minify', indentSize: 2, sortKeys: 'none' })
       expect(result.isValid).toBe(false)
       expect(result.error).toBeDefined()
     })
@@ -123,32 +123,32 @@ describe('JSON Formatter', () => {
   describe('Edge Cases', () => {
     it('should handle empty object', () => {
       const emptyJson = '{}'
-      const result = formatJson(emptyJson, { format: 'beautify', indentSize: 2, sortKeys: false })
+      const result = formatJson(emptyJson, { format: 'beautify', indentSize: 2, sortKeys: 'none' })
       expect(result.formatted).toBe('{}')
     })
 
     it('should handle empty array', () => {
       const emptyArray = '[]'
-      const result = formatJson(emptyArray, { format: 'beautify', indentSize: 2, sortKeys: false })
+      const result = formatJson(emptyArray, { format: 'beautify', indentSize: 2, sortKeys: 'none' })
       expect(result.formatted).toBe('[]')
     })
 
     it('should handle null values', () => {
       const nullJson = '{"value":null}'
-      const result = formatJson(nullJson, { format: 'beautify', indentSize: 2, sortKeys: false })
+      const result = formatJson(nullJson, { format: 'beautify', indentSize: 2, sortKeys: 'none' })
       expect(result.formatted).toContain('null')
     })
 
     it('should handle boolean values', () => {
       const boolJson = '{"active":true,"inactive":false}'
-      const result = formatJson(boolJson, { format: 'beautify', indentSize: 2, sortKeys: false })
+      const result = formatJson(boolJson, { format: 'beautify', indentSize: 2, sortKeys: 'none' })
       expect(result.formatted).toContain('true')
       expect(result.formatted).toContain('false')
     })
 
     it('should handle number values', () => {
       const numberJson = '{"count":42,"price":19.99}'
-      const result = formatJson(numberJson, { format: 'beautify', indentSize: 2, sortKeys: false })
+      const result = formatJson(numberJson, { format: 'beautify', indentSize: 2, sortKeys: 'none' })
       expect(result.formatted).toContain('42')
       expect(result.formatted).toContain('19.99')
     })
