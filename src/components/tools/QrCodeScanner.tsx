@@ -26,7 +26,7 @@ import {
   Share,
   Trash2
 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, startTransition } from 'react';
 import { QR_SCANNER_CONFIG } from '../../config/qr-code-scanner-config';
 
 interface QrCodeScannerProps {
@@ -62,7 +62,9 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
   const { toolState, updateToolState, clearToolState } = useToolState('qr-code-scanner');
 
   useEffect(() => {
-    setIsHydrated(true);
+    startTransition(() => {
+      setIsHydrated(true);
+    });
   }, []);
 
   // Initialize camera manager
@@ -81,9 +83,11 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
   useEffect(() => {
     if (toolState && Object.keys(toolState).length > 0) {
       const { options: savedOptions, results: savedResults, state: savedState } = toolState;
-      if (savedOptions) setOptions(savedOptions as QrDecoderOptions);
-      if (savedResults) setResults(savedResults as QrDecoderResult[]);
-      if (savedState) setState(savedState as string);
+      startTransition(() => {
+        if (savedOptions) setOptions(savedOptions as QrDecoderOptions);
+        if (savedResults) setResults(savedResults as QrDecoderResult[]);
+        if (savedState) setState(savedState as string);
+      });
     }
   }, [toolState]);
 
@@ -102,12 +106,14 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
   // Clear tool state when switching tools
   useEffect(() => {
     if (!toolState || Object.keys(toolState).length === 0) {
-      setOptions(QR_SCANNER_CONFIG.DEFAULT_OPTIONS);
-      setResults([]);
-      setError(null);
-      setState('idle');
-      setIsScanning(false);
-      setIsCameraActive(false);
+      startTransition(() => {
+        setOptions(QR_SCANNER_CONFIG.DEFAULT_OPTIONS);
+        setResults([]);
+        setError(null);
+        setState('idle');
+        setIsScanning(false);
+        setIsCameraActive(false);
+      });
       if (cameraManagerRef.current) {
         cameraManagerRef.current.cleanup();
       }

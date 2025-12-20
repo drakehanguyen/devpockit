@@ -6,7 +6,7 @@ import { getToolComponent } from '@/libs/tool-components';
 import { getToolById } from '@/libs/tools-data';
 import { isValidCategoryUrl, isValidToolUrl, parseToolUrl } from '@/libs/url-utils';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, startTransition } from 'react';
 import { AppSidebar } from '../app-sidebar';
 import { WelcomePage } from '../pages/WelcomePage';
 import { TopNavTabs, type ActiveTab } from './TopNavTabs';
@@ -32,7 +32,7 @@ function DynamicToolRenderer({ toolId }: { toolId: string }) {
           return;
         }
         const component = await getToolComponent(tool.component);
-        setToolComponent(() => component);
+        setToolComponent(() => component as React.ComponentType);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load component');
       } finally {
@@ -95,40 +95,46 @@ function AppLayoutInner({ children }: AppLayoutProps) {
     if (isValidToolUrl(pathname)) {
       const parsed = parseToolUrl(pathname);
       if (parsed) {
-        // Update selectedTool
-        setSelectedTool(parsed.toolId);
+        // Update selectedTool and tabs using startTransition for non-urgent updates
+        startTransition(() => {
+          setSelectedTool(parsed.toolId);
 
-        // Update tabs to reflect the current tool
-        if (!isMobile) {
-          const tool = getToolById(parsed.toolId);
-          if (tool) {
-            setActiveTabs(currentTabs => {
-              const existingTab = currentTabs.find(tab => tab.toolId === parsed.toolId);
-              if (!existingTab) {
-                // Add new tab if it doesn't exist
-                const newTab: ActiveTab = {
-                  toolId: parsed.toolId,
-                  toolName: tool.name,
-                  category: tool.category,
-                  isActive: true,
-                };
-                // Keep existing tabs open but inactive, add new active tab
-                const updatedTabs = currentTabs.map(tab => ({ ...tab, isActive: false }));
-                return [...updatedTabs, newTab];
-              } else {
-                // Just activate the existing tab - don't modify other tabs
-                return currentTabs.map(tab => ({ ...tab, isActive: tab.toolId === parsed.toolId }));
-              }
-            });
+          // Update tabs to reflect the current tool
+          if (!isMobile) {
+            const tool = getToolById(parsed.toolId);
+            if (tool) {
+              setActiveTabs(currentTabs => {
+                const existingTab = currentTabs.find(tab => tab.toolId === parsed.toolId);
+                if (!existingTab) {
+                  // Add new tab if it doesn't exist
+                  const newTab: ActiveTab = {
+                    toolId: parsed.toolId,
+                    toolName: tool.name,
+                    category: tool.category,
+                    isActive: true,
+                  };
+                  // Keep existing tabs open but inactive, add new active tab
+                  const updatedTabs = currentTabs.map(tab => ({ ...tab, isActive: false }));
+                  return [...updatedTabs, newTab];
+                } else {
+                  // Just activate the existing tab - don't modify other tabs
+                  return currentTabs.map(tab => ({ ...tab, isActive: tab.toolId === parsed.toolId }));
+                }
+              });
+            }
           }
-        }
+        });
       }
     } else if (isValidCategoryUrl(pathname)) {
       // Category page - show welcome page for that category
-      setSelectedTool(undefined);
+      startTransition(() => {
+        setSelectedTool(undefined);
+      });
     } else if (pathname === '/') {
       // Home page
-      setSelectedTool(undefined);
+      startTransition(() => {
+        setSelectedTool(undefined);
+      });
     } else {
       // Invalid URL, redirect to home
       router.push('/');

@@ -77,7 +77,7 @@ export function ListConverter({ className }: ListConverterProps) {
       setError('');
       setConversionStats(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [toolState, isHydrated]);
 
   // Auto-convert when input or options change
