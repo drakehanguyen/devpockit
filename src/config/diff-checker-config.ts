@@ -28,7 +28,8 @@ export const DIFF_CHECKER_OPTIONS = {
 export const DEFAULT_DIFF_OPTIONS = {
   ignoreWhitespace: false,
   language: 'plaintext',
-  wordWrap: false
+  wordWrap: false,
+  syncScroll: true
 };
 
 export const DIFF_EXAMPLES = {

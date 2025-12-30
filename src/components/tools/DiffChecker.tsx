@@ -3,14 +3,14 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { MonacoEditorInstance } from '@/components/ui/MonacoEditorInstance';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { DEFAULT_DIFF_OPTIONS, DIFF_CHECKER_OPTIONS, DIFF_EXAMPLES } from '@/config/diff-checker-config';
-import { MonacoEditorInstance } from '@/components/ui/MonacoEditorInstance';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { cn } from '@/libs/utils';
 import { ArrowsRightLeftIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { diffLines, diffWordsWithSpace, Change } from 'diff';
+import { Change, diffLines, diffWordsWithSpace } from 'diff';
 import { Check, Copy, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -22,6 +22,7 @@ interface DiffOptions {
   ignoreWhitespace: boolean;
   language: string;
   wordWrap: boolean;
+  syncScroll: boolean;
 }
 
 interface DiffStats {
@@ -49,12 +50,18 @@ export function DiffChecker({ className }: DiffCheckerProps) {
   const [originalWrapText, setOriginalWrapText] = useState(true);
   const [modifiedWrapText, setModifiedWrapText] = useState(true);
   const [copySuccess, setCopySuccess] = useState<'original' | 'modified' | null>(null);
+  const [editorsReady, setEditorsReady] = useState(false);
 
   // Editor refs for decorations
   const originalEditorRef = useRef<any>(null);
   const modifiedEditorRef = useRef<any>(null);
   const originalDecorationsRef = useRef<string[]>([]);
   const modifiedDecorationsRef = useRef<string[]>([]);
+
+  // Scroll sync refs
+  const isSyncingScrollRef = useRef<boolean>(false);
+  const originalScrollDisposableRef = useRef<any>(null);
+  const modifiedScrollDisposableRef = useRef<any>(null);
 
   // Theme
   const [theme] = useCodeEditorTheme('basicDark');
@@ -283,6 +290,106 @@ export function DiffChecker({ className }: DiffCheckerProps) {
     calculateDiffAndDecorate();
   }, [calculateDiffAndDecorate]);
 
+  // Scroll sync between editors
+  useEffect(() => {
+    // Only sync if option is enabled and both editors are mounted
+    if (!options.syncScroll || !originalEditorRef.current || !modifiedEditorRef.current) {
+      // Clean up existing listeners if sync is disabled
+      if (originalScrollDisposableRef.current) {
+        originalScrollDisposableRef.current.dispose();
+        originalScrollDisposableRef.current = null;
+      }
+      if (modifiedScrollDisposableRef.current) {
+        modifiedScrollDisposableRef.current.dispose();
+        modifiedScrollDisposableRef.current = null;
+      }
+      return;
+    }
+
+    const originalEditor = originalEditorRef.current;
+    const modifiedEditor = modifiedEditorRef.current;
+
+    // Helper function to calculate scroll percentage
+    const getScrollPercentage = (editor: any): number => {
+      const scrollTop = editor.getScrollTop();
+      const scrollHeight = editor.getScrollHeight();
+      const editorHeight = editor.getLayoutInfo().height;
+      const maxScrollTop = Math.max(0, scrollHeight - editorHeight);
+
+      if (maxScrollTop === 0) return 0;
+      return scrollTop / maxScrollTop;
+    };
+
+    // Helper function to set scroll position by percentage
+    const setScrollPercentage = (editor: any, percentage: number, scrollLeft?: number): void => {
+      const scrollHeight = editor.getScrollHeight();
+      const editorHeight = editor.getLayoutInfo().height;
+      const maxScrollTop = Math.max(0, scrollHeight - editorHeight);
+      const targetScrollTop = percentage * maxScrollTop;
+
+      editor.setScrollTop(targetScrollTop);
+
+      // Also sync horizontal scroll if provided
+      if (scrollLeft !== undefined) {
+        editor.setScrollLeft(scrollLeft);
+      }
+    };
+
+    // Sync scroll from original to modified
+    const syncOriginalToModified = () => {
+      if (isSyncingScrollRef.current) return;
+      if (!modifiedEditorRef.current || !originalEditorRef.current) return;
+
+      isSyncingScrollRef.current = true;
+      const percentage = getScrollPercentage(originalEditor);
+      const scrollLeft = originalEditor.getScrollLeft();
+      setScrollPercentage(modifiedEditor, percentage, scrollLeft);
+
+      // Use requestAnimationFrame to clear the flag after scroll completes
+      requestAnimationFrame(() => {
+        isSyncingScrollRef.current = false;
+      });
+    };
+
+    // Sync scroll from modified to original
+    const syncModifiedToOriginal = () => {
+      if (isSyncingScrollRef.current) return;
+      if (!modifiedEditorRef.current || !originalEditorRef.current) return;
+
+      isSyncingScrollRef.current = true;
+      const percentage = getScrollPercentage(modifiedEditor);
+      const scrollLeft = modifiedEditor.getScrollLeft();
+      setScrollPercentage(originalEditor, percentage, scrollLeft);
+
+      // Use requestAnimationFrame to clear the flag after scroll completes
+      requestAnimationFrame(() => {
+        isSyncingScrollRef.current = false;
+      });
+    };
+
+    // Set up scroll listeners
+    originalScrollDisposableRef.current = originalEditor.onDidScrollChange((e: any) => {
+      syncOriginalToModified();
+    });
+
+    modifiedScrollDisposableRef.current = modifiedEditor.onDidScrollChange((e: any) => {
+      syncModifiedToOriginal();
+    });
+
+    // Cleanup function
+    return () => {
+      if (originalScrollDisposableRef.current) {
+        originalScrollDisposableRef.current.dispose();
+        originalScrollDisposableRef.current = null;
+      }
+      if (modifiedScrollDisposableRef.current) {
+        modifiedScrollDisposableRef.current.dispose();
+        modifiedScrollDisposableRef.current = null;
+      }
+      isSyncingScrollRef.current = false;
+    };
+  }, [options.syncScroll, editorsReady]);
+
   // Handlers
   const handleSwap = () => {
     const temp = originalText;
@@ -325,12 +432,20 @@ export function DiffChecker({ className }: DiffCheckerProps) {
     originalEditorRef.current = editor;
     // Trigger decoration after mount
     setTimeout(calculateDiffAndDecorate, 100);
+    // Check if both editors are ready
+    if (modifiedEditorRef.current) {
+      setEditorsReady(true);
+    }
   };
 
   const handleModifiedEditorMount = (editor: any) => {
     modifiedEditorRef.current = editor;
     // Trigger decoration after mount
     setTimeout(calculateDiffAndDecorate, 100);
+    // Check if both editors are ready
+    if (originalEditorRef.current) {
+      setEditorsReady(true);
+    }
   };
 
   const getCharacterCount = (text: string): number => text.length;
@@ -405,6 +520,18 @@ export function DiffChecker({ className }: DiffCheckerProps) {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Sync Scroll Toggle */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Sync Scroll:</span>
+                <Switch
+                  checked={options.syncScroll}
+                  onCheckedChange={(checked) =>
+                    setOptions((prev) => ({ ...prev, syncScroll: checked }))
+                  }
+                  aria-label="Synchronize scrolling between original and modified editors"
+                />
+              </div>
 
               {/* Ignore Whitespace Toggle */}
               <div className="flex items-center gap-2">
