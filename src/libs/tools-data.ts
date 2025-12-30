@@ -21,6 +21,7 @@ import {
   Timer,
   Unlock,
   Wrench,
+  Info,
   type LucideIcon
 } from 'lucide-react';
 
@@ -52,6 +53,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'jwt-encoder': Lock,
   'data-format-converter': RefreshCw,
   'regex-tester': Search,
+  'system-info': Info,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -356,6 +358,18 @@ export const toolCategories: ToolCategory[] = [
         isPopular: true,
         path: '/tools/network/ip-checker',
         component: 'IpChecker',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'system-info',
+        name: 'System Information',
+        description: 'View detailed information about your browser, device, display, network, and system capabilities',
+        category: 'network',
+        icon: '💻',
+        isPopular: true,
+        path: '/tools/network/system-info',
+        component: 'SystemInfo',
         supportsDesktop: true,
         supportsMobile: true,
       },
