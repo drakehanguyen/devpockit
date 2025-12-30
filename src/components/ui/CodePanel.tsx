@@ -45,6 +45,7 @@ export interface CodePanelProps {
   onShowLineNumbersChange?: (showLineNumbers: boolean) => void;
   placeholder?: string;
   readOnly?: boolean; // If not provided, auto-detect from onChange
+  singleLine?: boolean; // If true, editor only allows single line input
 
   // Optional features
   showCopyButton?: boolean;
@@ -80,6 +81,7 @@ export function CodePanel({
   onShowLineNumbersChange,
   placeholder,
   readOnly: readOnlyProp,
+  singleLine = false,
   showCopyButton = true,
   showClearButton = false,
   showWrapToggle = true,
@@ -316,6 +318,7 @@ export function CodePanel({
             readOnly={readOnly}
             placeholder={placeholder}
             height={height}
+            singleLine={singleLine}
             onMount={handleEditorMount}
           />
         </div>

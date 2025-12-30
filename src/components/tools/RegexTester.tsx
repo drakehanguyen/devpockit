@@ -42,7 +42,7 @@ import {
   type TestCase
 } from '@/libs/regex-tester';
 import { cn } from '@/libs/utils';
-import { ArrowDownTrayIcon, ChevronDownIcon, InformationCircleIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon, ChevronDownIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface RegexTesterProps {
@@ -56,11 +56,10 @@ export function RegexTester({ className }: RegexTesterProps) {
   const [options, setOptions] = useState<RegexTesterOptions>(DEFAULT_REGEX_OPTIONS);
   const [testResult, setTestResult] = useState<RegexTestResult | null>(null);
   const [error, setError] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'matches' | 'replace' | 'code' | 'explanation'>('matches');
+  const [activeTab, setActiveTab] = useState<'matches' | 'replace' | 'code' | 'explanation' | 'empty'>('matches');
   const [isHydrated, setIsHydrated] = useState(false);
   const [explanation, setExplanation] = useState<RegexExplanation | null>(null);
   const [testCases, setTestCases] = useState<TestCase[]>([]);
-  const [showTestCases, setShowTestCases] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [flagsDropdownOpen, setFlagsDropdownOpen] = useState(false);
 
@@ -300,7 +299,6 @@ export function RegexTester({ className }: RegexTesterProps) {
     }));
     setError('');
     setTestResult(null);
-    setShowTestCases(false);
   }, []);
 
   const handleDeleteTestCase = useCallback((id: string) => {
@@ -355,7 +353,7 @@ export function RegexTester({ className }: RegexTesterProps) {
     return analyzeBackreferences(options.replaceString);
   }, [options.replaceString]);
 
-  // Prepare tabs for CodePanel
+  // Prepare tabs for CodePanel - always return at least one tab to keep panel visible
   const outputTabs: CodeOutputTab[] = useMemo(() => {
     const tabs: CodeOutputTab[] = [];
 
@@ -426,8 +424,25 @@ export function RegexTester({ className }: RegexTesterProps) {
       });
     }
 
+    // Always return at least one tab to keep panel visible
+    if (tabs.length === 0) {
+      tabs.push({
+        id: 'empty',
+        label: 'Output',
+        value: 'Test results will appear here...',
+        language: 'plaintext'
+      });
+    }
+
     return tabs;
   }, [testResult, options, explanation]);
+
+  // Ensure activeTab is valid when outputTabs change
+  useEffect(() => {
+    if (outputTabs.length > 0 && !outputTabs.find(tab => tab.id === activeTab)) {
+      setActiveTab(outputTabs[0].id as typeof activeTab);
+    }
+  }, [outputTabs, activeTab]);
 
   // Group patterns by category
   const patternsByCategory = useMemo(() => {
@@ -539,25 +554,25 @@ export function RegexTester({ className }: RegexTesterProps) {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
 
-            {/* Display Options Row */}
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={options.showGroups}
-                  onCheckedChange={(checked) => setOptions(prev => ({ ...prev, showGroups: checked }))}
-                  size="sm"
-                />
-                <span className="text-sm text-neutral-600 dark:text-neutral-400">Show groups</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={options.showPositions}
-                  onCheckedChange={(checked) => setOptions(prev => ({ ...prev, showPositions: checked }))}
-                  size="sm"
-                />
-                <span className="text-sm text-neutral-600 dark:text-neutral-400">Show positions</span>
+              {/* Display Options Toggles */}
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={options.showGroups}
+                    onCheckedChange={(checked) => setOptions(prev => ({ ...prev, showGroups: checked }))}
+                    size="sm"
+                  />
+                  <span className="text-sm text-neutral-600 dark:text-neutral-400">Show groups</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={options.showPositions}
+                    onCheckedChange={(checked) => setOptions(prev => ({ ...prev, showPositions: checked }))}
+                    size="sm"
+                  />
+                  <span className="text-sm text-neutral-600 dark:text-neutral-400">Show positions</span>
+                </div>
               </div>
             </div>
           </div>
@@ -568,12 +583,14 @@ export function RegexTester({ className }: RegexTesterProps) {
             value={options.pattern}
             onChange={(value) => setOptions(prev => ({ ...prev, pattern: value }))}
             language="plaintext"
-            height="120px"
+            height="35px"
             theme={theme}
             wrapText={patternWrapText}
             onWrapTextChange={setPatternWrapText}
             placeholder="Enter regex pattern (e.g., \\b\\w+@\\w+\\.\\w+\\b)"
             showClearButton={true}
+            showWrapToggle={false}
+            singleLine={true}
             onEditorMount={createEditorMountHandler('pattern')}
             headerActions={
               <DropdownMenu>
@@ -610,133 +627,6 @@ export function RegexTester({ className }: RegexTesterProps) {
             }
           />
 
-          {/* Test String Input Panel */}
-          <CodePanel
-            title="Test String"
-            value={options.testString}
-            onChange={(value) => setOptions(prev => ({ ...prev, testString: value }))}
-            language="plaintext"
-            height="200px"
-            theme={theme}
-            wrapText={testStringWrapText}
-            onWrapTextChange={setTestStringWrapText}
-            placeholder="Enter text to test against the pattern"
-            showClearButton={true}
-            onEditorMount={createEditorMountHandler('testString')}
-            headerActions={
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs"
-                    >
-                      Load Example
-                      <ChevronDownIcon className="h-3 w-3 ml-1" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="max-h-[400px] overflow-y-auto w-[300px]">
-                    {REGEX_EXAMPLES.map((example, index) => (
-                      <DropdownMenuItem
-                        key={index}
-                        onClick={() => handleLoadExample(example)}
-                        className="flex flex-col items-start gap-1"
-                      >
-                        <span className="font-medium">{example.name}</span>
-                        {example.description && (
-                          <span className="text-xs text-neutral-500 dark:text-neutral-400">{example.description}</span>
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-3 text-xs"
-                  onClick={() => setShowTestCases(!showTestCases)}
-                >
-                  Test Cases ({testCases.length})
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-3 text-xs"
-                  onClick={handleSaveTestCase}
-                  disabled={!options.pattern || !options.pattern.trim()}
-                >
-                  <PlusIcon className="h-3 w-3 mr-1" />
-                  Save
-                </Button>
-              </div>
-            }
-            footerRightContent={
-              <Button
-                onClick={handleTest}
-                variant="default"
-                size="sm"
-                disabled={!options.pattern || !options.pattern.trim()}
-              >
-                Test
-              </Button>
-            }
-          />
-
-          {/* Test Cases Panel */}
-          {showTestCases && (
-            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium">Saved Test Cases</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => setShowTestCases(false)}
-                >
-                  Close
-                </Button>
-              </div>
-              {testCases.length === 0 ? (
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">No test cases saved yet.</p>
-              ) : (
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {testCases.map((testCase) => (
-                    <div
-                      key={testCase.id}
-                      className="flex items-center justify-between p-2 bg-white dark:bg-neutral-900 rounded border border-neutral-200 dark:border-neutral-700"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{testCase.name}</div>
-                        <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                          Pattern: {testCase.pattern.substring(0, 50)}{testCase.pattern.length > 50 ? '...' : ''}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 ml-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => handleLoadTestCase(testCase)}
-                        >
-                          Load
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
-                          onClick={() => handleDeleteTestCase(testCase.id)}
-                        >
-                          <TrashIcon className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Replace String Input (Optional) */}
           <div className="space-y-2 w-full">
             <LabeledInput
@@ -757,92 +647,183 @@ export function RegexTester({ className }: RegexTesterProps) {
             )}
           </div>
 
-          {/* Output Panel */}
-          {outputTabs.length > 0 ? (
-            <CodePanel
-              tabs={outputTabs}
-              activeTab={activeTab}
-              onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
-              height="300px"
-              theme={theme}
-              readOnly={true}
-              wrapText={outputWrapText}
-              onWrapTextChange={setOutputWrapText}
-              onEditorMount={createEditorMountHandler('output')}
-              headerActions={
-                testResult && testResult.isValid && testResult.matches.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 px-3 text-xs"
-                      >
-                        <ArrowDownTrayIcon className="h-3 w-3 mr-1" />
-                        Export
-                        <ChevronDownIcon className="h-3 w-3 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleExport('json')}>
-                        Export as JSON
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleExport('csv')}>
-                        Export as CSV
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleExport('xml')}>
-                        Export as XML
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )
-              }
-              footerLeftContent={
-                testResult && testResult.isValid && (
-                  <>
-                    <span>{testResult.matchCount} match{testResult.matchCount === 1 ? '' : 'es'}</span>
-                    {testResult.executionTime && (
-                      <span>{testResult.executionTime.toFixed(2)}ms</span>
-                    )}
-                    {testResult.flagsString && (
-                      <span>Flags: {testResult.flagsString || 'none'}</span>
-                    )}
-                  </>
-                )
-              }
-            />
-          ) : (
-            explanation && (
-              <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <InformationCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <h3 className="text-sm font-medium">Pattern Explanation</h3>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <p className="text-neutral-700 dark:text-neutral-300">{explanation.explanation}</p>
-                  {explanation.components.length > 0 && (
-                    <div>
-                      <div className="font-medium mb-2">Components:</div>
-                      <ul className="list-disc list-inside space-y-1 text-neutral-600 dark:text-neutral-400">
-                        {explanation.components.map((comp, idx) => (
-                          <li key={idx}>
-                            <code className="bg-neutral-200 dark:bg-neutral-700 px-1 rounded">{comp.part}</code> - {comp.description}
-                          </li>
+          {/* Test String and Output Panels Side by Side */}
+          <div className="flex gap-4">
+            {/* Test String Input Panel */}
+            <div className="flex-1">
+              <CodePanel
+                title="Test String"
+                value={options.testString}
+                onChange={(value) => setOptions(prev => ({ ...prev, testString: value }))}
+                language="plaintext"
+                height="400px"
+                theme={theme}
+                wrapText={testStringWrapText}
+                onWrapTextChange={setTestStringWrapText}
+                placeholder="Enter text to test against the pattern"
+                showClearButton={true}
+                onEditorMount={createEditorMountHandler('testString')}
+                headerActions={
+                  <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-3 text-xs"
+                        >
+                          Load Example
+                          <ChevronDownIcon className="h-3 w-3 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="max-h-[400px] overflow-y-auto w-[300px]">
+                        {REGEX_EXAMPLES.map((example, index) => (
+                          <DropdownMenuItem
+                            key={index}
+                            onClick={() => handleLoadExample(example)}
+                            className="flex flex-col items-start gap-1"
+                          >
+                            <span className="font-medium">{example.name}</span>
+                            {example.description && (
+                              <span className="text-xs text-neutral-500 dark:text-neutral-400">{example.description}</span>
+                            )}
+                          </DropdownMenuItem>
                         ))}
-                      </ul>
-                    </div>
-                  )}
-                  {explanation.warnings.length > 0 && (
-                    <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded">
-                      <div className="text-xs text-yellow-700 dark:text-yellow-300">
-                        <strong>Warnings:</strong> {explanation.warnings.join('; ')}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-3 text-xs"
+                        >
+                          Test Cases ({testCases.length})
+                          <ChevronDownIcon className="h-3 w-3 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="max-h-[400px] overflow-y-auto w-[400px]">
+                        <DropdownMenuLabel>Saved Test Cases</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {testCases.length === 0 ? (
+                          <div className="px-2 py-4 text-sm text-neutral-500 dark:text-neutral-400 text-center">
+                            No test cases saved yet.
+                          </div>
+                        ) : (
+                          testCases.map((testCase) => (
+                            <div key={testCase.id} className="px-2 py-1">
+                              <div className="flex items-center justify-between gap-2 p-2 bg-neutral-50 dark:bg-neutral-900 rounded border border-neutral-200 dark:border-neutral-700">
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-sm truncate">{testCase.name}</div>
+                                  <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                                    Pattern: {testCase.pattern.substring(0, 40)}{testCase.pattern.length > 40 ? '...' : ''}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2 text-xs"
+                                    onClick={() => handleLoadTestCase(testCase)}
+                                  >
+                                    Load
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
+                                    onClick={() => handleDeleteTestCase(testCase.id)}
+                                  >
+                                    <TrashIcon className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                      onClick={handleSaveTestCase}
+                      disabled={!options.pattern || !options.pattern.trim()}
+                    >
+                      <PlusIcon className="h-3 w-3 mr-1" />
+                      Save
+                    </Button>
+                  </div>
+                }
+                footerRightContent={
+                  <Button
+                    onClick={handleTest}
+                    variant="default"
+                    size="sm"
+                    disabled={!options.pattern || !options.pattern.trim()}
+                  >
+                    Test
+                  </Button>
+                }
+              />
+            </div>
+
+            {/* Output Panel */}
+            <div className="flex-1">
+              <CodePanel
+                tabs={outputTabs}
+                activeTab={activeTab}
+                onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+                height="400px"
+                theme={theme}
+                readOnly={true}
+                wrapText={outputWrapText}
+                onWrapTextChange={setOutputWrapText}
+                onEditorMount={createEditorMountHandler('output')}
+                headerActions={
+                  testResult && testResult.isValid && testResult.matches.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-3 text-xs"
+                        >
+                          <ArrowDownTrayIcon className="h-3 w-3 mr-1" />
+                          Export
+                          <ChevronDownIcon className="h-3 w-3 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleExport('json')}>
+                          Export as JSON
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExport('csv')}>
+                          Export as CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExport('xml')}>
+                          Export as XML
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )
+                }
+                footerLeftContent={
+                  testResult && testResult.isValid && (
+                    <>
+                      <span>{testResult.matchCount} match{testResult.matchCount === 1 ? '' : 'es'}</span>
+                      {testResult.executionTime && (
+                        <span>{testResult.executionTime.toFixed(2)}ms</span>
+                      )}
+                      {testResult.flagsString && (
+                        <span>Flags: {testResult.flagsString || 'none'}</span>
+                      )}
+                    </>
+                  )
+                }
+              />
+            </div>
+          </div>
 
           {error && (
             <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">

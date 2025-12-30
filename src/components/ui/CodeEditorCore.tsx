@@ -20,6 +20,7 @@ export interface CodeEditorCoreProps {
   placeholder?: string;
   height?: string;
   className?: string;
+  singleLine?: boolean;
   onMount?: (editor: any, monaco: any) => void;
 }
 
@@ -34,6 +35,7 @@ export function CodeEditorCore({
   placeholder,
   height = '100%',
   className,
+  singleLine = false,
   onMount,
 }: CodeEditorCoreProps) {
   return (
@@ -55,7 +57,8 @@ export function CodeEditorCore({
         placeholder={placeholder}
         height="100%"
         className="h-full"
-        padding={{ top: 8 }}
+        padding={singleLine ? { top: 4, bottom: 4 } : { top: 8 }}
+        singleLine={singleLine}
         onMount={onMount}
       />
     </div>
