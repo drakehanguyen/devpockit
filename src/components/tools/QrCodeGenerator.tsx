@@ -3,10 +3,10 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ContentPanel } from '@/components/ui/ContentPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ContentPanel } from '@/components/ui/ContentPanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -77,15 +77,21 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
+  // Track if we've already hydrated to prevent re-hydration on toolState changes
+  const hasHydratedRef = useRef(false);
+
   useEffect(() => {
-    setIsHydrated(true);
-    if (toolState?.options) {
-      const opts = toolState.options as QrCodeOptions;
-      setSizeInput(opts.size.toString());
-    } else {
-      setSizeInput(DEFAULT_QR_OPTIONS.size.toString());
+    if (!hasHydratedRef.current) {
+      hasHydratedRef.current = true;
+      setIsHydrated(true);
+      if (toolState?.options) {
+        const opts = toolState.options as QrCodeOptions;
+        setSizeInput(opts.size.toString());
+      } else {
+        setSizeInput(DEFAULT_QR_OPTIONS.size.toString());
+      }
     }
-  }, []);
+  }, [toolState]);
 
   useEffect(() => {
     if (isHydrated) {
@@ -98,7 +104,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
         stats: stats || undefined
       });
     }
-  }, [options, input, output, error, qrCodeResult, stats, isHydrated]);
+  }, [options, input, output, error, qrCodeResult, stats, isHydrated, updateToolState]);
 
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
@@ -708,6 +714,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
             >
               <div className="h-full flex flex-col items-center justify-center">
                 {qrCodeResult ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={qrCodeResult.dataUrl}
                     alt="Generated QR Code"

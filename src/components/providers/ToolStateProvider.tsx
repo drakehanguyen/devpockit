@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 
 // Define the structure for tool state
 export interface ToolState {
@@ -103,10 +103,23 @@ export function useToolState(toolId: string) {
 
   const { getToolState, updateToolState, clearToolState } = context;
 
+  // Memoize wrapper functions to prevent unnecessary re-renders
+  const memoizedUpdateToolState = useCallback(
+    (state: Partial<ToolState>) => updateToolState(toolId, state),
+    [toolId, updateToolState]
+  );
+
+  const memoizedClearToolState = useCallback(
+    () => clearToolState(toolId),
+    [toolId, clearToolState]
+  );
+
+  const toolState = useMemo(() => getToolState(toolId), [toolId, getToolState]);
+
   return {
-    toolState: getToolState(toolId),
-    updateToolState: (state: Partial<ToolState>) => updateToolState(toolId, state),
-    clearToolState: () => clearToolState(toolId)
+    toolState,
+    updateToolState: memoizedUpdateToolState,
+    clearToolState: memoizedClearToolState
   };
 }
 

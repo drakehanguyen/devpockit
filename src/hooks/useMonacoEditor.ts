@@ -154,6 +154,8 @@ export function useMonacoEditor(
         editorInstanceRef.current = null;
       }
     };
+    // value is handled by a separate useEffect below, so we don't include it here
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isMonacoLoaded,
     options.language,

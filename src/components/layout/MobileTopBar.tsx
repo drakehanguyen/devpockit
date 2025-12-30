@@ -1,5 +1,6 @@
 'use client';
 
+import { SearchTools } from '@/components/layout/SearchTools';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SearchTools } from '@/components/layout/SearchTools';
 import { CODE_EDITOR_THEMES, type CodeEditorTheme } from '@/config/code-editor-themes';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { cn } from '@/libs/utils';
@@ -17,7 +17,7 @@ import { Menu, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 
 interface MobileTopBarProps {
   onToolSelect: (toolId: string) => void;
@@ -30,8 +30,12 @@ export function MobileTopBar({ onToolSelect, onHomeClick }: MobileTopBarProps) {
   const [codeEditorTheme, setCodeEditorTheme] = useCodeEditorTheme('basicDark');
   const [mounted, setMounted] = useState(false);
 
+  // Set mounted state after hydration to avoid SSR mismatch
+  // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
-    setMounted(true);
+    startTransition(() => {
+      setMounted(true);
+    });
   }, []);
 
   const handleLogoClick = () => {

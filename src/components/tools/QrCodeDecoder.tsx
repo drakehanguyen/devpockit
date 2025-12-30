@@ -1,21 +1,20 @@
 'use client';
 
+import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ContentPanel } from '@/components/ui/ContentPanel';
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useToolState } from '@/components/providers/ToolStateProvider';
 import { DEFAULT_QR_DECODER_OPTIONS } from '@/config/qr-code-decoder-config';
 import {
   decodeQrFromImage,
   getErrorMessage,
   validateImageFile
 } from '@/libs/qr-code-decoder';
+import { cn } from '@/libs/utils';
 import {
   QrDecoderOptions,
   QrDecoderResult
 } from '@/types/qr-decoder';
-import { cn } from '@/libs/utils';
 import {
   AlertCircle,
   CheckCircle,
@@ -28,6 +27,7 @@ import {
   Upload,
   XCircle
 } from 'lucide-react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 interface QrCodeDecoderProps {
   className?: string;
@@ -363,6 +363,7 @@ export function QrCodeDecoder({ className, onResult, onError }: QrCodeDecoderPro
                 ) : (
                   <div className="w-full space-y-4">
                     {displayedImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={displayedImage}
                         alt="Uploaded QR code"
