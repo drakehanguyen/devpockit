@@ -9,7 +9,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { MonacoEditorInstance } from '@/components/ui/MonacoEditorInstance';
+import { MonacoEditorInstance } from '@/components/ui/monaco-editor-instance';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { CODE_EDITOR_THEMES, type CodeEditorTheme } from '@/config/code-editor-themes';

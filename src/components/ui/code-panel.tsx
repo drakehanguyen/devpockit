@@ -6,8 +6,8 @@
 
 'use client';
 
-import { CodeEditorCore } from '@/components/ui/CodeEditorCore';
-import { EditorSettingsMenu } from '@/components/ui/EditorSettingsMenu';
+import { CodeEditorCore } from '@/components/ui/code-editor-core';
+import { EditorSettingsMenu } from '@/components/ui/editor-settings-menu';
 import { type CodeEditorTheme } from '@/config/code-editor-themes';
 import { cn } from '@/libs/utils';
 import { Check, Copy, Trash2 } from 'lucide-react';

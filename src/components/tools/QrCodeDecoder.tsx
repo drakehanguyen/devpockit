@@ -3,7 +3,7 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ContentPanel } from '@/components/ui/ContentPanel';
+import { ContentPanel } from '@/components/ui/content-panel';
 import { DEFAULT_QR_DECODER_OPTIONS } from '@/config/qr-code-decoder-config';
 import {
   decodeQrFromImage,

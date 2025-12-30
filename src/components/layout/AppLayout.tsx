@@ -4,11 +4,11 @@ import { ToolStateProvider, useToolStateContext } from '@/components/providers/T
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { getToolComponent } from '@/libs/tool-components';
 import { getToolById } from '@/libs/tools-data';
-import { cn } from '@/libs/utils';
 import { isValidCategoryUrl, isValidToolUrl, parseToolUrl } from '@/libs/url-utils';
+import { cn } from '@/libs/utils';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, startTransition } from 'react';
-import { AppSidebar } from '../app-sidebar';
+import { startTransition, useEffect, useState } from 'react';
+import { AppSidebar } from '../AppSidebar';
 import { WelcomePage } from '../pages/WelcomePage';
 import { MobileTopBar } from './MobileTopBar';
 import { TopNavTabs, type ActiveTab } from './TopNavTabs';

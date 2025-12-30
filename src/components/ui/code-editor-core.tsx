@@ -5,7 +5,7 @@
 
 'use client';
 
-import { MonacoEditorInstance } from '@/components/ui/MonacoEditorInstance';
+import { MonacoEditorInstance } from '@/components/ui/monaco-editor-instance';
 import { type CodeEditorTheme } from '@/config/code-editor-themes';
 import { cn } from '@/libs/utils';
 

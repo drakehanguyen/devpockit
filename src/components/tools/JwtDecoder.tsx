@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodePanel, type CodeOutputTab } from '@/components/ui/CodePanel';
+import { CodePanel, type CodeOutputTab } from '@/components/ui/code-panel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SecretInput } from '@/components/ui/secret-input';
 import { JWT_EXAMPLE_TOKENS } from '@/config/jwt-decoder-config';

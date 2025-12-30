@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodePanel } from '@/components/ui/CodePanel';
+import { CodePanel } from '@/components/ui/code-panel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
