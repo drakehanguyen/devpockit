@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeOutputPanel, type CodeOutputTab } from '@/components/ui/CodeOutputPanel';
+import { CodePanel, type CodeOutputTab } from '@/components/ui/CodePanel';
 import { NumberInput } from '@/components/ui/number-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
@@ -137,7 +137,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     setOptions(prev => ({ ...prev, quantity }));
   };
 
-  // Prepare tabs for CodeOutputPanel
+  // Prepare tabs for CodePanel
   const outputTabs: CodeOutputTab[] = useMemo(
     () => [
       {
@@ -248,7 +248,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </div>
             </div>
           ) : (
-            <CodeOutputPanel
+            <CodePanel
               tabs={outputTabs}
               activeTab={activeTab}
               onTabChange={handleTabChange}

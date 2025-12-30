@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel, type CodeOutputTab } from '@/components/ui/CodeOutputPanel';
+import { CodePanel, type CodeOutputTab } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -226,7 +225,7 @@ export function RegexTester({ className }: RegexTesterProps) {
     }, 500); // 500ms debounce for explanation
 
     return () => clearTimeout(timeoutId);
-     
+
   }, [options.pattern, options.flags]);
 
   const handleTest = () => {
@@ -356,7 +355,7 @@ export function RegexTester({ className }: RegexTesterProps) {
     return analyzeBackreferences(options.replaceString);
   }, [options.replaceString]);
 
-  // Prepare tabs for CodeOutputPanel
+  // Prepare tabs for CodePanel
   const outputTabs: CodeOutputTab[] = useMemo(() => {
     const tabs: CodeOutputTab[] = [];
 
@@ -564,7 +563,7 @@ export function RegexTester({ className }: RegexTesterProps) {
           </div>
 
           {/* Pattern Input Panel */}
-          <CodeInputPanel
+          <CodePanel
             title="Pattern"
             value={options.pattern}
             onChange={(value) => setOptions(prev => ({ ...prev, pattern: value }))}
@@ -612,7 +611,7 @@ export function RegexTester({ className }: RegexTesterProps) {
           />
 
           {/* Test String Input Panel */}
-          <CodeInputPanel
+          <CodePanel
             title="Test String"
             value={options.testString}
             onChange={(value) => setOptions(prev => ({ ...prev, testString: value }))}
@@ -760,12 +759,13 @@ export function RegexTester({ className }: RegexTesterProps) {
 
           {/* Output Panel */}
           {outputTabs.length > 0 ? (
-            <CodeOutputPanel
+            <CodePanel
               tabs={outputTabs}
               activeTab={activeTab}
               onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
               height="300px"
               theme={theme}
+              readOnly={true}
               wrapText={outputWrapText}
               onWrapTextChange={setOutputWrapText}
               onEditorMount={createEditorMountHandler('output')}

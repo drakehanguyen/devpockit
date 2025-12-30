@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -359,7 +359,7 @@ export function TimestampConverter({ className }: TimestampConverterProps) {
           </div>
 
           {/* Output Panel */}
-          <CodeOutputPanel
+          <CodePanel
             title="Conversion Result"
             value={output}
             language="plaintext"

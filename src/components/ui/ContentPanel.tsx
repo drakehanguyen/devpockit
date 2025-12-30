@@ -2,7 +2,7 @@
  * ContentPanel Component
  * A flexible panel with header, custom content area, and footer
  * Can be used for input or output panels with custom content
- * Follows the same structure as CodeInputPanel but allows custom content
+ * Follows the same structure as CodePanel but allows custom content
  */
 
 'use client';

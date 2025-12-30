@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -77,7 +76,7 @@ export function ListConverter({ className }: ListConverterProps) {
       setError('');
       setConversionStats(null);
     }
-     
+
   }, [toolState, isHydrated]);
 
   // Auto-convert when input or options change
@@ -292,7 +291,7 @@ export function ListConverter({ className }: ListConverterProps) {
           {/* Side-by-side Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
-            <CodeInputPanel
+            <CodePanel
               title={`Input (${LIST_CONVERTER_OPTIONS.formats.find(f => f.value === options.inputFormat)?.label})`}
               value={input}
               onChange={setInput}
@@ -337,9 +336,10 @@ export function ListConverter({ className }: ListConverterProps) {
             />
 
             {/* Output Panel */}
-            <CodeOutputPanel
+            <CodePanel
               title={`Output (${LIST_CONVERTER_OPTIONS.formats.find(f => f.value === options.outputFormat)?.label})`}
               value={output}
+              readOnly={true}
               language={outputLanguage}
               height="500px"
               theme={theme}

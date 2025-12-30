@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -163,7 +162,7 @@ export function UrlDecoderTool({ className }: UrlDecoderToolProps) {
           {/* Side-by-side Editor Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
-            <CodeInputPanel
+            <CodePanel
               title="Encoded Text"
               value={input}
               onChange={setInput}
@@ -229,7 +228,7 @@ export function UrlDecoderTool({ className }: UrlDecoderToolProps) {
             />
 
             {/* Output Panel */}
-            <CodeOutputPanel
+            <CodePanel
               title="Decoded Text"
               value={output}
               language="plaintext"

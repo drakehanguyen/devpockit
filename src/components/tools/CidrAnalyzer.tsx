@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -300,7 +300,7 @@ export function CidrAnalyzer({ className }: CidrAnalyzerProps) {
           </div>
 
           {/* Output Panel */}
-          <CodeOutputPanel
+          <CodePanel
             title="Analysis Result"
             value={output}
             language="plaintext"

@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel, type CodeOutputTab } from '@/components/ui/CodeOutputPanel';
+import { CodePanel, type CodeOutputTab } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SecretInput } from '@/components/ui/secret-input';
 import { JWT_EXAMPLE_TOKENS } from '@/config/jwt-decoder-config';
@@ -153,7 +152,7 @@ export function JwtDecoder({ className }: JwtDecoderProps) {
     setVerificationResult(null);
   };
 
-  // Prepare tabs for CodeOutputPanel
+  // Prepare tabs for CodePanel
   const outputTabs: CodeOutputTab[] = useMemo(() => {
     if (!decodedResult || !decodedResult.isValid) {
       return [];
@@ -229,7 +228,7 @@ export function JwtDecoder({ className }: JwtDecoderProps) {
       <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
         <div className="flex flex-col gap-4 w-full">
           {/* Input Panel */}
-          <CodeInputPanel
+          <CodePanel
             title="JWT Token"
             value={token}
             onChange={setToken}
@@ -320,7 +319,7 @@ export function JwtDecoder({ className }: JwtDecoderProps) {
 
           {/* Output Panel */}
           {decodedResult && decodedResult.isValid ? (
-            <CodeOutputPanel
+            <CodePanel
               tabs={outputTabs}
               activeTab={activeTab}
               onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}

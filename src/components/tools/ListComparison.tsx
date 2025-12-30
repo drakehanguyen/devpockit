@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -82,7 +82,7 @@ export function ListComparison({ className }: ListComparisonProps) {
       setResults([]);
       setSearchQuery('');
     }
-     
+
   }, [toolState, isHydrated]);
 
   // Parse lists and calculate comparison
@@ -118,7 +118,7 @@ export function ListComparison({ className }: ListComparisonProps) {
       setResults([]);
     }
     // compareLists already includes listAText, listBText, and options in its dependencies
-     
+
   }, [compareLists, isHydrated, listAText, listBText]);
 
   // Filter results based on search query
@@ -383,7 +383,7 @@ export function ListComparison({ className }: ListComparisonProps) {
           {/* Side-by-side Input Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* List A Panel */}
-            <CodeInputPanel
+            <CodePanel
               title="List A"
               value={listAText}
               onChange={setListAText}
@@ -419,7 +419,7 @@ export function ListComparison({ className }: ListComparisonProps) {
             />
 
             {/* List B Panel */}
-            <CodeInputPanel
+            <CodePanel
               title="List B"
               value={listBText}
               onChange={setListBText}

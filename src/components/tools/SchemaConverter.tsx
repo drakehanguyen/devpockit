@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -335,7 +334,7 @@ export function SchemaConverter({ className }: SchemaConverterProps) {
           {/* Side-by-side Editor Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
-            <CodeInputPanel
+            <CodePanel
               title={`Input (${SCHEMA_FORMAT_OPTIONS.find(f => f.value === options.sourceFormat)?.label || 'Source'})`}
               value={input}
               onChange={setInput}
@@ -394,8 +393,9 @@ export function SchemaConverter({ className }: SchemaConverterProps) {
             />
 
             {/* Output Panel */}
-            <CodeOutputPanel
+            <CodePanel
               title={`Output (${SCHEMA_FORMAT_OPTIONS.find(f => f.value === options.targetFormat)?.label || 'Target'})`}
+              readOnly={true}
               value={!isCurrentConversionSupported
                 ? `// Conversion from ${SCHEMA_FORMAT_OPTIONS.find(f => f.value === options.sourceFormat)?.label} to ${SCHEMA_FORMAT_OPTIONS.find(f => f.value === options.targetFormat)?.label} is not yet supported.
 

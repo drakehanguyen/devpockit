@@ -21,6 +21,9 @@ export interface CodePanelTab {
   language?: string;
 }
 
+// Re-export for backward compatibility
+export type CodeOutputTab = CodePanelTab;
+
 export interface CodePanelProps {
   // Content (single mode)
   title?: string;

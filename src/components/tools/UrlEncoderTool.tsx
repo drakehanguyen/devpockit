@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -181,7 +180,7 @@ export function UrlEncoderTool({ className }: UrlEncoderToolProps) {
           {/* Side-by-side Editor Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
-            <CodeInputPanel
+            <CodePanel
               title="Text to Encode"
               value={input}
               onChange={setInput}
@@ -247,7 +246,7 @@ export function UrlEncoderTool({ className }: UrlEncoderToolProps) {
             />
 
             {/* Output Panel */}
-            <CodeOutputPanel
+            <CodePanel
               title="Encoded URL"
               value={output}
               language="plaintext"

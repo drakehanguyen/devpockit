@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
@@ -241,7 +241,7 @@ export function IpChecker({ className }: IpCheckerProps) {
           </div>
 
           {/* Output Panel */}
-          <CodeOutputPanel
+          <CodePanel
             title="IP Information"
             value={output}
             language="json"

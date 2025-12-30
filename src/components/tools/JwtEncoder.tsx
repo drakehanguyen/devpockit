@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel, type CodeOutputTab } from '@/components/ui/CodeOutputPanel';
+import { CodePanel, type CodeOutputTab } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SecretInput } from '@/components/ui/secret-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -177,7 +176,7 @@ export function JwtEncoder({ className }: JwtEncoderProps) {
     }
   };
 
-  // Prepare tabs for CodeOutputPanel
+  // Prepare tabs for CodePanel
   const outputTabs: CodeOutputTab[] = useMemo(() => {
     if (!encodedResult || !encodedResult.isValid) {
       return [];
@@ -287,7 +286,7 @@ export function JwtEncoder({ className }: JwtEncoderProps) {
           </div>
 
           {/* Header Input Panel */}
-          <CodeInputPanel
+          <CodePanel
             title="Header (JSON)"
             value={options.header}
             onChange={handleHeaderChange}
@@ -301,7 +300,7 @@ export function JwtEncoder({ className }: JwtEncoderProps) {
           />
 
           {/* Payload Input Panel */}
-          <CodeInputPanel
+          <CodePanel
             title="Payload (JSON)"
             value={options.payload}
             onChange={handlePayloadChange}
@@ -354,7 +353,7 @@ export function JwtEncoder({ className }: JwtEncoderProps) {
 
           {/* Output Panel */}
           {encodedResult && encodedResult.isValid ? (
-            <CodeOutputPanel
+            <CodePanel
               tabs={outputTabs}
               activeTab={activeTab}
               onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}

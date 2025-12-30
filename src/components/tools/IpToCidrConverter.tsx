@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import {
@@ -206,7 +206,7 @@ export function IpToCidrConverter({ className }: IpToCidrConverterProps) {
           </div>
 
           {/* Output Panel */}
-          <CodeOutputPanel
+          <CodePanel
             title="Conversion Result"
             value={output}
             language="plaintext"
