@@ -153,9 +153,9 @@ export function SchemaConverter({ className }: SchemaConverterProps) {
   // Simplified: All formats convert to JSON Schema first, then to target
   const isConversionSupported = (source: SchemaFormat, target: SchemaFormat): boolean => {
     // Supported source formats (can convert to JSON Schema)
-    const supportedSources: SchemaFormat[] = ['json-schema', 'spark', 'mongo', 'bigquery', 'typescript', 'python', 'sql', 'pandas', 'polars'];
+    const supportedSources: SchemaFormat[] = ['json-schema', 'spark', 'mongo', 'bigquery', 'typescript', 'python', 'sql', 'pandas', 'polars', 'protobuf', 'avro', 'duckdb', 'pyspark'];
     // Supported target formats (can convert from JSON Schema)
-    const supportedTargets: SchemaFormat[] = ['json-schema', 'typescript', 'python', 'sql', 'spark', 'mongo', 'bigquery', 'pandas', 'polars'];
+    const supportedTargets: SchemaFormat[] = ['json-schema', 'typescript', 'python', 'sql', 'spark', 'mongo', 'bigquery', 'pandas', 'polars', 'protobuf', 'avro', 'duckdb', 'pyspark'];
 
     // Special case: Same format conversions (not useful)
     if (source === target) {
@@ -199,7 +199,7 @@ export function SchemaConverter({ className }: SchemaConverterProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {SCHEMA_FORMAT_OPTIONS.map((option) => {
-                    const supportedSources: SchemaFormat[] = ['json-schema', 'spark', 'mongo', 'bigquery', 'typescript', 'python', 'sql', 'pandas', 'polars'];
+                    const supportedSources: SchemaFormat[] = ['json-schema', 'spark', 'mongo', 'bigquery', 'typescript', 'python', 'sql', 'pandas', 'polars', 'protobuf', 'avro', 'duckdb', 'pyspark'];
                     const isSupported = supportedSources.includes(option.value as SchemaFormat);
                     return (
                       <SelectItem
@@ -261,8 +261,8 @@ export function SchemaConverter({ className }: SchemaConverterProps) {
               <div className="flex items-center space-x-2 p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                 <div className="text-sm text-yellow-700 dark:text-yellow-300">
                   <strong>Coming Soon:</strong> Conversion from {SCHEMA_FORMAT_OPTIONS.find(f => f.value === options.sourceFormat)?.label} to {SCHEMA_FORMAT_OPTIONS.find(f => f.value === options.targetFormat)?.label} is not yet supported.
-                  Currently supported sources: JSON Schema, Spark Schema, MongoDB Schema, BigQuery Schema, TypeScript, Python, SQL, Pandas, Polars.
-                  Currently supported targets: JSON Schema, TypeScript, Python, SQL, Spark Schema, MongoDB Schema, BigQuery Schema, Pandas, Polars.
+                  Currently supported sources: JSON Schema, Spark Schema (JSON), MongoDB Schema, BigQuery Schema, TypeScript, Python, SQL, Pandas, Polars, Protocol Buffers, Apache Avro, DuckDB Schema, PySpark Schema.
+                  Currently supported targets: JSON Schema, TypeScript, Python, SQL, Spark Schema (JSON), MongoDB Schema, BigQuery Schema, Pandas, Polars, Protocol Buffers, Apache Avro, DuckDB Schema, PySpark Schema.
                 </div>
               </div>
             )}
@@ -404,7 +404,7 @@ export function SchemaConverter({ className }: SchemaConverterProps) {
 
 // Supported source formats (→ JSON Schema):
 // - JSON Schema
-// - Spark Schema
+// - Spark Schema (JSON)
 // - MongoDB Schema
 // - BigQuery Schema
 // - TypeScript (interface/type/class)
@@ -412,17 +412,25 @@ export function SchemaConverter({ className }: SchemaConverterProps) {
 // - SQL (CREATE TABLE)
 // - Pandas (DataFrame dtypes)
 // - Polars (DataFrame schema)
+// - Protocol Buffers (.proto)
+// - Apache Avro (JSON)
+// - DuckDB Schema (SQL)
+// - PySpark Schema (Python)
 
 // Supported target formats (from JSON Schema):
 // - JSON Schema
 // - TypeScript
 // - Python
 // - SQL
-// - Spark Schema
+// - Spark Schema (JSON)
 // - MongoDB Schema
 // - BigQuery Schema
 // - Pandas
-// - Polars`
+// - Polars
+// - Protocol Buffers
+// - Apache Avro
+// - DuckDB Schema
+// - PySpark Schema`
                 : output}
               language={getTargetLanguage()}
               height="500px"

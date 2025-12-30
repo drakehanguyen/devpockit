@@ -7,7 +7,11 @@ export type SchemaFormat =
   | 'python'
   | 'sql'
   | 'pandas'
-  | 'polars';
+  | 'polars'
+  | 'protobuf'
+  | 'avro'
+  | 'duckdb'
+  | 'pyspark';
 
 export interface SchemaConverterOptions {
   sourceFormat: SchemaFormat;
@@ -53,7 +57,7 @@ export const SCHEMA_FORMAT_OPTIONS = [
   },
   {
     value: 'spark',
-    label: 'Spark Schema',
+    label: 'Spark Schema (JSON)',
     description: 'Apache Spark DataFrame Schema',
     language: 'json'
   },
@@ -98,6 +102,30 @@ export const SCHEMA_FORMAT_OPTIONS = [
     label: 'Polars Schema',
     description: 'Polars DataFrame schema',
     language: 'json'
+  },
+  {
+    value: 'protobuf',
+    label: 'Protocol Buffers',
+    description: 'Protocol Buffers (.proto)',
+    language: 'protobuf'
+  },
+  {
+    value: 'avro',
+    label: 'Apache Avro',
+    description: 'Apache Avro Schema (JSON)',
+    language: 'json'
+  },
+  {
+    value: 'duckdb',
+    label: 'DuckDB Schema',
+    description: 'DuckDB Table Schema',
+    language: 'sql'
+  },
+  {
+    value: 'pyspark',
+    label: 'PySpark Schema',
+    description: 'PySpark DataFrame Schema (Python)',
+    language: 'python'
   }
 ];
 
@@ -407,18 +435,105 @@ class User:
   "active": "Bool"
 }`,
     description: 'Polars DataFrame schema dictionary'
+  },
+  {
+    name: 'Protocol Buffers Example',
+    format: 'protobuf',
+    content: `syntax = "proto3";
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  optional int32 age = 4;
+  bool active = 5;
+  repeated string tags = 6;
+}`,
+    description: 'Protocol Buffers message definition with common field types'
+  },
+  {
+    name: 'Apache Avro Example',
+    format: 'avro',
+    content: `{
+  "type": "record",
+  "name": "User",
+  "fields": [
+    {
+      "name": "id",
+      "type": "int"
+    },
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "email",
+      "type": "string"
+    },
+    {
+      "name": "age",
+      "type": ["null", "int"],
+      "default": null
+    },
+    {
+      "name": "active",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "name": "tags",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    }
+  ]
+}`,
+    description: 'Apache Avro schema with union types for nullable fields'
+  },
+  {
+    name: 'DuckDB Schema Example',
+    format: 'duckdb',
+    content: `CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    age INTEGER,
+    active BOOLEAN DEFAULT TRUE,
+    tags VARCHAR[]
+);`,
+    description: 'DuckDB table schema with array type'
+  },
+  {
+    name: 'PySpark Schema Example',
+    format: 'pyspark',
+    content: `from pyspark.sql.types import StructType, StructField, StringType, IntegerType, BooleanType, ArrayType
+
+schema = StructType([
+    StructField("id", IntegerType(), False),
+    StructField("name", StringType(), True),
+    StructField("email", StringType(), True),
+    StructField("age", IntegerType(), True),
+    StructField("active", BooleanType(), True),
+    StructField("tags", ArrayType(StringType()), True)
+])`,
+    description: 'PySpark StructType schema definition'
   }
 ];
 
 export const SCHEMA_CONVERSION_MATRIX: Record<SchemaFormat, SchemaFormat[]> = {
-  'json-schema': ['typescript', 'python', 'sql', 'spark', 'mongo', 'bigquery'],
-  'spark': ['json-schema', 'typescript', 'python', 'sql'],
-  'mongo': ['json-schema', 'typescript', 'python', 'sql'],
-  'bigquery': ['json-schema', 'typescript', 'python', 'sql'],
-  'typescript': ['json-schema', 'python', 'sql', 'spark'],
-  'python': ['json-schema', 'typescript', 'sql', 'spark'],
-  'sql': ['json-schema', 'typescript', 'python', 'spark'],
-  'pandas': ['json-schema', 'typescript', 'python', 'sql'],
-  'polars': ['json-schema', 'typescript', 'python', 'sql']
+  'json-schema': ['typescript', 'python', 'sql', 'spark', 'mongo', 'bigquery', 'protobuf', 'avro', 'duckdb', 'pyspark'],
+  'spark': ['json-schema', 'typescript', 'python', 'sql', 'protobuf', 'avro', 'duckdb', 'pyspark'],
+  'mongo': ['json-schema', 'typescript', 'python', 'sql', 'protobuf', 'avro', 'duckdb', 'pyspark'],
+  'bigquery': ['json-schema', 'typescript', 'python', 'sql', 'protobuf', 'avro', 'duckdb', 'pyspark'],
+  'typescript': ['json-schema', 'python', 'sql', 'spark', 'protobuf', 'avro', 'duckdb', 'pyspark'],
+  'python': ['json-schema', 'typescript', 'sql', 'spark', 'protobuf', 'avro', 'duckdb', 'pyspark'],
+  'sql': ['json-schema', 'typescript', 'python', 'spark', 'protobuf', 'avro', 'duckdb', 'pyspark'],
+  'pandas': ['json-schema', 'typescript', 'python', 'sql', 'protobuf', 'avro', 'duckdb', 'pyspark'],
+  'polars': ['json-schema', 'typescript', 'python', 'sql', 'protobuf', 'avro', 'duckdb', 'pyspark'],
+  'protobuf': ['json-schema', 'typescript', 'python', 'sql', 'spark', 'mongo', 'bigquery', 'avro', 'duckdb', 'pyspark'],
+  'avro': ['json-schema', 'typescript', 'python', 'sql', 'spark', 'mongo', 'bigquery', 'protobuf', 'duckdb', 'pyspark'],
+  'duckdb': ['json-schema', 'typescript', 'python', 'sql', 'spark', 'mongo', 'bigquery', 'protobuf', 'avro', 'pyspark'],
+  'pyspark': ['json-schema', 'typescript', 'python', 'sql', 'spark', 'mongo', 'bigquery', 'protobuf', 'avro', 'duckdb']
 };
 
