@@ -312,6 +312,7 @@ export function QrCodeDecoder({ className, onResult, onError }: QrCodeDecoderPro
             {/* Input Panel - Upload */}
             <CodePanel
               title="Upload Image"
+              height="600px"
               showCopyButton={false}
               showWrapToggle={false}
               headerActions={
@@ -402,6 +403,7 @@ export function QrCodeDecoder({ className, onResult, onError }: QrCodeDecoderPro
             {/* Output Panel - Results */}
             <CodePanel
               title="Decoded Result"
+              height="600px"
               showCopyButton={false}
               showWrapToggle={false}
               headerActions={

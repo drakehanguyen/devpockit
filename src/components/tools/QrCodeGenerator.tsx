@@ -639,6 +639,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
             {/* Input Panel */}
             <CodePanel
               title="Input Data"
+              height="600px"
               showCopyButton={false}
               showWrapToggle={false}
               headerActions={
@@ -682,6 +683,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
             {/* Output Panel */}
             <CodePanel
               title="Generated QR Code"
+              height="600px"
               showCopyButton={false}
               showWrapToggle={false}
               headerActions={

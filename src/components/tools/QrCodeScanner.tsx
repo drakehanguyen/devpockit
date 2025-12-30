@@ -370,6 +370,7 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
             {/* Input Panel - Camera */}
             <CodePanel
               title="Camera Scanner"
+              height="600px"
               showCopyButton={false}
               showWrapToggle={false}
               headerActions={
@@ -465,6 +466,7 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
             {/* Output Panel - Results */}
             <CodePanel
               title="Scan Result"
+              height="600px"
               showCopyButton={false}
               showWrapToggle={false}
               headerActions={
