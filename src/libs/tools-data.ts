@@ -22,6 +22,7 @@ import {
   Unlock,
   Wrench,
   Info,
+  Binary,
   type LucideIcon
 } from 'lucide-react';
 
@@ -54,6 +55,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'data-format-converter': RefreshCw,
   'regex-tester': Search,
   'system-info': Info,
+  'number-base-converter': Binary,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -313,6 +315,18 @@ export const toolCategories: ToolCategory[] = [
         isPopular: true,
         path: '/tools/converters/schema-converter',
         component: 'SchemaConverter',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'number-base-converter',
+        name: 'Number Base Converter',
+        description: 'Convert numbers between different bases (binary, octal, decimal, hexadecimal) with bit visualization and range calculator',
+        category: 'converters',
+        icon: '🔢',
+        isPopular: true,
+        path: '/tools/converters/number-base-converter',
+        component: 'NumberBaseConverter',
         supportsDesktop: true,
         supportsMobile: true,
       },

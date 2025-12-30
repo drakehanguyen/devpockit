@@ -28,6 +28,7 @@ export const getToolComponent = async (componentName: string) => {
     'JwtEncoder': () => import('@/components/tools/JwtEncoder').then(m => m.JwtEncoder),
     'RegexTester': () => import('@/components/tools/RegexTester').then(m => m.RegexTester),
     'SystemInfo': () => import('@/components/tools/SystemInfo').then(m => m.SystemInfo),
+    'NumberBaseConverter': () => import('@/components/tools/NumberBaseConverter').then(m => m.NumberBaseConverter),
   };
 
   const loader = componentMap[componentName];
