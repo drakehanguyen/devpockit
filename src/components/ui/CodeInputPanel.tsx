@@ -6,11 +6,12 @@
 'use client';
 
 import { CodeEditorCore } from '@/components/ui/CodeEditorCore';
-import { Switch } from '@/components/ui/switch';
+import { EditorSettingsMenu } from '@/components/ui/EditorSettingsMenu';
 import { type CodeEditorTheme } from '@/config/code-editor-themes';
 import { cn } from '@/libs/utils';
 import { Check, Copy, Trash2 } from 'lucide-react';
-import React, { useState } from 'react';
+import type * as Monaco from 'monaco-editor';
+import React, { useEffect, useState } from 'react';
 
 export interface CodeInputPanelProps {
   // Content
@@ -67,6 +68,10 @@ export function CodeInputPanel({
   className,
 }: CodeInputPanelProps) {
   const [copySuccess, setCopySuccess] = useState(false);
+  const [stickyScroll, setStickyScroll] = useState(false);
+  const [renderWhitespace, setRenderWhitespace] = useState(false);
+  const [renderControlCharacters, setRenderControlCharacters] = useState(false);
+  const [editorInstance, setEditorInstance] = useState<Monaco.editor.IStandaloneCodeEditor | null>(null);
 
   const hasContent = value && value.trim().length > 0;
 
@@ -83,6 +88,57 @@ export function CodeInputPanel({
 
   const handleClear = () => {
     onChange('');
+  };
+
+  const handleEditorMount = (editor: any, monaco: any) => {
+    setEditorInstance(editor);
+    // Apply initial editor settings
+    editor.updateOptions({
+      stickyScroll: {
+        enabled: stickyScroll,
+      },
+      renderWhitespace: renderWhitespace ? 'all' : 'none',
+      renderControlCharacters: renderControlCharacters,
+    });
+    // Call the original onEditorMount if provided
+    onEditorMount?.(editor, monaco);
+  };
+
+  // Update editor options when state changes (if editor is already mounted)
+  useEffect(() => {
+    if (editorInstance) {
+      editorInstance.updateOptions({
+        stickyScroll: {
+          enabled: stickyScroll,
+        },
+        renderWhitespace: renderWhitespace ? 'all' : 'none',
+        renderControlCharacters: renderControlCharacters,
+      });
+    }
+  }, [editorInstance, stickyScroll, renderWhitespace, renderControlCharacters]);
+
+  const handleStickyScrollChange = (enabled: boolean) => {
+    setStickyScroll(enabled);
+  };
+
+  const handleRenderWhitespaceChange = (enabled: boolean) => {
+    setRenderWhitespace(enabled);
+  };
+
+  const handleRenderControlCharactersChange = (enabled: boolean) => {
+    setRenderControlCharacters(enabled);
+  };
+
+  const handleZoomIn = () => {
+    // Zoom is handled by the menu component via editor actions
+  };
+
+  const handleZoomOut = () => {
+    // Zoom is handled by the menu component via editor actions
+  };
+
+  const handleResetZoom = () => {
+    // Zoom is handled by the menu component via editor actions
   };
 
   return (
@@ -149,7 +205,7 @@ export function CodeInputPanel({
             readOnly={false}
             placeholder={placeholder}
             height={height}
-            onMount={onEditorMount}
+            onMount={handleEditorMount}
           />
         </div>
       </div>
@@ -158,13 +214,21 @@ export function CodeInputPanel({
       {(footerLeftContent || footerRightContent || (showWrapToggle && onWrapTextChange)) && (
         <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
           <div className="flex items-center gap-4">
-            {/* Wrap Text Toggle */}
+            {/* Editor Settings Menu */}
             {showWrapToggle && onWrapTextChange && (
-              <Switch
-                checked={wrapText}
-                onCheckedChange={onWrapTextChange}
-                size="sm"
-                title="Wrap Text"
+              <EditorSettingsMenu
+                editorInstance={editorInstance}
+                wrapText={wrapText}
+                onWrapTextChange={onWrapTextChange}
+                stickyScroll={stickyScroll}
+                onStickyScrollChange={handleStickyScrollChange}
+                renderWhitespace={renderWhitespace}
+                onRenderWhitespaceChange={handleRenderWhitespaceChange}
+                renderControlCharacters={renderControlCharacters}
+                onRenderControlCharactersChange={handleRenderControlCharactersChange}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onResetZoom={handleResetZoom}
               />
             )}
             {footerLeftContent}

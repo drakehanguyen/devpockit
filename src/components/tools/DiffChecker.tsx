@@ -3,6 +3,7 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { EditorSettingsMenu } from '@/components/ui/EditorSettingsMenu';
 import { MonacoEditorInstance } from '@/components/ui/MonacoEditorInstance';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -12,6 +13,7 @@ import { cn } from '@/libs/utils';
 import { ArrowsRightLeftIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Change, diffLines, diffWordsWithSpace } from 'diff';
 import { Check, Copy, Trash2 } from 'lucide-react';
+import type * as Monaco from 'monaco-editor';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface DiffCheckerProps {
@@ -49,8 +51,16 @@ export function DiffChecker({ className }: DiffCheckerProps) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [originalWrapText, setOriginalWrapText] = useState(true);
   const [modifiedWrapText, setModifiedWrapText] = useState(true);
+  const [originalStickyScroll, setOriginalStickyScroll] = useState(false);
+  const [modifiedStickyScroll, setModifiedStickyScroll] = useState(false);
+  const [originalRenderWhitespace, setOriginalRenderWhitespace] = useState(false);
+  const [modifiedRenderWhitespace, setModifiedRenderWhitespace] = useState(false);
+  const [originalRenderControlCharacters, setOriginalRenderControlCharacters] = useState(false);
+  const [modifiedRenderControlCharacters, setModifiedRenderControlCharacters] = useState(false);
   const [copySuccess, setCopySuccess] = useState<'original' | 'modified' | null>(null);
   const [editorsReady, setEditorsReady] = useState(false);
+  const [originalEditorInstance, setOriginalEditorInstance] = useState<Monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [modifiedEditorInstance, setModifiedEditorInstance] = useState<Monaco.editor.IStandaloneCodeEditor | null>(null);
 
   // Editor refs for decorations
   const originalEditorRef = useRef<any>(null);
@@ -430,6 +440,15 @@ export function DiffChecker({ className }: DiffCheckerProps) {
 
   const handleOriginalEditorMount = (editor: any) => {
     originalEditorRef.current = editor;
+    setOriginalEditorInstance(editor);
+    // Apply initial editor settings
+    editor.updateOptions({
+      stickyScroll: {
+        enabled: originalStickyScroll,
+      },
+      renderWhitespace: originalRenderWhitespace ? 'all' : 'none',
+      renderControlCharacters: originalRenderControlCharacters,
+    });
     // Trigger decoration after mount
     setTimeout(calculateDiffAndDecorate, 100);
     // Check if both editors are ready
@@ -440,6 +459,15 @@ export function DiffChecker({ className }: DiffCheckerProps) {
 
   const handleModifiedEditorMount = (editor: any) => {
     modifiedEditorRef.current = editor;
+    setModifiedEditorInstance(editor);
+    // Apply initial editor settings
+    editor.updateOptions({
+      stickyScroll: {
+        enabled: modifiedStickyScroll,
+      },
+      renderWhitespace: modifiedRenderWhitespace ? 'all' : 'none',
+      renderControlCharacters: modifiedRenderControlCharacters,
+    });
     // Trigger decoration after mount
     setTimeout(calculateDiffAndDecorate, 100);
     // Check if both editors are ready
@@ -447,6 +475,32 @@ export function DiffChecker({ className }: DiffCheckerProps) {
       setEditorsReady(true);
     }
   };
+
+  // Update original editor options when state changes
+  useEffect(() => {
+    if (originalEditorInstance) {
+      originalEditorInstance.updateOptions({
+        stickyScroll: {
+          enabled: originalStickyScroll,
+        },
+        renderWhitespace: originalRenderWhitespace ? 'all' : 'none',
+        renderControlCharacters: originalRenderControlCharacters,
+      });
+    }
+  }, [originalEditorInstance, originalStickyScroll, originalRenderWhitespace, originalRenderControlCharacters]);
+
+  // Update modified editor options when state changes
+  useEffect(() => {
+    if (modifiedEditorInstance) {
+      modifiedEditorInstance.updateOptions({
+        stickyScroll: {
+          enabled: modifiedStickyScroll,
+        },
+        renderWhitespace: modifiedRenderWhitespace ? 'all' : 'none',
+        renderControlCharacters: modifiedRenderControlCharacters,
+      });
+    }
+  }, [modifiedEditorInstance, modifiedStickyScroll, modifiedRenderWhitespace, modifiedRenderControlCharacters]);
 
   const getCharacterCount = (text: string): number => text.length;
   const getLineCount = (text: string): number => (text ? text.split('\n').length : 0);
@@ -620,11 +674,19 @@ export function DiffChecker({ className }: DiffCheckerProps) {
               {/* Footer */}
               <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
                 <div className="flex items-center gap-4">
-                  <Switch
-                    checked={originalWrapText}
-                    onCheckedChange={setOriginalWrapText}
-                    size="sm"
-                    title="Wrap Text"
+                  <EditorSettingsMenu
+                    editorInstance={originalEditorInstance}
+                    wrapText={originalWrapText}
+                    onWrapTextChange={setOriginalWrapText}
+                    stickyScroll={originalStickyScroll}
+                    onStickyScrollChange={setOriginalStickyScroll}
+                    renderWhitespace={originalRenderWhitespace}
+                    onRenderWhitespaceChange={setOriginalRenderWhitespace}
+                    renderControlCharacters={originalRenderControlCharacters}
+                    onRenderControlCharactersChange={setOriginalRenderControlCharacters}
+                    onZoomIn={() => {}}
+                    onZoomOut={() => {}}
+                    onResetZoom={() => {}}
                   />
                   <span>{getCharacterCount(originalText)} characters</span>
                   <span>{getLineCount(originalText)} lines</span>
@@ -704,11 +766,19 @@ export function DiffChecker({ className }: DiffCheckerProps) {
               {/* Footer */}
               <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
                 <div className="flex items-center gap-4">
-                  <Switch
-                    checked={modifiedWrapText}
-                    onCheckedChange={setModifiedWrapText}
-                    size="sm"
-                    title="Wrap Text"
+                  <EditorSettingsMenu
+                    editorInstance={modifiedEditorInstance}
+                    wrapText={modifiedWrapText}
+                    onWrapTextChange={setModifiedWrapText}
+                    stickyScroll={modifiedStickyScroll}
+                    onStickyScrollChange={setModifiedStickyScroll}
+                    renderWhitespace={modifiedRenderWhitespace}
+                    onRenderWhitespaceChange={setModifiedRenderWhitespace}
+                    renderControlCharacters={modifiedRenderControlCharacters}
+                    onRenderControlCharactersChange={setModifiedRenderControlCharacters}
+                    onZoomIn={() => {}}
+                    onZoomOut={() => {}}
+                    onResetZoom={() => {}}
                   />
                   <span>{getCharacterCount(modifiedText)} characters</span>
                   <span>{getLineCount(modifiedText)} lines</span>

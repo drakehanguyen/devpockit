@@ -7,11 +7,12 @@
 'use client';
 
 import { CodeEditorCore } from '@/components/ui/CodeEditorCore';
-import { Switch } from '@/components/ui/switch';
+import { EditorSettingsMenu } from '@/components/ui/EditorSettingsMenu';
 import { type CodeEditorTheme } from '@/config/code-editor-themes';
 import { cn } from '@/libs/utils';
 import { Check, Copy } from 'lucide-react';
-import React, { useState } from 'react';
+import type * as Monaco from 'monaco-editor';
+import React, { useEffect, useState } from 'react';
 
 export interface CodeOutputTab {
   id: string;
@@ -81,6 +82,11 @@ export function CodeOutputPanel({
   onEditorMount,
 }: CodeOutputPanelProps) {
   const [copySuccess, setCopySuccess] = useState(false);
+  const [stickyScroll, setStickyScroll] = useState(false);
+  const [renderWhitespace, setRenderWhitespace] = useState(false);
+  const [renderControlCharacters, setRenderControlCharacters] = useState(false);
+  // For tabbed mode: store editors by tab ID. For single mode: use 'single' as key
+  const [editorInstances, setEditorInstances] = useState<Map<string, Monaco.editor.IStandaloneCodeEditor>>(new Map());
 
   // Determine if we're in tabbed mode
   const isTabbedMode = tabs && tabs.length > 0;
@@ -89,6 +95,8 @@ export function CodeOutputPanel({
   const currentTab = isTabbedMode ? tabs.find(t => t.id === activeTab) || tabs[0] : null;
   const currentValue = isTabbedMode ? (currentTab?.value || '') : (value || '');
   const currentLanguage = isTabbedMode ? (currentTab?.language || 'plaintext') : language;
+  const currentEditorKey = isTabbedMode ? (activeTab || tabs[0]?.id || '') : 'single';
+  const currentEditorInstance = editorInstances.get(currentEditorKey) || null;
 
   const hasContent = currentValue && currentValue.trim().length > 0;
 
@@ -114,6 +122,66 @@ export function CodeOutputPanel({
   const getLineCount = (text: string): number => {
     if (!text) return 0;
     return text.split('\n').length;
+  };
+
+  const handleEditorMount = (editor: any, monaco: any) => {
+    // Calculate the editor key based on current mode (tab ID or 'single')
+    const editorKey = isTabbedMode ? (activeTab || tabs?.[0]?.id || '') : 'single';
+    // Store editor instance for the current key (tab ID or 'single')
+    setEditorInstances(prev => {
+      const newMap = new Map(prev);
+      newMap.set(editorKey, editor);
+      return newMap;
+    });
+    // Apply initial editor settings
+    editor.updateOptions({
+      stickyScroll: {
+        enabled: stickyScroll,
+      },
+      renderWhitespace: renderWhitespace ? 'all' : 'none',
+      renderControlCharacters: renderControlCharacters,
+    });
+    // Call the original onEditorMount if provided
+    onEditorMount?.(editor, monaco);
+  };
+
+  // Update editor options when state changes (for all editors in tabbed mode, or single editor)
+  useEffect(() => {
+    if (editorInstances.size > 0) {
+      editorInstances.forEach((editor) => {
+        editor.updateOptions({
+          stickyScroll: {
+            enabled: stickyScroll,
+          },
+          renderWhitespace: renderWhitespace ? 'all' : 'none',
+          renderControlCharacters: renderControlCharacters,
+        });
+      });
+    }
+  }, [editorInstances, stickyScroll, renderWhitespace, renderControlCharacters]);
+
+  const handleStickyScrollChange = (enabled: boolean) => {
+    setStickyScroll(enabled);
+  };
+
+  const handleRenderWhitespaceChange = (enabled: boolean) => {
+    setRenderWhitespace(enabled);
+  };
+
+  const handleRenderControlCharactersChange = (enabled: boolean) => {
+    setRenderControlCharacters(enabled);
+  };
+
+  const handleZoomIn = () => {
+    // Zoom is handled by the menu component via editor actions
+  };
+
+  const handleZoomOut = () => {
+    // Zoom is handled by the menu component via editor actions
+  };
+
+  const handleResetZoom = () => {
+    // Zoom is handled by the menu component via editor actions
   };
 
   return (
@@ -184,7 +252,7 @@ export function CodeOutputPanel({
             wrapText={wrapText}
             readOnly={true}
             height={height}
-            onMount={onEditorMount}
+            onMount={handleEditorMount}
           />
         </div>
       </div>
@@ -193,16 +261,24 @@ export function CodeOutputPanel({
       {(footerLeftContent || footerRightContent || showStats || (showWrapToggle && onWrapTextChange)) && (
         <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
           <div className="flex items-center gap-4">
-            {/* Wrap Text Toggle */}
+            {/* Editor Settings Menu */}
             {showWrapToggle && onWrapTextChange && (
-              <Switch
-                checked={wrapText}
-                onCheckedChange={onWrapTextChange}
-                size="sm"
-                title="Wrap Text"
+              <EditorSettingsMenu
+                editorInstance={currentEditorInstance}
+                wrapText={wrapText}
+                onWrapTextChange={onWrapTextChange}
+                stickyScroll={stickyScroll}
+                onStickyScrollChange={handleStickyScrollChange}
+                renderWhitespace={renderWhitespace}
+                onRenderWhitespaceChange={handleRenderWhitespaceChange}
+                renderControlCharacters={renderControlCharacters}
+                onRenderControlCharactersChange={handleRenderControlCharactersChange}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onResetZoom={handleResetZoom}
               />
             )}
-            {/* Stats next to toggle */}
+            {/* Stats next to menu */}
             {showStats && (
               <>
                 <span>{getWordCount(currentValue)} words</span>
