@@ -2,14 +2,16 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
+import type { CodeOutputTab } from '@/components/ui/code-panel';
 import { CodePanel } from '@/components/ui/code-panel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { JsonTreeView } from '@/components/ui/json-tree-view';
 import { Label } from '@/components/ui/label';
 import {
   DEFAULT_JSON_PATH_OPTIONS,
-  JSON_PATH_EXAMPLES,
   JSON_PATH_COMMON_PATTERNS,
+  JSON_PATH_EXAMPLES,
   type JsonPathFinderOptions
 } from '@/config/json-path-finder-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
@@ -21,7 +23,7 @@ import {
 } from '@/libs/json-path-finder';
 import { cn } from '@/libs/utils';
 import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface JsonPathFinderProps {
   className?: string;
@@ -39,6 +41,8 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
   const [error, setError] = useState<string>('');
   const [result, setResult] = useState<JsonPathResult | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('tree');
+  const [getExpandedJson, setGetExpandedJson] = useState<(() => string) | null>(null);
 
   // Editor settings
   const [theme] = useCodeEditorTheme('basicDark');
@@ -55,6 +59,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
       if (toolState.result) setResult(toolState.result as JsonPathResult);
+      if (toolState.activeTab) setActiveTab(toolState.activeTab as string);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -68,11 +73,12 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
         pathInput,
         output,
         error,
-        result: result || undefined
+        result: result || undefined,
+        activeTab
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, jsonInput, pathInput, output, error, result, isHydrated]);
+  }, [options, jsonInput, pathInput, output, error, result, activeTab, isHydrated]);
 
   // Reset local state when tool state is cleared
   useEffect(() => {
@@ -83,6 +89,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
       setOutput('');
       setError('');
       setResult(null);
+      setActiveTab('tree');
     }
   }, [toolState, isHydrated]);
 
@@ -176,6 +183,104 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     return text.split('\n').length;
   };
 
+  // Parse JSON safely
+  const parsedJsonData = useMemo(() => {
+    if (!jsonInput.trim()) return null;
+    try {
+      return JSON.parse(jsonInput);
+    } catch {
+      return null;
+    }
+  }, [jsonInput]);
+
+  // Create output tabs - Always show both tabs
+  const outputTabs: CodeOutputTab[] = useMemo(() => {
+    const tabs: CodeOutputTab[] = [
+      {
+        id: 'tree',
+        label: 'Tree View',
+        value: '', // Not used for tree view
+        language: 'json'
+      },
+      {
+        id: 'results',
+        label: 'Results',
+        value: output || '',
+        language: 'json'
+      }
+    ];
+
+    return tabs;
+  }, [output]);
+
+  // Ensure activeTab is valid when outputTabs change
+  // Default to 'tree' if available, otherwise use first available tab
+  useEffect(() => {
+    if (outputTabs.length > 0) {
+      const treeTab = outputTabs.find(tab => tab.id === 'tree');
+      const currentTab = outputTabs.find(tab => tab.id === activeTab);
+
+      if (!currentTab) {
+        // If current tab is not available, switch to tree if available, otherwise first tab
+        setActiveTab(treeTab ? 'tree' : outputTabs[0].id);
+      }
+    }
+  }, [outputTabs, activeTab]);
+
+  // Custom tab content renderer
+  const renderCustomTabContent = (tabId: string): React.ReactNode => {
+    if (tabId === 'tree') {
+      // Show tree view if JSON is valid, otherwise show empty state message
+      if (parsedJsonData !== null) {
+        return (
+          <div className="h-full w-full">
+            <JsonTreeView
+              data={parsedJsonData}
+              highlightedPaths={result?.paths || []}
+              onPathClick={(path) => {
+                // Copy path to clipboard
+                navigator.clipboard.writeText(path).catch(console.error);
+              }}
+              onGetExpandedJson={(fn: () => string) => setGetExpandedJson(() => fn)}
+              maxDepth={3}
+              height="500px"
+            />
+          </div>
+        );
+      }
+      // Show empty state when no JSON is provided
+      return (
+        <div className="h-full w-full flex items-center justify-center text-neutral-500 dark:text-neutral-400">
+          <div className="text-center">
+            <p className="text-sm">Enter JSON data to view the tree structure</p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Custom copy handler for tree view
+  const handleTreeViewCopy = useCallback(async (): Promise<string | null> => {
+    if (activeTab === 'tree') {
+      if (getExpandedJson) {
+        try {
+          const json = getExpandedJson();
+          console.log('Copying expanded JSON, length:', json?.length || 0);
+          return json || '';
+        } catch (err) {
+          console.error('Failed to get expanded JSON:', err);
+          return null;
+        }
+      }
+      console.warn('getExpandedJson function not available');
+      // Function not ready yet, but button should still be enabled
+      // Return empty string so button is clickable
+      return '';
+    }
+    return null; // Use default copy behavior for other tabs
+  }, [activeTab, getExpandedJson]);
+
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header Section */}
@@ -210,6 +315,22 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
                 }}
                 className="flex-1 font-mono text-sm"
               />
+              <Button
+                onClick={handleEvaluate}
+                disabled={!jsonInput.trim() || !pathInput.trim() || isEvaluating}
+                variant="default"
+                size="sm"
+                className="h-10 px-4"
+              >
+                {isEvaluating ? (
+                  <>
+                    <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
+                    Evaluating...
+                  </>
+                ) : (
+                  'Evaluate'
+                )}
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -288,43 +409,49 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
               footerLeftContent={
                 <span>{getCharacterCount(jsonInput)} characters</span>
               }
-              footerRightContent={
-                <Button
-                  onClick={handleEvaluate}
-                  disabled={!jsonInput.trim() || !pathInput.trim() || isEvaluating}
-                  variant="default"
-                  size="sm"
-                  className="h-8 px-4"
-                >
-                  {isEvaluating ? (
-                    <>
-                      <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
-                      Evaluating...
-                    </>
-                  ) : (
-                    'Evaluate'
-                  )}
-                </Button>
-              }
             />
 
             {/* Output Panel */}
             <CodePanel
-              title="Results"
-              value={output}
+              tabs={outputTabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              customTabContent={renderCustomTabContent}
+              onCopy={handleTreeViewCopy}
               language="json"
               height="500px"
               theme={theme}
               wrapText={outputWrapText}
               onWrapTextChange={setOutputWrapText}
+              showWrapToggle={activeTab === 'results'}
               footerLeftContent={
-                output && result && (
-                  <>
-                    <span>{result.count} match{result.count !== 1 ? 'es' : ''}</span>
-                    <span>{getCharacterCount(output)} characters</span>
-                    <span>{getLineCount(output)} lines</span>
-                  </>
-                )
+                <>
+                  {activeTab === 'tree' && result && (
+                    <span
+                      className={cn(
+                        'px-2.5 py-1 rounded-full text-xs font-semibold',
+                        result.success && result.count > 0
+                          ? 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                          : result.success && result.count === 0
+                          ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800'
+                          : ''
+                      )}
+                    >
+                      {result.success && result.count > 0
+                        ? `Found ${result.count} match${result.count !== 1 ? 'es' : ''}`
+                        : result.success && result.count === 0
+                        ? 'No matches found'
+                        : ''}
+                    </span>
+                  )}
+                  {activeTab === 'results' && output && result && (
+                    <>
+                      <span>{result.count} match{result.count !== 1 ? 'es' : ''}</span>
+                      <span>{getCharacterCount(output)} characters</span>
+                      <span>{getLineCount(output)} lines</span>
+                    </>
+                  )}
+                </>
               }
             />
           </div>
@@ -338,29 +465,6 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
             </div>
           )}
 
-          {/* Results Summary */}
-          {result && result.success && result.count > 0 && (
-            <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <div className="text-sm text-green-700 dark:text-green-300">
-                <strong>Found {result.count} match{result.count !== 1 ? 'es' : ''}</strong>
-                {result.paths.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    <div className="font-medium">Paths:</div>
-                    <div className="font-mono text-xs space-y-1 max-h-32 overflow-y-auto">
-                      {result.paths.slice(0, 10).map((path, index) => (
-                        <div key={index}>{path}</div>
-                      ))}
-                      {result.paths.length > 10 && (
-                        <div className="text-muted-foreground">
-                          ... and {result.paths.length - 10} more
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

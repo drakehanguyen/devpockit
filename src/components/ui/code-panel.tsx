@@ -8,6 +8,7 @@
 
 import { CodeEditorCore } from '@/components/ui/code-editor-core';
 import { EditorSettingsMenu } from '@/components/ui/editor-settings-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { type CodeEditorTheme } from '@/config/code-editor-themes';
 import { cn } from '@/libs/utils';
 import { Check, Copy, Trash2 } from 'lucide-react';
@@ -57,6 +58,8 @@ export interface CodePanelProps {
   headerActions?: React.ReactNode;
   footerLeftContent?: React.ReactNode;
   footerRightContent?: React.ReactNode;
+  customTabContent?: (tabId: string) => React.ReactNode; // Custom render function for specific tabs
+  onCopy?: () => Promise<string | null>; // Custom copy handler, returns content to copy or null to use default
 
   // Editor mount callback
   onEditorMount?: (editor: any, monaco: any) => void;
@@ -89,6 +92,8 @@ export function CodePanel({
   headerActions,
   footerLeftContent,
   footerRightContent,
+  customTabContent,
+  onCopy: customOnCopy,
   onEditorMount,
   className,
 }: CodePanelProps) {
@@ -115,12 +120,47 @@ export function CodePanel({
   const currentEditorInstance = editorInstances.get(currentEditorKey) || null;
 
   const hasContent = currentValue && currentValue.trim().length > 0;
+  const hasCustomCopy = customOnCopy !== undefined;
+  const canCopy = hasContent || hasCustomCopy;
+
+  // Debug: Log copy button state
+  // console.log('Copy button state:', { hasContent, hasCustomCopy, canCopy, customOnCopy: !!customOnCopy });
 
   // Copy handler
   const handleCopy = async () => {
-    if (!currentValue) return;
     try {
-      await navigator.clipboard.writeText(currentValue);
+      let textToCopy = '';
+
+      // Use custom copy handler if provided
+      if (customOnCopy) {
+        console.log('Using custom copy handler');
+        const customContent = await customOnCopy();
+        console.log('Custom content received:', customContent ? `Length: ${customContent.length}` : 'null/empty');
+        if (customContent !== null && customContent !== '') {
+          textToCopy = customContent;
+        } else if (customContent === null && currentValue) {
+          // Custom handler returned null, fall back to currentValue
+          textToCopy = currentValue;
+        } else {
+          // Custom handler returned empty or null with no currentValue
+          console.warn('Nothing to copy - custom handler returned empty/null and no currentValue');
+          return; // Nothing to copy
+        }
+      } else {
+        // No custom handler, use currentValue
+        if (!currentValue) {
+          return; // Nothing to copy
+        }
+        textToCopy = currentValue;
+      }
+
+      if (!textToCopy) {
+        console.warn('Nothing to copy - textToCopy is empty');
+        return; // Nothing to copy
+      }
+
+      console.log('Copying text, length:', textToCopy.length);
+      await navigator.clipboard.writeText(textToCopy);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
@@ -285,21 +325,35 @@ export function CodePanel({
 
           {/* Copy Button */}
           {showCopyButton && (
-            <button
-              onClick={handleCopy}
-              disabled={!hasContent}
-              className={cn(
-                'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                !hasContent && 'opacity-50 cursor-not-allowed'
-              )}
-              aria-label="Copy to clipboard"
-            >
-              {copySuccess ? (
-                <Check className="h-4 w-4 text-orange-600" />
-              ) : (
-                <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-              )}
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleCopy();
+                    }}
+                    disabled={!canCopy}
+                    className={cn(
+                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors relative z-10 cursor-pointer',
+                      !canCopy && 'opacity-50 cursor-not-allowed'
+                    )}
+                    aria-label="Copy to clipboard"
+                    type="button"
+                  >
+                    {copySuccess ? (
+                      <Check className="h-4 w-4 text-orange-600" />
+                    ) : (
+                      <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isTabbedMode && activeTab === 'tree' ? 'Copy expanded JSON' : 'Copy to clipboard'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>
@@ -307,6 +361,16 @@ export function CodePanel({
       {/* Editor Area */}
       <div className="pt-px pb-1 px-1">
         <div style={{ height }}>
+          {(() => {
+            // Check if we have custom content for this tab
+            if (isTabbedMode && activeTab && customTabContent) {
+              const customContent = customTabContent(activeTab);
+              if (customContent !== null && customContent !== undefined) {
+                return customContent;
+              }
+            }
+            // Default code editor (for non-tabbed mode or when no custom content)
+            return (
           <CodeEditorCore
             key={isTabbedMode ? activeTab : 'single'}
             value={currentValue}
@@ -321,6 +385,8 @@ export function CodePanel({
             singleLine={singleLine}
             onMount={handleEditorMount}
           />
+            );
+          })()}
         </div>
       </div>
 
