@@ -2,9 +2,8 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { EditorSettingsMenu } from '@/components/ui/EditorSettingsMenu';
-import { MonacoEditorInstance } from '@/components/ui/MonacoEditorInstance';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { DEFAULT_DIFF_OPTIONS, DIFF_CHECKER_OPTIONS, DIFF_EXAMPLES } from '@/config/diff-checker-config';
@@ -12,8 +11,6 @@ import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { cn } from '@/libs/utils';
 import { ArrowsRightLeftIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Change, diffLines, diffWordsWithSpace } from 'diff';
-import { Check, Copy, Trash2 } from 'lucide-react';
-import type * as Monaco from 'monaco-editor';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface DiffCheckerProps {
@@ -51,16 +48,7 @@ export function DiffChecker({ className }: DiffCheckerProps) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [originalWrapText, setOriginalWrapText] = useState(true);
   const [modifiedWrapText, setModifiedWrapText] = useState(true);
-  const [originalStickyScroll, setOriginalStickyScroll] = useState(false);
-  const [modifiedStickyScroll, setModifiedStickyScroll] = useState(false);
-  const [originalRenderWhitespace, setOriginalRenderWhitespace] = useState(false);
-  const [modifiedRenderWhitespace, setModifiedRenderWhitespace] = useState(false);
-  const [originalRenderControlCharacters, setOriginalRenderControlCharacters] = useState(false);
-  const [modifiedRenderControlCharacters, setModifiedRenderControlCharacters] = useState(false);
-  const [copySuccess, setCopySuccess] = useState<'original' | 'modified' | null>(null);
   const [editorsReady, setEditorsReady] = useState(false);
-  const [originalEditorInstance, setOriginalEditorInstance] = useState<Monaco.editor.IStandaloneCodeEditor | null>(null);
-  const [modifiedEditorInstance, setModifiedEditorInstance] = useState<Monaco.editor.IStandaloneCodeEditor | null>(null);
 
   // Editor refs for decorations
   const originalEditorRef = useRef<any>(null);
@@ -418,37 +406,8 @@ export function DiffChecker({ className }: DiffCheckerProps) {
     setOptions((prev) => ({ ...prev, language: lang }));
   };
 
-  const handleCopy = async (side: 'original' | 'modified') => {
-    const text = side === 'original' ? originalText : modifiedText;
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopySuccess(side);
-      setTimeout(() => setCopySuccess(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  const handleClear = (side: 'original' | 'modified') => {
-    if (side === 'original') {
-      setOriginalText('');
-    } else {
-      setModifiedText('');
-    }
-  };
-
   const handleOriginalEditorMount = (editor: any) => {
     originalEditorRef.current = editor;
-    setOriginalEditorInstance(editor);
-    // Apply initial editor settings
-    editor.updateOptions({
-      stickyScroll: {
-        enabled: originalStickyScroll,
-      },
-      renderWhitespace: originalRenderWhitespace ? 'all' : 'none',
-      renderControlCharacters: originalRenderControlCharacters,
-    });
     // Trigger decoration after mount
     setTimeout(calculateDiffAndDecorate, 100);
     // Check if both editors are ready
@@ -459,15 +418,6 @@ export function DiffChecker({ className }: DiffCheckerProps) {
 
   const handleModifiedEditorMount = (editor: any) => {
     modifiedEditorRef.current = editor;
-    setModifiedEditorInstance(editor);
-    // Apply initial editor settings
-    editor.updateOptions({
-      stickyScroll: {
-        enabled: modifiedStickyScroll,
-      },
-      renderWhitespace: modifiedRenderWhitespace ? 'all' : 'none',
-      renderControlCharacters: modifiedRenderControlCharacters,
-    });
     // Trigger decoration after mount
     setTimeout(calculateDiffAndDecorate, 100);
     // Check if both editors are ready
@@ -475,32 +425,6 @@ export function DiffChecker({ className }: DiffCheckerProps) {
       setEditorsReady(true);
     }
   };
-
-  // Update original editor options when state changes
-  useEffect(() => {
-    if (originalEditorInstance) {
-      originalEditorInstance.updateOptions({
-        stickyScroll: {
-          enabled: originalStickyScroll,
-        },
-        renderWhitespace: originalRenderWhitespace ? 'all' : 'none',
-        renderControlCharacters: originalRenderControlCharacters,
-      });
-    }
-  }, [originalEditorInstance, originalStickyScroll, originalRenderWhitespace, originalRenderControlCharacters]);
-
-  // Update modified editor options when state changes
-  useEffect(() => {
-    if (modifiedEditorInstance) {
-      modifiedEditorInstance.updateOptions({
-        stickyScroll: {
-          enabled: modifiedStickyScroll,
-        },
-        renderWhitespace: modifiedRenderWhitespace ? 'all' : 'none',
-        renderControlCharacters: modifiedRenderControlCharacters,
-      });
-    }
-  }, [modifiedEditorInstance, modifiedStickyScroll, modifiedRenderWhitespace, modifiedRenderControlCharacters]);
 
   const getCharacterCount = (text: string): number => text.length;
   const getLineCount = (text: string): number => (text ? text.split('\n').length : 0);
@@ -603,20 +527,25 @@ export function DiffChecker({ className }: DiffCheckerProps) {
           {/* Side-by-side Editor Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Original Panel */}
-            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-3 py-0">
-                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
-                  Original
-                </div>
-                <div className="flex items-center gap-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
-                        Load Example
-                        <ChevronDownIcon className="h-3 w-3 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
+            <CodePanel
+              title="Original"
+              value={originalText}
+              onChange={(value) => setOriginalText(value)}
+              language={options.language}
+              height="500px"
+              theme={theme}
+              wrapText={originalWrapText}
+              onWrapTextChange={setOriginalWrapText}
+              showClearButton={true}
+              showCopyButton={true}
+              headerActions={
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
+                      Load Example
+                      <ChevronDownIcon className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => handleLoadExample('original', 'javascript')}>
                       Load JavaScript Example
@@ -626,89 +555,36 @@ export function DiffChecker({ className }: DiffCheckerProps) {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                  <button
-                    onClick={() => handleClear('original')}
-                    disabled={!hasOriginalContent}
-                    className={cn(
-                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                      !hasOriginalContent && 'opacity-50 cursor-not-allowed'
-                    )}
-                    aria-label="Clear content"
-                  >
-                    <Trash2 className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-                  </button>
-                  <button
-                    onClick={() => handleCopy('original')}
-                    disabled={!hasOriginalContent}
-                    className={cn(
-                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                      !hasOriginalContent && 'opacity-50 cursor-not-allowed'
-                    )}
-                    aria-label="Copy to clipboard"
-                  >
-                    {copySuccess === 'original' ? (
-                      <Check className="h-4 w-4 text-orange-600" />
-                    ) : (
-                      <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Editor */}
-              <div className="pt-px pb-1 px-1">
-                <div style={{ height: '500px' }} className="bg-white dark:bg-neutral-900 rounded-[8px] overflow-hidden">
-                  <MonacoEditorInstance
-                    height="500px"
-                    language={options.language}
-                    value={originalText}
-                    onChange={(value) => setOriginalText(value)}
-                    theme={theme}
-                    wrapText={originalWrapText}
-                    onMount={handleOriginalEditorMount}
-                    padding={{ top: 8 }}
-                  />
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
-                <div className="flex items-center gap-4">
-                  <EditorSettingsMenu
-                    editorInstance={originalEditorInstance}
-                    wrapText={originalWrapText}
-                    onWrapTextChange={setOriginalWrapText}
-                    stickyScroll={originalStickyScroll}
-                    onStickyScrollChange={setOriginalStickyScroll}
-                    renderWhitespace={originalRenderWhitespace}
-                    onRenderWhitespaceChange={setOriginalRenderWhitespace}
-                    renderControlCharacters={originalRenderControlCharacters}
-                    onRenderControlCharactersChange={setOriginalRenderControlCharacters}
-                    onZoomIn={() => {}}
-                    onZoomOut={() => {}}
-                    onResetZoom={() => {}}
-                  />
+              }
+              footerLeftContent={
+                <>
                   <span>{getCharacterCount(originalText)} characters</span>
                   <span>{getLineCount(originalText)} lines</span>
-                </div>
-              </div>
-            </div>
+                </>
+              }
+              onEditorMount={handleOriginalEditorMount}
+            />
 
             {/* Modified Panel */}
-            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-3 py-0">
-                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
-                  Modified
-                </div>
-                <div className="flex items-center gap-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
-                        Load Example
-                        <ChevronDownIcon className="h-3 w-3 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
+            <CodePanel
+              title="Modified"
+              value={modifiedText}
+              onChange={(value) => setModifiedText(value)}
+              language={options.language}
+              height="500px"
+              theme={theme}
+              wrapText={modifiedWrapText}
+              onWrapTextChange={setModifiedWrapText}
+              showClearButton={true}
+              showCopyButton={true}
+              headerActions={
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
+                      Load Example
+                      <ChevronDownIcon className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => handleLoadExample('modified', 'javascript')}>
                       Load JavaScript Example
@@ -718,71 +594,14 @@ export function DiffChecker({ className }: DiffCheckerProps) {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                  <button
-                    onClick={() => handleClear('modified')}
-                    disabled={!hasModifiedContent}
-                    className={cn(
-                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                      !hasModifiedContent && 'opacity-50 cursor-not-allowed'
-                    )}
-                    aria-label="Clear content"
-                  >
-                    <Trash2 className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-                  </button>
-                  <button
-                    onClick={() => handleCopy('modified')}
-                    disabled={!hasModifiedContent}
-                    className={cn(
-                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                      !hasModifiedContent && 'opacity-50 cursor-not-allowed'
-                    )}
-                    aria-label="Copy to clipboard"
-                  >
-                    {copySuccess === 'modified' ? (
-                      <Check className="h-4 w-4 text-orange-600" />
-                    ) : (
-                      <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Editor */}
-              <div className="pt-px pb-1 px-1">
-                <div style={{ height: '500px' }} className="bg-white dark:bg-neutral-900 rounded-[8px] overflow-hidden">
-                  <MonacoEditorInstance
-                    height="500px"
-                    language={options.language}
-                    value={modifiedText}
-                    onChange={(value) => setModifiedText(value)}
-                    theme={theme}
-                    wrapText={modifiedWrapText}
-                    onMount={handleModifiedEditorMount}
-                    padding={{ top: 8 }}
-                  />
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
-                <div className="flex items-center gap-4">
-                  <EditorSettingsMenu
-                    editorInstance={modifiedEditorInstance}
-                    wrapText={modifiedWrapText}
-                    onWrapTextChange={setModifiedWrapText}
-                    stickyScroll={modifiedStickyScroll}
-                    onStickyScrollChange={setModifiedStickyScroll}
-                    renderWhitespace={modifiedRenderWhitespace}
-                    onRenderWhitespaceChange={setModifiedRenderWhitespace}
-                    renderControlCharacters={modifiedRenderControlCharacters}
-                    onRenderControlCharactersChange={setModifiedRenderControlCharacters}
-                    onZoomIn={() => {}}
-                    onZoomOut={() => {}}
-                    onResetZoom={() => {}}
-                  />
+              }
+              footerLeftContent={
+                <>
                   <span>{getCharacterCount(modifiedText)} characters</span>
                   <span>{getLineCount(modifiedText)} lines</span>
-                </div>
+                </>
+              }
+              footerRightContent={
                 <Button
                   variant="outline"
                   size="sm"
@@ -793,8 +612,9 @@ export function DiffChecker({ className }: DiffCheckerProps) {
                   <ArrowsRightLeftIcon className="h-3 w-3 mr-1" />
                   Swap
                 </Button>
-              </div>
-            </div>
+              }
+              onEditorMount={handleModifiedEditorMount}
+            />
           </div>
 
           {/* Stats Bar */}
