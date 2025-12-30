@@ -19,6 +19,7 @@ export const getToolComponent = async (componentName: string) => {
     'ListComparison': () => import('@/components/tools/ListComparison').then(m => m.ListComparison),
     'ListConverter': () => import('@/components/tools/ListConverter').then(m => m.ListConverter),
     'JsonPathFinder': () => import('@/components/tools/JsonPathFinder').then(m => m.JsonPathFinder),
+    'XmlPathFinder': () => import('@/components/tools/XmlPathFinder').then(m => m.XmlPathFinder),
     'YamlPathFinder': () => import('@/components/tools/YamlPathFinder').then(m => m.YamlPathFinder),
     'JsonSchemaGenerator': () => import('@/components/tools/JsonSchemaGenerator').then(m => m.JsonSchemaGenerator),
     'SchemaConverter': () => import('@/components/tools/SchemaConverter').then(m => m.SchemaConverter),
