@@ -718,14 +718,13 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
               }
               alwaysShowFooter={true}
             >
-              <div className="h-full flex flex-col items-center justify-center">
+              <div className="h-full flex flex-col items-center justify-center p-4">
                 {qrCodeResult ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={qrCodeResult.dataUrl}
                     alt="Generated QR Code"
-                    className="max-w-full h-auto border rounded-lg"
-                    style={{ maxHeight: '300px' }}
+                    className="max-w-full max-h-full w-auto h-auto border rounded-lg"
                   />
                 ) : (
                   <div className="text-muted-foreground text-sm">
