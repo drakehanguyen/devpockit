@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
@@ -35,52 +35,8 @@ export function IpChecker({ className }: IpCheckerProps) {
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
-  // Hydrate state from toolState after mount (client-side only)
-  useEffect(() => {
-    setIsHydrated(true);
-    if (toolState) {
-      if (toolState.options) setOptions(toolState.options as IpCheckerOptions);
-      if (toolState.output) setOutput(toolState.output as string);
-      if (toolState.error) setError(toolState.error as string);
-      if (toolState.ipInfo) setIpInfo(toolState.ipInfo as IpInfo);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Update persistent state
-  useEffect(() => {
-    if (isHydrated) {
-      updateToolState({
-        options,
-        output,
-        error,
-        ipInfo: ipInfo || undefined
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, output, error, ipInfo, isHydrated]);
-
-  // Auto-refresh functionality
-  useEffect(() => {
-    if (options.autoRefresh && options.refreshInterval > 0) {
-      const interval = setInterval(() => {
-        handleCheckIp();
-      }, options.refreshInterval * 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [options.autoRefresh, options.refreshInterval]);
-
-  // Reset state when tool is cleared
-  useEffect(() => {
-    if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
-      setOptions(DEFAULT_IP_OPTIONS);
-      setOutput('');
-      setError('');
-      setIpInfo(null);
-      setLastChecked('');
-    }
-  }, [toolState, isHydrated]);
+  // Track if we've already hydrated to prevent re-hydration on toolState changes
+  const hasHydratedRef = useRef(false);
 
   const handleCheckIp = useCallback(async () => {
     setIsLoading(true);
@@ -114,6 +70,56 @@ export function IpChecker({ className }: IpCheckerProps) {
       setIsLoading(false);
     }
   }, []);
+
+  // Hydrate state from toolState after mount (client-side only)
+  useEffect(() => {
+    if (!hasHydratedRef.current && toolState) {
+      hasHydratedRef.current = true;
+      setIsHydrated(true);
+      if (toolState.options) setOptions(toolState.options as IpCheckerOptions);
+      if (toolState.output) setOutput(toolState.output as string);
+      if (toolState.error) setError(toolState.error as string);
+      if (toolState.ipInfo) setIpInfo(toolState.ipInfo as IpInfo);
+    } else if (!hasHydratedRef.current) {
+      // Still mark as hydrated even if no toolState exists
+      hasHydratedRef.current = true;
+      setIsHydrated(true);
+    }
+  }, [toolState]);
+
+  // Update persistent state
+  useEffect(() => {
+    if (isHydrated) {
+      updateToolState({
+        options,
+        output,
+        error,
+        ipInfo: ipInfo || undefined
+      });
+    }
+  }, [options, output, error, ipInfo, isHydrated, updateToolState]);
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (options.autoRefresh && options.refreshInterval > 0) {
+      const interval = setInterval(() => {
+        handleCheckIp();
+      }, options.refreshInterval * 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [options.autoRefresh, options.refreshInterval, handleCheckIp]);
+
+  // Reset state when tool is cleared
+  useEffect(() => {
+    if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
+      setOptions(DEFAULT_IP_OPTIONS);
+      setOutput('');
+      setError('');
+      setIpInfo(null);
+      setLastChecked('');
+    }
+  }, [toolState, isHydrated]);
 
   const handleOptionChange = (key: keyof IpCheckerOptions, value: unknown) => {
     setOptions(prev => ({ ...prev, [key]: value }));
@@ -241,7 +247,7 @@ export function IpChecker({ className }: IpCheckerProps) {
           </div>
 
           {/* Output Panel */}
-          <CodeOutputPanel
+          <CodePanel
             title="IP Information"
             value={output}
             language="json"

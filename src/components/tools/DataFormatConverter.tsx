@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -292,7 +291,7 @@ export function DataFormatConverter({ className }: DataFormatConverterProps) {
           {/* Side-by-side Editor Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
-            <CodeInputPanel
+            <CodePanel
               title={`Input (${options.inputFormat.toUpperCase()})`}
               value={input}
               onChange={setInput}
@@ -351,7 +350,7 @@ export function DataFormatConverter({ className }: DataFormatConverterProps) {
             />
 
             {/* Output Panel */}
-            <CodeOutputPanel
+            <CodePanel
               title={`Output (${options.outputFormat.toUpperCase()})`}
               value={output}
               language={getOutputLanguage()}

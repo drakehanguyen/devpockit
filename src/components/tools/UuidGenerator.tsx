@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LabeledInput } from '@/components/ui/labeled-input';
 import { NumberInput } from '@/components/ui/number-input';
@@ -257,7 +257,7 @@ export function UuidGenerator({ className }: UuidGeneratorProps) {
           </div>
 
           {/* Output Panel */}
-          <CodeOutputPanel
+          <CodePanel
             title="Generated UUIDs"
             value={output}
             language="plaintext"

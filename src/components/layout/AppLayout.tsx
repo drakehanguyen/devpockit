@@ -4,11 +4,13 @@ import { ToolStateProvider, useToolStateContext } from '@/components/providers/T
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { getToolComponent } from '@/libs/tool-components';
 import { getToolById } from '@/libs/tools-data';
+import { cn } from '@/libs/utils';
 import { isValidCategoryUrl, isValidToolUrl, parseToolUrl } from '@/libs/url-utils';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, startTransition } from 'react';
 import { AppSidebar } from '../app-sidebar';
 import { WelcomePage } from '../pages/WelcomePage';
+import { MobileTopBar } from './MobileTopBar';
 import { TopNavTabs, type ActiveTab } from './TopNavTabs';
 
 interface AppLayoutProps {
@@ -239,6 +241,13 @@ function AppLayoutInner({ children }: AppLayoutProps) {
 
   return (
     <div className="h-screen flex flex-col bg-background">
+      {/* Mobile Top Bar */}
+      {isMobile && (
+        <MobileTopBar
+          onToolSelect={handleToolSelect}
+          onHomeClick={handleHomeClick}
+        />
+      )}
       <div className="flex-1 flex overflow-hidden">
         <AppSidebar
           selectedTool={selectedTool}
@@ -246,7 +255,10 @@ function AppLayoutInner({ children }: AppLayoutProps) {
           onHomeClick={handleHomeClick}
         />
         <SidebarInset>
-          <div className="flex flex-1 flex-col gap-4 pb-4 min-h-0 overflow-hidden">
+          <div className={cn(
+            "flex flex-1 flex-col gap-4 pb-4 min-h-0 overflow-hidden",
+            isMobile && "pt-14"
+          )}>
             {selectedTool ? (
               <>
                 {/* Tool Header with Tabs (Desktop only) */}

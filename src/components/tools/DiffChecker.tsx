@@ -2,16 +2,15 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { DEFAULT_DIFF_OPTIONS, DIFF_CHECKER_OPTIONS, DIFF_EXAMPLES } from '@/config/diff-checker-config';
-import { MonacoEditorInstance } from '@/components/ui/MonacoEditorInstance';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { cn } from '@/libs/utils';
 import { ArrowsRightLeftIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { diffLines, diffWordsWithSpace, Change } from 'diff';
-import { Check, Copy, Trash2 } from 'lucide-react';
+import { Change, diffLines, diffWordsWithSpace } from 'diff';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface DiffCheckerProps {
@@ -22,6 +21,7 @@ interface DiffOptions {
   ignoreWhitespace: boolean;
   language: string;
   wordWrap: boolean;
+  syncScroll: boolean;
 }
 
 interface DiffStats {
@@ -48,13 +48,18 @@ export function DiffChecker({ className }: DiffCheckerProps) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [originalWrapText, setOriginalWrapText] = useState(true);
   const [modifiedWrapText, setModifiedWrapText] = useState(true);
-  const [copySuccess, setCopySuccess] = useState<'original' | 'modified' | null>(null);
+  const [editorsReady, setEditorsReady] = useState(false);
 
   // Editor refs for decorations
   const originalEditorRef = useRef<any>(null);
   const modifiedEditorRef = useRef<any>(null);
   const originalDecorationsRef = useRef<string[]>([]);
   const modifiedDecorationsRef = useRef<string[]>([]);
+
+  // Scroll sync refs
+  const isSyncingScrollRef = useRef<boolean>(false);
+  const originalScrollDisposableRef = useRef<any>(null);
+  const modifiedScrollDisposableRef = useRef<any>(null);
 
   // Theme
   const [theme] = useCodeEditorTheme('basicDark');
@@ -283,6 +288,106 @@ export function DiffChecker({ className }: DiffCheckerProps) {
     calculateDiffAndDecorate();
   }, [calculateDiffAndDecorate]);
 
+  // Scroll sync between editors
+  useEffect(() => {
+    // Only sync if option is enabled and both editors are mounted
+    if (!options.syncScroll || !originalEditorRef.current || !modifiedEditorRef.current) {
+      // Clean up existing listeners if sync is disabled
+      if (originalScrollDisposableRef.current) {
+        originalScrollDisposableRef.current.dispose();
+        originalScrollDisposableRef.current = null;
+      }
+      if (modifiedScrollDisposableRef.current) {
+        modifiedScrollDisposableRef.current.dispose();
+        modifiedScrollDisposableRef.current = null;
+      }
+      return;
+    }
+
+    const originalEditor = originalEditorRef.current;
+    const modifiedEditor = modifiedEditorRef.current;
+
+    // Helper function to calculate scroll percentage
+    const getScrollPercentage = (editor: any): number => {
+      const scrollTop = editor.getScrollTop();
+      const scrollHeight = editor.getScrollHeight();
+      const editorHeight = editor.getLayoutInfo().height;
+      const maxScrollTop = Math.max(0, scrollHeight - editorHeight);
+
+      if (maxScrollTop === 0) return 0;
+      return scrollTop / maxScrollTop;
+    };
+
+    // Helper function to set scroll position by percentage
+    const setScrollPercentage = (editor: any, percentage: number, scrollLeft?: number): void => {
+      const scrollHeight = editor.getScrollHeight();
+      const editorHeight = editor.getLayoutInfo().height;
+      const maxScrollTop = Math.max(0, scrollHeight - editorHeight);
+      const targetScrollTop = percentage * maxScrollTop;
+
+      editor.setScrollTop(targetScrollTop);
+
+      // Also sync horizontal scroll if provided
+      if (scrollLeft !== undefined) {
+        editor.setScrollLeft(scrollLeft);
+      }
+    };
+
+    // Sync scroll from original to modified
+    const syncOriginalToModified = () => {
+      if (isSyncingScrollRef.current) return;
+      if (!modifiedEditorRef.current || !originalEditorRef.current) return;
+
+      isSyncingScrollRef.current = true;
+      const percentage = getScrollPercentage(originalEditor);
+      const scrollLeft = originalEditor.getScrollLeft();
+      setScrollPercentage(modifiedEditor, percentage, scrollLeft);
+
+      // Use requestAnimationFrame to clear the flag after scroll completes
+      requestAnimationFrame(() => {
+        isSyncingScrollRef.current = false;
+      });
+    };
+
+    // Sync scroll from modified to original
+    const syncModifiedToOriginal = () => {
+      if (isSyncingScrollRef.current) return;
+      if (!modifiedEditorRef.current || !originalEditorRef.current) return;
+
+      isSyncingScrollRef.current = true;
+      const percentage = getScrollPercentage(modifiedEditor);
+      const scrollLeft = modifiedEditor.getScrollLeft();
+      setScrollPercentage(originalEditor, percentage, scrollLeft);
+
+      // Use requestAnimationFrame to clear the flag after scroll completes
+      requestAnimationFrame(() => {
+        isSyncingScrollRef.current = false;
+      });
+    };
+
+    // Set up scroll listeners
+    originalScrollDisposableRef.current = originalEditor.onDidScrollChange((e: any) => {
+      syncOriginalToModified();
+    });
+
+    modifiedScrollDisposableRef.current = modifiedEditor.onDidScrollChange((e: any) => {
+      syncModifiedToOriginal();
+    });
+
+    // Cleanup function
+    return () => {
+      if (originalScrollDisposableRef.current) {
+        originalScrollDisposableRef.current.dispose();
+        originalScrollDisposableRef.current = null;
+      }
+      if (modifiedScrollDisposableRef.current) {
+        modifiedScrollDisposableRef.current.dispose();
+        modifiedScrollDisposableRef.current = null;
+      }
+      isSyncingScrollRef.current = false;
+    };
+  }, [options.syncScroll, editorsReady]);
+
   // Handlers
   const handleSwap = () => {
     const temp = originalText;
@@ -301,36 +406,24 @@ export function DiffChecker({ className }: DiffCheckerProps) {
     setOptions((prev) => ({ ...prev, language: lang }));
   };
 
-  const handleCopy = async (side: 'original' | 'modified') => {
-    const text = side === 'original' ? originalText : modifiedText;
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopySuccess(side);
-      setTimeout(() => setCopySuccess(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  const handleClear = (side: 'original' | 'modified') => {
-    if (side === 'original') {
-      setOriginalText('');
-    } else {
-      setModifiedText('');
-    }
-  };
-
   const handleOriginalEditorMount = (editor: any) => {
     originalEditorRef.current = editor;
     // Trigger decoration after mount
     setTimeout(calculateDiffAndDecorate, 100);
+    // Check if both editors are ready
+    if (modifiedEditorRef.current) {
+      setEditorsReady(true);
+    }
   };
 
   const handleModifiedEditorMount = (editor: any) => {
     modifiedEditorRef.current = editor;
     // Trigger decoration after mount
     setTimeout(calculateDiffAndDecorate, 100);
+    // Check if both editors are ready
+    if (originalEditorRef.current) {
+      setEditorsReady(true);
+    }
   };
 
   const getCharacterCount = (text: string): number => text.length;
@@ -406,6 +499,18 @@ export function DiffChecker({ className }: DiffCheckerProps) {
                 </SelectContent>
               </Select>
 
+              {/* Sync Scroll Toggle */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Sync Scroll:</span>
+                <Switch
+                  checked={options.syncScroll}
+                  onCheckedChange={(checked) =>
+                    setOptions((prev) => ({ ...prev, syncScroll: checked }))
+                  }
+                  aria-label="Synchronize scrolling between original and modified editors"
+                />
+              </div>
+
               {/* Ignore Whitespace Toggle */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Ignore Whitespace:</span>
@@ -422,20 +527,25 @@ export function DiffChecker({ className }: DiffCheckerProps) {
           {/* Side-by-side Editor Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Original Panel */}
-            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-3 py-0">
-                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
-                  Original
-                </div>
-                <div className="flex items-center gap-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
-                        Load Example
-                        <ChevronDownIcon className="h-3 w-3 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
+            <CodePanel
+              title="Original"
+              value={originalText}
+              onChange={(value) => setOriginalText(value)}
+              language={options.language}
+              height="500px"
+              theme={theme}
+              wrapText={originalWrapText}
+              onWrapTextChange={setOriginalWrapText}
+              showClearButton={true}
+              showCopyButton={true}
+              headerActions={
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
+                      Load Example
+                      <ChevronDownIcon className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => handleLoadExample('original', 'javascript')}>
                       Load JavaScript Example
@@ -445,81 +555,36 @@ export function DiffChecker({ className }: DiffCheckerProps) {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                  <button
-                    onClick={() => handleClear('original')}
-                    disabled={!hasOriginalContent}
-                    className={cn(
-                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                      !hasOriginalContent && 'opacity-50 cursor-not-allowed'
-                    )}
-                    aria-label="Clear content"
-                  >
-                    <Trash2 className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-                  </button>
-                  <button
-                    onClick={() => handleCopy('original')}
-                    disabled={!hasOriginalContent}
-                    className={cn(
-                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                      !hasOriginalContent && 'opacity-50 cursor-not-allowed'
-                    )}
-                    aria-label="Copy to clipboard"
-                  >
-                    {copySuccess === 'original' ? (
-                      <Check className="h-4 w-4 text-orange-600" />
-                    ) : (
-                      <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Editor */}
-              <div className="pt-px pb-1 px-1">
-                <div style={{ height: '500px' }} className="bg-white dark:bg-neutral-900 rounded-[8px] overflow-hidden">
-                  <MonacoEditorInstance
-                    height="500px"
-                    language={options.language}
-                    value={originalText}
-                    onChange={(value) => setOriginalText(value)}
-                    theme={theme}
-                    wrapText={originalWrapText}
-                    onMount={handleOriginalEditorMount}
-                    padding={{ top: 8 }}
-                  />
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
-                <div className="flex items-center gap-4">
-                  <Switch
-                    checked={originalWrapText}
-                    onCheckedChange={setOriginalWrapText}
-                    size="sm"
-                    title="Wrap Text"
-                  />
+              }
+              footerLeftContent={
+                <>
                   <span>{getCharacterCount(originalText)} characters</span>
                   <span>{getLineCount(originalText)} lines</span>
-                </div>
-              </div>
-            </div>
+                </>
+              }
+              onEditorMount={handleOriginalEditorMount}
+            />
 
             {/* Modified Panel */}
-            <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-3 py-0">
-                <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
-                  Modified
-                </div>
-                <div className="flex items-center gap-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
-                        Load Example
-                        <ChevronDownIcon className="h-3 w-3 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
+            <CodePanel
+              title="Modified"
+              value={modifiedText}
+              onChange={(value) => setModifiedText(value)}
+              language={options.language}
+              height="500px"
+              theme={theme}
+              wrapText={modifiedWrapText}
+              onWrapTextChange={setModifiedWrapText}
+              showClearButton={true}
+              showCopyButton={true}
+              headerActions={
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
+                      Load Example
+                      <ChevronDownIcon className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => handleLoadExample('modified', 'javascript')}>
                       Load JavaScript Example
@@ -529,63 +594,14 @@ export function DiffChecker({ className }: DiffCheckerProps) {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                  <button
-                    onClick={() => handleClear('modified')}
-                    disabled={!hasModifiedContent}
-                    className={cn(
-                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                      !hasModifiedContent && 'opacity-50 cursor-not-allowed'
-                    )}
-                    aria-label="Clear content"
-                  >
-                    <Trash2 className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-                  </button>
-                  <button
-                    onClick={() => handleCopy('modified')}
-                    disabled={!hasModifiedContent}
-                    className={cn(
-                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                      !hasModifiedContent && 'opacity-50 cursor-not-allowed'
-                    )}
-                    aria-label="Copy to clipboard"
-                  >
-                    {copySuccess === 'modified' ? (
-                      <Check className="h-4 w-4 text-orange-600" />
-                    ) : (
-                      <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Editor */}
-              <div className="pt-px pb-1 px-1">
-                <div style={{ height: '500px' }} className="bg-white dark:bg-neutral-900 rounded-[8px] overflow-hidden">
-                  <MonacoEditorInstance
-                    height="500px"
-                    language={options.language}
-                    value={modifiedText}
-                    onChange={(value) => setModifiedText(value)}
-                    theme={theme}
-                    wrapText={modifiedWrapText}
-                    onMount={handleModifiedEditorMount}
-                    padding={{ top: 8 }}
-                  />
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
-                <div className="flex items-center gap-4">
-                  <Switch
-                    checked={modifiedWrapText}
-                    onCheckedChange={setModifiedWrapText}
-                    size="sm"
-                    title="Wrap Text"
-                  />
+              }
+              footerLeftContent={
+                <>
                   <span>{getCharacterCount(modifiedText)} characters</span>
                   <span>{getLineCount(modifiedText)} lines</span>
-                </div>
+                </>
+              }
+              footerRightContent={
                 <Button
                   variant="outline"
                   size="sm"
@@ -596,8 +612,9 @@ export function DiffChecker({ className }: DiffCheckerProps) {
                   <ArrowsRightLeftIcon className="h-3 w-3 mr-1" />
                   Swap
                 </Button>
-              </div>
-            </div>
+              }
+              onEditorMount={handleModifiedEditorMount}
+            />
           </div>
 
           {/* Stats Bar */}

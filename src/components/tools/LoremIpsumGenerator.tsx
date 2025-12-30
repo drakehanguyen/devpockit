@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeOutputPanel, type CodeOutputTab } from '@/components/ui/CodeOutputPanel';
+import { CodePanel, type CodeOutputTab } from '@/components/ui/CodePanel';
 import { NumberInput } from '@/components/ui/number-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_OPTIONS, LOREM_OPTIONS } from '@/config/lorem-ipsum-config';
@@ -10,7 +10,7 @@ import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { generateLoremIpsum, validateLoremOptions, type LoremOptions } from '@/libs/lorem-ipsum';
 import { cn } from '@/libs/utils';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface LoremIpsumGeneratorProps {
   className?: string;
@@ -32,10 +32,14 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   const [theme] = useCodeEditorTheme('basicDark');
   const [wrapText, setWrapText] = useState(true);
 
+  // Track if we've already hydrated to prevent re-hydration on toolState changes
+  const hasHydratedRef = useRef(false);
+
   // Hydrate state from toolState after mount (client-side only)
   useEffect(() => {
-    setIsHydrated(true);
-    if (toolState) {
+    if (!hasHydratedRef.current && toolState) {
+      hasHydratedRef.current = true;
+      setIsHydrated(true);
       if (toolState.options) {
         const opts = toolState.options as LoremOptions;
         setOptions(opts);
@@ -46,8 +50,12 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
       if ((toolState.options as LoremOptions)?.format) {
         setActiveTab((toolState.options as LoremOptions).format);
       }
+    } else if (!hasHydratedRef.current) {
+      // Still mark as hydrated even if no toolState exists
+      hasHydratedRef.current = true;
+      setIsHydrated(true);
     }
-  }, []);
+  }, [toolState]);
 
   // Update persistent state whenever local state changes
   useEffect(() => {
@@ -59,7 +67,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
         error
       });
     }
-  }, [options, outputPlain, outputHtml, error, isHydrated]);
+  }, [options, outputPlain, outputHtml, error, isHydrated, updateToolState]);
 
   // Reset local state when tool state is cleared
   useEffect(() => {
@@ -137,7 +145,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
     setOptions(prev => ({ ...prev, quantity }));
   };
 
-  // Prepare tabs for CodeOutputPanel
+  // Prepare tabs for CodePanel
   const outputTabs: CodeOutputTab[] = useMemo(
     () => [
       {
@@ -248,7 +256,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
               </div>
             </div>
           ) : (
-            <CodeOutputPanel
+            <CodePanel
               tabs={outputTabs}
               activeTab={activeTab}
               onTabChange={handleTabChange}

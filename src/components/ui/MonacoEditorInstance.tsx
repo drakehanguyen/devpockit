@@ -44,6 +44,7 @@ export interface MonacoEditorInstanceProps {
   height?: string;
   className?: string;
   padding?: { top?: number; bottom?: number };
+  singleLine?: boolean;
   onMount?: (editor: any, monaco: any) => void;
 }
 
@@ -63,6 +64,7 @@ export function MonacoEditorInstance({
   height = '400px',
   className,
   padding,
+  singleLine = false,
   onMount,
 }: MonacoEditorInstanceProps) {
   const [initError, setInitError] = useState<Error | null>(null);
@@ -135,6 +137,40 @@ export function MonacoEditorInstance({
   const handleEditorDidMount = async (editor: any, monaco: any) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+
+    // Configure single-line mode if enabled
+    if (singleLine) {
+      // Prevent Enter key from creating new lines
+      editor.onKeyDown((e: any) => {
+        // Check both keyCode (Monaco's KeyCode enum) and key property
+        const isEnter = e.keyCode === monaco.KeyCode?.Enter ||
+                       e.keyCode === 3 || // Enter key code
+                       e.key === 'Enter' ||
+                       e.code === 'Enter';
+        if (isEnter) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+
+      // Remove any existing newlines from the value
+      if (value && value.includes('\n')) {
+        const singleLineValue = value.split('\n')[0];
+        editor.setValue(singleLineValue);
+        if (onChange) {
+          onChange(singleLineValue);
+        }
+      }
+
+      // Update editor options for single-line mode
+      editor.updateOptions({
+        wordWrap: 'off',
+        scrollBeyondLastLine: false,
+        lineNumbers: 'off',
+        minimap: { enabled: false },
+      });
+    }
+
     // Call custom onMount if provided
     onMount?.(editor, monaco);
 
@@ -198,7 +234,7 @@ export function MonacoEditorInstance({
     };
 
     updateTheme();
-     
+
   }, [theme, monacoTheme]);
 
   const monacoOptions = createMonacoOptions(
@@ -222,15 +258,22 @@ export function MonacoEditorInstance({
         height={height}
         language={getMonacoLanguageId(language)}
         theme={monacoTheme}
-        value={value}
+        value={singleLine ? (value.split('\n')[0] || '') : value}
         onChange={(newValue) => {
           if (onChange) {
-            onChange(newValue || '');
+            // For single-line mode, remove any newlines
+            const processedValue = singleLine ? (newValue || '').split('\n')[0] : (newValue || '');
+            onChange(processedValue);
           }
         }}
         options={{
           ...monacoOptions,
           readOnly,
+          ...(singleLine && {
+            wordWrap: 'off',
+            scrollBeyondLastLine: false,
+            lineNumbers: 'off',
+          }),
           ...(padding && {
             padding: {
               top: padding.top ?? 0,

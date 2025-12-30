@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_JSON_OPTIONS, JSON_EXAMPLES, JSON_FORMAT_OPTIONS } from '@/config/json-formatter-config';
@@ -203,7 +202,7 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
           {/* Side-by-side Editor Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
-            <CodeInputPanel
+            <CodePanel
               title="JSON Input"
               value={input}
               onChange={setInput}
@@ -263,7 +262,7 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
             />
 
             {/* Output Panel */}
-            <CodeOutputPanel
+            <CodePanel
               title="Formatted JSON"
               value={output}
               language="json"
@@ -271,6 +270,7 @@ export function JsonFormatter({ className }: JsonFormatterProps) {
               theme={theme}
               wrapText={outputWrapText}
               onWrapTextChange={setOutputWrapText}
+              readOnly={true}
               footerLeftContent={
                 output && (
                   <>

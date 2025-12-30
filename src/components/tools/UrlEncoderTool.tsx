@@ -2,8 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodeInputPanel } from '@/components/ui/CodeInputPanel';
-import { CodeOutputPanel } from '@/components/ui/CodeOutputPanel';
+import { CodePanel } from '@/components/ui/CodePanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,7 +11,7 @@ import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { encodeUrl, type UrlEncoderOptions, type UrlEncoderResult } from '@/libs/url-encoder';
 import { cn } from '@/libs/utils';
 import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UrlEncoderToolProps {
   className?: string;
@@ -37,16 +36,24 @@ export function UrlEncoderTool({ className }: UrlEncoderToolProps) {
   const [inputWrapText, setInputWrapText] = useState(true);
   const [outputWrapText, setOutputWrapText] = useState(true);
 
+  // Track if we've already hydrated to prevent re-hydration on toolState changes
+  const hasHydratedRef = useRef(false);
+
   useEffect(() => {
-    setIsHydrated(true);
-    if (toolState) {
+    if (!hasHydratedRef.current && toolState) {
+      hasHydratedRef.current = true;
+      setIsHydrated(true);
       if (toolState.options) setOptions(toolState.options as UrlEncoderOptions);
       if (toolState.input) setInput(toolState.input as string);
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
       if (toolState.stats) setStats(toolState.stats as { originalLength: number; encodedLength: number; compressionRatio: number });
+    } else if (!hasHydratedRef.current) {
+      // Still mark as hydrated even if no toolState exists
+      hasHydratedRef.current = true;
+      setIsHydrated(true);
     }
-  }, []);
+  }, [toolState]);
 
   useEffect(() => {
     if (isHydrated) {
@@ -58,7 +65,7 @@ export function UrlEncoderTool({ className }: UrlEncoderToolProps) {
         stats: stats || undefined
       });
     }
-  }, [options, input, output, error, stats, isHydrated]);
+  }, [options, input, output, error, stats, isHydrated, updateToolState]);
 
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
@@ -181,7 +188,7 @@ export function UrlEncoderTool({ className }: UrlEncoderToolProps) {
           {/* Side-by-side Editor Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
-            <CodeInputPanel
+            <CodePanel
               title="Text to Encode"
               value={input}
               onChange={setInput}
@@ -247,7 +254,7 @@ export function UrlEncoderTool({ className }: UrlEncoderToolProps) {
             />
 
             {/* Output Panel */}
-            <CodeOutputPanel
+            <CodePanel
               title="Encoded URL"
               value={output}
               language="plaintext"

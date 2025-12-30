@@ -13,6 +13,7 @@ import { startTransition, useEffect, useState } from 'react';
 interface SearchToolsProps {
   onToolSelect: (toolId: string) => void;
   className?: string;
+  hideShortcut?: boolean;
 }
 
 interface SearchResultProps {
@@ -94,7 +95,7 @@ const SearchResult = ({ tool, onSelect, onClose, isSelected = false }: SearchRes
   );
 };
 
-export function SearchTools({ onToolSelect, className }: SearchToolsProps) {
+export function SearchTools({ onToolSelect, className, hideShortcut = false }: SearchToolsProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Tool[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -174,11 +175,16 @@ export function SearchTools({ onToolSelect, className }: SearchToolsProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="pl-8 pr-12 h-[36px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+          className={cn(
+            "h-[36px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0",
+            hideShortcut ? "pl-8 pr-2" : "pl-8 pr-12"
+          )}
         />
-        <div className="absolute right-2 text-sm font-medium text-[#111827] dark:text-[#e5e5e5] leading-[20px] tracking-normal">
-          ⌘K
-        </div>
+        {!hideShortcut && (
+          <div className="absolute right-2 text-sm font-medium text-[#111827] dark:text-[#e5e5e5] leading-[20px] tracking-normal">
+            ⌘K
+          </div>
+        )}
       </div>
 
       {isOpen && results.length > 0 && (

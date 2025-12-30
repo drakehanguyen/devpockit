@@ -1525,6 +1525,747 @@ function mapCommonTypeToPolars(type: string): string {
 }
 
 /**
+ * Parse Protocol Buffers schema (.proto)
+ */
+function parseProtobufSchema(protoString: string): any {
+  try {
+    // Remove comments
+    const cleaned = protoString
+      .replace(/\/\*[\s\S]*?\*\//g, '') // Block comments
+      .replace(/\/\/.*/g, '') // Line comments
+      .trim();
+
+    // Extract syntax version (proto2 or proto3)
+    const syntaxMatch = cleaned.match(/syntax\s*=\s*["']([^"']+)["']/);
+    const syntax = syntaxMatch ? syntaxMatch[1] : 'proto3';
+
+    // Extract message definitions
+    const messageRegex = /message\s+(\w+)\s*\{([\s\S]*?)\}/g;
+    const messages: any[] = [];
+    let match;
+
+    while ((match = messageRegex.exec(cleaned)) !== null) {
+      const messageName = match[1];
+      const messageBody = match[2];
+      const fields: any[] = [];
+
+      // Parse fields: type name = number [options];
+      const fieldRegex = /(repeated\s+)?(optional\s+)?(\w+)\s+(\w+)\s*=\s*(\d+)(\s*\[[^\]]*\])?;/g;
+      let fieldMatch;
+
+      while ((fieldMatch = fieldRegex.exec(messageBody)) !== null) {
+        fields.push({
+          repeated: !!fieldMatch[1],
+          optional: !!fieldMatch[2] || syntax === 'proto3',
+          type: fieldMatch[3],
+          name: fieldMatch[4],
+          number: parseInt(fieldMatch[5], 10)
+        });
+      }
+
+      messages.push({
+        name: messageName,
+        fields,
+        syntax
+      });
+    }
+
+    if (messages.length === 0) {
+      throw new Error('No message definitions found in protobuf schema');
+    }
+
+    return {
+      syntax,
+      messages: messages.length === 1 ? messages[0] : messages[0] // Use first message as root
+    };
+  } catch (error) {
+    throw new Error(`Invalid Protocol Buffers Schema: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Convert Protocol Buffers schema to intermediate representation
+ */
+function protobufToIntermediate(parsed: any): IntermediateSchema {
+  const fields: Record<string, SchemaField> = {};
+  const message = parsed.messages || parsed;
+
+  if (message.fields && Array.isArray(message.fields)) {
+    for (const field of message.fields) {
+      const schemaField: SchemaField = {
+        name: field.name,
+        type: mapProtobufTypeToCommon(field.type),
+        nullable: field.optional || parsed.syntax === 'proto3',
+        required: !field.optional && parsed.syntax === 'proto2'
+      };
+
+      // Handle repeated fields (arrays)
+      if (field.repeated) {
+        schemaField.type = 'array';
+        schemaField.items = {
+          name: 'item',
+          type: mapProtobufTypeToCommon(field.type),
+          nullable: true
+        };
+      }
+
+      fields[field.name] = schemaField;
+    }
+  }
+
+  return {
+    type: 'object',
+    fields,
+    name: message.name || 'Root'
+  };
+}
+
+/**
+ * Map Protocol Buffers type to common type
+ */
+function mapProtobufTypeToCommon(protoType: string): string {
+  const type = protoType.toLowerCase();
+  if (type === 'int32' || type === 'int64' || type === 'uint32' || type === 'uint64' || type === 'sint32' || type === 'sint64') {
+    return 'integer';
+  }
+  if (type === 'float' || type === 'double') {
+    return 'number';
+  }
+  if (type === 'string' || type === 'bytes') {
+    return 'string';
+  }
+  if (type === 'bool') {
+    return 'boolean';
+  }
+  // Nested message types are treated as objects
+  return 'object';
+}
+
+/**
+ * Parse Apache Avro schema (JSON format)
+ */
+function parseAvroSchema(schemaString: string): any {
+  try {
+    const schema = JSON.parse(schemaString);
+
+    // Avro schema must have type "record" for object schemas
+    if (schema.type === 'record' && schema.fields && Array.isArray(schema.fields)) {
+      return schema;
+    }
+
+    throw new Error('Invalid Avro schema: must have type "record" and "fields" array');
+  } catch (error) {
+    throw new Error(`Invalid Apache Avro Schema: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Convert Apache Avro schema to intermediate representation
+ */
+function avroToIntermediate(schema: any): IntermediateSchema {
+  const fields: Record<string, SchemaField> = {};
+
+  if (schema.fields && Array.isArray(schema.fields)) {
+    for (const field of schema.fields) {
+      const avroType = field.type;
+      const isNullable = Array.isArray(avroType) && avroType.includes('null');
+      const actualType = Array.isArray(avroType)
+        ? avroType.find(t => t !== 'null') || avroType[0]
+        : avroType;
+
+      const schemaField: SchemaField = {
+        name: field.name,
+        type: mapAvroTypeToCommon(actualType),
+        nullable: isNullable,
+        required: !isNullable,
+        description: field.doc,
+        defaultValue: field.default !== undefined ? field.default : undefined
+      };
+
+      // Handle array types
+      if (typeof actualType === 'object' && actualType.type === 'array') {
+        schemaField.type = 'array';
+        const itemType = actualType.items;
+        schemaField.items = {
+          name: 'item',
+          type: mapAvroTypeToCommon(itemType),
+          nullable: true
+        };
+      }
+
+      // Handle map types
+      if (typeof actualType === 'object' && actualType.type === 'map') {
+        schemaField.type = 'object';
+      }
+
+      // Handle nested records
+      if (typeof actualType === 'object' && actualType.type === 'record' && actualType.fields) {
+        schemaField.type = 'object';
+        schemaField.properties = {};
+        for (const nestedField of actualType.fields) {
+          const nestedAvroType = nestedField.type;
+          const nestedIsNullable = Array.isArray(nestedAvroType) && nestedAvroType.includes('null');
+          const nestedActualType = Array.isArray(nestedAvroType)
+            ? nestedAvroType.find(t => t !== 'null') || nestedAvroType[0]
+            : nestedAvroType;
+
+          schemaField.properties[nestedField.name] = {
+            name: nestedField.name,
+            type: mapAvroTypeToCommon(nestedActualType),
+            nullable: nestedIsNullable
+          };
+        }
+      }
+
+      fields[field.name] = schemaField;
+    }
+  }
+
+  return {
+    type: 'object',
+    fields,
+    name: schema.name || 'Root'
+  };
+}
+
+/**
+ * Map Avro type to common type
+ */
+function mapAvroTypeToCommon(avroType: string | any): string {
+  if (typeof avroType === 'string') {
+    if (avroType === 'int' || avroType === 'long') return 'integer';
+    if (avroType === 'float' || avroType === 'double') return 'number';
+    if (avroType === 'string' || avroType === 'bytes') return 'string';
+    if (avroType === 'boolean') return 'boolean';
+    if (avroType === 'null') return 'null';
+    return 'string';
+  }
+
+  if (typeof avroType === 'object') {
+    if (avroType.type === 'array') return 'array';
+    if (avroType.type === 'map') return 'object';
+    if (avroType.type === 'record') return 'object';
+  }
+
+  return 'string';
+}
+
+/**
+ * Parse DuckDB Schema (SQL CREATE TABLE)
+ */
+function parseDuckDBSchema(schemaString: string): any {
+  try {
+    // Remove comments
+    const cleaned = schemaString.replace(/--.*/g, '').replace(/\/\*[\s\S]*?\*\//g, '').trim();
+
+    // Extract table name and columns
+    const tableMatch = cleaned.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)\s*\(([\s\S]*?)\)/i);
+    if (!tableMatch) {
+      throw new Error('Could not parse DuckDB CREATE TABLE statement.');
+    }
+
+    const tableName = tableMatch[1];
+    const columnsBody = tableMatch[2];
+
+    return {
+      name: tableName,
+      columns: columnsBody
+    };
+  } catch (error) {
+    throw new Error(`Invalid DuckDB Schema: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Convert DuckDB Schema to intermediate representation
+ */
+function duckdbToIntermediate(parsed: any): IntermediateSchema {
+  const fields: Record<string, SchemaField> = {};
+  const columns = parsed.columns;
+
+  // Parse column definitions: name TYPE constraints
+  const columnRegex = /(\w+)\s+(\w+(?:\([^)]+\))?(?:\[\])?)\s*([^,]*)/g;
+  let match;
+
+  while ((match = columnRegex.exec(columns)) !== null) {
+    const name = match[1];
+    const duckdbType = match[2].toUpperCase();
+    const constraints = match[3].trim();
+
+    const field: SchemaField = {
+      name,
+      type: mapDuckDBTypeToCommon(duckdbType),
+      nullable: !constraints.includes('NOT NULL'),
+      required: constraints.includes('NOT NULL') || constraints.includes('PRIMARY KEY')
+    };
+
+    // Handle array types (VARCHAR[])
+    if (duckdbType.endsWith('[]')) {
+      field.type = 'array';
+      const baseType = duckdbType.slice(0, -2);
+      field.items = {
+        name: 'item',
+        type: mapDuckDBTypeToCommon(baseType),
+        nullable: true
+      };
+    }
+
+    // Extract DEFAULT value
+    const defaultMatch = constraints.match(/DEFAULT\s+([^\s,]+)/i);
+    if (defaultMatch) {
+      field.defaultValue = parseSQLValue(defaultMatch[1]);
+    }
+
+    fields[name] = field;
+  }
+
+  return {
+    type: 'object',
+    fields,
+    name: parsed.name || 'Root'
+  };
+}
+
+/**
+ * Map DuckDB type to common type
+ */
+function mapDuckDBTypeToCommon(duckdbType: string): string {
+  const type = duckdbType.toUpperCase();
+  if (type.includes('INT')) return 'integer';
+  if (type.includes('DECIMAL') || type.includes('NUMERIC') || type.includes('FLOAT') || type.includes('DOUBLE')) {
+    return 'number';
+  }
+  if (type.includes('VARCHAR') || type.includes('CHAR') || type.includes('TEXT') || type.includes('STRING')) {
+    return 'string';
+  }
+  if (type.includes('BOOL') || type.includes('BOOLEAN')) return 'boolean';
+  if (type.includes('JSON') || type.includes('STRUCT')) return 'object';
+  if (type.endsWith('[]')) return 'array';
+  return 'string';
+}
+
+/**
+ * Parse PySpark Schema (Python StructType code)
+ */
+function parsePySparkSchema(pythonString: string): any {
+  try {
+    // Remove comments
+    const cleaned = pythonString.replace(/#.*/g, '').trim();
+
+    // Extract StructType definition
+    const structTypeMatch = cleaned.match(/schema\s*=\s*StructType\(\[([\s\S]*?)\]\)/);
+    if (!structTypeMatch) {
+      throw new Error('Could not find StructType definition in PySpark schema');
+    }
+
+    const fieldsBody = structTypeMatch[1];
+    const fields: any[] = [];
+
+    // Parse StructField definitions: StructField("name", Type(), nullable)
+    const fieldRegex = /StructField\s*\(\s*["'](\w+)["']\s*,\s*(\w+Type)\(\)\s*,\s*(True|False)\s*\)/g;
+    let match;
+
+    while ((match = fieldRegex.exec(fieldsBody)) !== null) {
+      fields.push({
+        name: match[1],
+        type: match[2],
+        nullable: match[3] === 'True'
+      });
+    }
+
+    // Handle ArrayType: StructField("name", ArrayType(StringType()), True)
+    const arrayFieldRegex = /StructField\s*\(\s*["'](\w+)["']\s*,\s*ArrayType\s*\(\s*(\w+Type)\(\)\s*\)\s*,\s*(True|False)\s*\)/g;
+    while ((match = arrayFieldRegex.exec(fieldsBody)) !== null) {
+      fields.push({
+        name: match[1],
+        type: 'ArrayType',
+        elementType: match[2],
+        nullable: match[3] === 'True'
+      });
+    }
+
+    // Handle nested StructType: StructField("name", StructType([...]), True)
+    const nestedStructRegex = /StructField\s*\(\s*["'](\w+)["']\s*,\s*StructType\s*\(\[([\s\S]*?)\]\)\s*,\s*(True|False)\s*\)/g;
+    while ((match = nestedStructRegex.exec(fieldsBody)) !== null) {
+      fields.push({
+        name: match[1],
+        type: 'StructType',
+        nestedFields: match[2],
+        nullable: match[3] === 'True'
+      });
+    }
+
+    if (fields.length === 0) {
+      throw new Error('No StructField definitions found in PySpark schema');
+    }
+
+    return { fields };
+  } catch (error) {
+    throw new Error(`Invalid PySpark Schema: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Convert PySpark Schema to intermediate representation
+ */
+function pysparkToIntermediate(parsed: any): IntermediateSchema {
+  const fields: Record<string, SchemaField> = {};
+
+  if (parsed.fields && Array.isArray(parsed.fields)) {
+    for (const field of parsed.fields) {
+      const schemaField: SchemaField = {
+        name: field.name,
+        type: mapPySparkTypeToCommon(field.type),
+        nullable: field.nullable !== false
+      };
+
+      // Handle ArrayType
+      if (field.type === 'ArrayType' && field.elementType) {
+        schemaField.type = 'array';
+        schemaField.items = {
+          name: 'item',
+          type: mapPySparkTypeToCommon(field.elementType),
+          nullable: true
+        };
+      }
+
+      // Handle nested StructType
+      if (field.type === 'StructType' && field.nestedFields) {
+        schemaField.type = 'object';
+        schemaField.properties = {};
+        // Parse nested fields (simplified - would need recursive parsing for full support)
+        const nestedFieldRegex = /StructField\s*\(\s*["'](\w+)["']\s*,\s*(\w+Type)\(\)\s*,\s*(True|False)\s*\)/g;
+        let nestedMatch;
+        while ((nestedMatch = nestedFieldRegex.exec(field.nestedFields)) !== null) {
+          schemaField.properties[nestedMatch[1]] = {
+            name: nestedMatch[1],
+            type: mapPySparkTypeToCommon(nestedMatch[2]),
+            nullable: nestedMatch[3] === 'True'
+          };
+        }
+      }
+
+      fields[field.name] = schemaField;
+    }
+  }
+
+  return {
+    type: 'object',
+    fields,
+    name: 'Root'
+  };
+}
+
+/**
+ * Map PySpark type to common type
+ */
+function mapPySparkTypeToCommon(pysparkType: string): string {
+  const type = pysparkType.toLowerCase();
+  if (type === 'integertype' || type === 'longtype' || type === 'shorttype') return 'integer';
+  if (type === 'floattype' || type === 'doubletype' || type === 'decimaltype') return 'number';
+  if (type === 'stringtype' || type === 'binarytype') return 'string';
+  if (type === 'booleantype') return 'boolean';
+  if (type === 'arraytype') return 'array';
+  if (type === 'structtype') return 'object';
+  return 'string';
+}
+
+/**
+ * Convert intermediate schema to Protocol Buffers
+ */
+function intermediateToProtobuf(
+  intermediate: IntermediateSchema,
+  options: SchemaConverterOptions
+): string {
+  const messageName = intermediate.name || 'Root';
+  const fields = Object.values(intermediate.fields);
+  let output = 'syntax = "proto3";\n\n';
+
+  // Generate nested messages for nested objects
+  const nestedMessages: string[] = [];
+  const fieldDefinitions: string[] = [];
+  let fieldNumber = 1;
+
+  for (const field of fields) {
+    const name = convertFieldName(field.name, options.fieldNaming);
+
+    if (field.type === 'array' && field.items) {
+      const itemType = mapCommonTypeToProtobuf(field.items.type, field.items);
+      fieldDefinitions.push(`  repeated ${itemType} ${name} = ${fieldNumber};`);
+      fieldNumber++;
+    } else if (field.type === 'object' && field.properties) {
+      // Generate nested message
+      const nestedMessageName = `${messageName}_${name.charAt(0).toUpperCase() + name.slice(1)}`;
+      let nestedMessage = `message ${nestedMessageName} {\n`;
+      let nestedFieldNumber = 1;
+
+      for (const [propKey, propValue] of Object.entries(field.properties)) {
+        const propName = convertFieldName(propKey, options.fieldNaming);
+        const propType = mapCommonTypeToProtobuf(propValue.type, propValue);
+        nestedMessage += `  ${propType} ${propName} = ${nestedFieldNumber};\n`;
+        nestedFieldNumber++;
+      }
+
+      nestedMessage += '}';
+      nestedMessages.push(nestedMessage);
+      fieldDefinitions.push(`  ${nestedMessageName} ${name} = ${fieldNumber};`);
+      fieldNumber++;
+    } else {
+      const protoType = mapCommonTypeToProtobuf(field.type, field);
+      // In proto3, fields are optional by default, but we can use optional keyword for explicit optional
+      const optional = field.nullable ? 'optional ' : '';
+      fieldDefinitions.push(`  ${optional}${protoType} ${name} = ${fieldNumber};`);
+      fieldNumber++;
+    }
+  }
+
+  // Add nested messages before main message
+  if (nestedMessages.length > 0) {
+    output += nestedMessages.join('\n\n') + '\n\n';
+  }
+
+  output += `message ${messageName} {\n`;
+  output += fieldDefinitions.join('\n');
+  output += '\n}';
+  return output;
+}
+
+/**
+ * Map common type to Protocol Buffers type
+ */
+function mapCommonTypeToProtobuf(type: string, field: SchemaField): string {
+  if (type === 'integer') return 'int32';
+  if (type === 'number') return 'double';
+  if (type === 'string') return 'string';
+  if (type === 'boolean') return 'bool';
+  if (type === 'array') {
+    // This shouldn't be called for arrays directly - arrays are handled separately
+    if (field.items) {
+      return mapCommonTypeToProtobuf(field.items.type, field.items);
+    }
+    return 'string';
+  }
+  if (type === 'object') {
+    // Nested objects are handled separately in intermediateToProtobuf
+    return 'string';
+  }
+  return 'string';
+}
+
+/**
+ * Convert intermediate schema to Apache Avro
+ */
+function intermediateToAvro(
+  intermediate: IntermediateSchema,
+  options: SchemaConverterOptions
+): string {
+  const recordName = intermediate.name || 'Root';
+  const fields = Object.values(intermediate.fields);
+  const avroFields: any[] = [];
+
+  for (const field of fields) {
+    const name = convertFieldName(field.name, options.fieldNaming);
+    const avroType = mapCommonTypeToAvro(field.type, field);
+
+    const fieldDef: any = {
+      name,
+      type: field.nullable ? ['null', avroType] : avroType
+    };
+
+    if (field.description) {
+      fieldDef.doc = field.description;
+    }
+
+    if (field.defaultValue !== undefined) {
+      fieldDef.default = field.nullable ? null : field.defaultValue;
+    } else if (field.nullable) {
+      fieldDef.default = null;
+    }
+
+    // Handle arrays
+    if (field.type === 'array' && field.items) {
+      fieldDef.type = field.nullable
+        ? ['null', { type: 'array', items: mapCommonTypeToAvro(field.items.type, field.items) }]
+        : { type: 'array', items: mapCommonTypeToAvro(field.items.type, field.items) };
+    }
+
+    // Handle nested objects
+    if (field.type === 'object' && field.properties) {
+      const nestedFields: any[] = [];
+      for (const [propKey, propValue] of Object.entries(field.properties)) {
+        const propName = convertFieldName(propKey, options.fieldNaming);
+        const propAvroType = mapCommonTypeToAvro(propValue.type, propValue);
+        nestedFields.push({
+          name: propName,
+          type: propValue.nullable ? ['null', propAvroType] : propAvroType
+        });
+      }
+      fieldDef.type = field.nullable
+        ? ['null', { type: 'record', name: `${name}Record`, fields: nestedFields }]
+        : { type: 'record', name: `${name}Record`, fields: nestedFields };
+    }
+
+    avroFields.push(fieldDef);
+  }
+
+  const avroSchema = {
+    type: 'record',
+    name: recordName,
+    fields: avroFields
+  };
+
+  return JSON.stringify(avroSchema, null, 2);
+}
+
+/**
+ * Map common type to Avro type
+ */
+function mapCommonTypeToAvro(type: string, field: SchemaField): string {
+  if (type === 'integer') return 'int';
+  if (type === 'number') return 'double';
+  if (type === 'string') return 'string';
+  if (type === 'boolean') return 'boolean';
+  if (type === 'array') return 'array';
+  if (type === 'object') return 'record';
+  return 'string';
+}
+
+/**
+ * Convert intermediate schema to DuckDB SQL
+ */
+function intermediateToDuckDB(
+  intermediate: IntermediateSchema,
+  options: SchemaConverterOptions
+): string {
+  const tableName = (intermediate.name || 'table_name').toLowerCase();
+  const fields = Object.values(intermediate.fields);
+  const dialect = options.sqlDialect;
+
+  let output = `CREATE TABLE ${tableName} (\n`;
+  const sqlFields: string[] = [];
+
+  for (const field of fields) {
+    const name = convertFieldName(field.name, options.fieldNaming);
+    const type = mapCommonTypeToDuckDB(field.type, field, options);
+    const nullable = field.nullable ? '' : ' NOT NULL';
+    const defaultValue = field.defaultValue !== undefined
+      ? ` DEFAULT ${formatSQLValue(field.defaultValue, dialect)}`
+      : '';
+    sqlFields.push(`    ${name} ${type}${nullable}${defaultValue}`);
+  }
+
+  // Add primary key if id field exists
+  const idField = fields.find(f => f.name.toLowerCase() === 'id');
+  if (idField) {
+    sqlFields[0] = sqlFields[0].replace(' NOT NULL', ' PRIMARY KEY NOT NULL');
+  }
+
+  output += sqlFields.join(',\n');
+  output += '\n);';
+  return output;
+}
+
+/**
+ * Map common type to DuckDB type
+ */
+function mapCommonTypeToDuckDB(type: string, field: SchemaField, options: SchemaConverterOptions): string {
+  if (type === 'integer') {
+    return options.numberType === 'bigint' ? 'BIGINT' : 'INTEGER';
+  }
+  if (type === 'number') {
+    if (options.numberType === 'decimal') return 'DECIMAL(10, 2)';
+    if (options.numberType === 'float') return 'FLOAT';
+    if (options.numberType === 'double') return 'DOUBLE';
+    return 'DOUBLE';
+  }
+  if (type === 'string') {
+    if (options.stringType === 'varchar') return 'VARCHAR(255)';
+    if (options.stringType === 'text') return 'TEXT';
+    return 'VARCHAR(255)';
+  }
+  if (type === 'boolean') {
+    return 'BOOLEAN';
+  }
+  if (type === 'array') {
+    if (field.items) {
+      const itemType = mapCommonTypeToDuckDB(field.items.type, field.items, options);
+      return `${itemType}[]`;
+    }
+    return 'VARCHAR[]';
+  }
+  if (type === 'object') {
+    return 'JSON';
+  }
+  return 'VARCHAR(255)';
+}
+
+/**
+ * Convert intermediate schema to PySpark Schema
+ */
+function intermediateToPySpark(
+  intermediate: IntermediateSchema,
+  options: SchemaConverterOptions
+): string {
+  const fields = Object.values(intermediate.fields);
+
+  // Determine which types are needed
+  const neededTypes = new Set<string>(['StructType', 'StructField', 'StringType']);
+  for (const field of fields) {
+    if (field.type === 'integer') neededTypes.add('IntegerType');
+    if (field.type === 'number') neededTypes.add('DoubleType');
+    if (field.type === 'boolean') neededTypes.add('BooleanType');
+    if (field.type === 'array') neededTypes.add('ArrayType');
+    if (field.type === 'object') neededTypes.add('StructType');
+  }
+
+  let output = `from pyspark.sql.types import ${Array.from(neededTypes).sort().join(', ')}\n\n`;
+  output += 'schema = StructType([\n';
+
+  const structFields: string[] = [];
+  const indent = '    ';
+
+  for (const field of fields) {
+    const name = convertFieldName(field.name, options.fieldNaming);
+    const nullable = field.nullable ? 'True' : 'False';
+
+    if (field.type === 'array' && field.items) {
+      const itemType = mapCommonTypeToPySpark(field.items.type, field.items);
+      structFields.push(`${indent}StructField("${name}", ArrayType(${itemType}()), ${nullable})`);
+    } else if (field.type === 'object' && field.properties) {
+      // Handle nested StructType
+      const nestedFields: string[] = [];
+      for (const [propKey, propValue] of Object.entries(field.properties)) {
+        const propName = convertFieldName(propKey, options.fieldNaming);
+        const propType = mapCommonTypeToPySpark(propValue.type, propValue);
+        const propNullable = propValue.nullable ? 'True' : 'False';
+        nestedFields.push(`${indent}${indent}StructField("${propName}", ${propType}(), ${propNullable})`);
+      }
+      structFields.push(`${indent}StructField("${name}", StructType([\n${nestedFields.join(',\n')}\n${indent}]), ${nullable})`);
+    } else {
+      const pysparkType = mapCommonTypeToPySpark(field.type, field);
+      structFields.push(`${indent}StructField("${name}", ${pysparkType}(), ${nullable})`);
+    }
+  }
+
+  output += structFields.join(',\n');
+  output += '\n])';
+  return output;
+}
+
+/**
+ * Map common type to PySpark type
+ */
+function mapCommonTypeToPySpark(type: string, field: SchemaField): string {
+  if (type === 'integer') return 'IntegerType';
+  if (type === 'number') return 'DoubleType';
+  if (type === 'string') return 'StringType';
+  if (type === 'boolean') return 'BooleanType';
+  if (type === 'array') return 'ArrayType';
+  if (type === 'object') return 'StructType';
+  return 'StringType';
+}
+
+/**
  * Main conversion function
  * Simplified: All formats convert to JSON Schema first, then JSON Schema converts to target format
  */
@@ -1598,6 +2339,34 @@ export function convertSchema(
       const jsonSchemaString = intermediateToJsonSchema(intermediate, options);
       const jsonSchema = parseJsonSchema(jsonSchemaString);
       jsonSchemaIntermediate = jsonSchemaToIntermediate(jsonSchema);
+    } else if (options.sourceFormat === 'protobuf') {
+      // Convert Protocol Buffers → Intermediate → JSON Schema → Intermediate
+      const parsed = parseProtobufSchema(input);
+      intermediate = protobufToIntermediate(parsed);
+      const jsonSchemaString = intermediateToJsonSchema(intermediate, options);
+      const jsonSchema = parseJsonSchema(jsonSchemaString);
+      jsonSchemaIntermediate = jsonSchemaToIntermediate(jsonSchema);
+    } else if (options.sourceFormat === 'avro') {
+      // Convert Apache Avro → Intermediate → JSON Schema → Intermediate
+      const schema = parseAvroSchema(input);
+      intermediate = avroToIntermediate(schema);
+      const jsonSchemaString = intermediateToJsonSchema(intermediate, options);
+      const jsonSchema = parseJsonSchema(jsonSchemaString);
+      jsonSchemaIntermediate = jsonSchemaToIntermediate(jsonSchema);
+    } else if (options.sourceFormat === 'duckdb') {
+      // Convert DuckDB → Intermediate → JSON Schema → Intermediate
+      const parsed = parseDuckDBSchema(input);
+      intermediate = duckdbToIntermediate(parsed);
+      const jsonSchemaString = intermediateToJsonSchema(intermediate, options);
+      const jsonSchema = parseJsonSchema(jsonSchemaString);
+      jsonSchemaIntermediate = jsonSchemaToIntermediate(jsonSchema);
+    } else if (options.sourceFormat === 'pyspark') {
+      // Convert PySpark → Intermediate → JSON Schema → Intermediate
+      const parsed = parsePySparkSchema(input);
+      intermediate = pysparkToIntermediate(parsed);
+      const jsonSchemaString = intermediateToJsonSchema(intermediate, options);
+      const jsonSchema = parseJsonSchema(jsonSchemaString);
+      jsonSchemaIntermediate = jsonSchemaToIntermediate(jsonSchema);
     } else {
       return {
         success: false,
@@ -1627,6 +2396,14 @@ export function convertSchema(
       output = intermediateToPandas(jsonSchemaIntermediate, options);
     } else if (options.targetFormat === 'polars') {
       output = intermediateToPolars(jsonSchemaIntermediate, options);
+    } else if (options.targetFormat === 'protobuf') {
+      output = intermediateToProtobuf(jsonSchemaIntermediate, options);
+    } else if (options.targetFormat === 'avro') {
+      output = intermediateToAvro(jsonSchemaIntermediate, options);
+    } else if (options.targetFormat === 'duckdb') {
+      output = intermediateToDuckDB(jsonSchemaIntermediate, options);
+    } else if (options.targetFormat === 'pyspark') {
+      output = intermediateToPySpark(jsonSchemaIntermediate, options);
     } else {
       return {
         success: false,
