@@ -3,7 +3,7 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ContentPanel } from '@/components/ui/content-panel';
+import { CodePanel } from '@/components/ui/code-panel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -637,8 +637,10 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
           {/* Main Content - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
-            <ContentPanel
+            <CodePanel
               title="Input Data"
+              showCopyButton={false}
+              showWrapToggle={false}
               headerActions={
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -675,11 +677,13 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
               }
             >
               {renderInputFields()}
-            </ContentPanel>
+            </CodePanel>
 
             {/* Output Panel */}
-            <ContentPanel
+            <CodePanel
               title="Generated QR Code"
+              showCopyButton={false}
+              showWrapToggle={false}
               headerActions={
                 qrCodeResult && (
                   <div className="flex items-center gap-2">
@@ -727,7 +731,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
                   </div>
                 )}
               </div>
-            </ContentPanel>
+            </CodePanel>
           </div>
 
           {/* Error Display */}

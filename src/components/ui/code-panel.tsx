@@ -59,7 +59,9 @@ export interface CodePanelProps {
   footerLeftContent?: React.ReactNode;
   footerRightContent?: React.ReactNode;
   customTabContent?: (tabId: string) => React.ReactNode; // Custom render function for specific tabs
+  children?: React.ReactNode; // Custom content for single mode (alternative to code editor)
   onCopy?: () => Promise<string | null>; // Custom copy handler, returns content to copy or null to use default
+  alwaysShowFooter?: boolean; // Whether to always show footer even if no content
 
   // Editor mount callback
   onEditorMount?: (editor: any, monaco: any) => void;
@@ -93,7 +95,9 @@ export function CodePanel({
   footerLeftContent,
   footerRightContent,
   customTabContent,
+  children,
   onCopy: customOnCopy,
+  alwaysShowFooter = false,
   onEditorMount,
   className,
 }: CodePanelProps) {
@@ -111,6 +115,9 @@ export function CodePanel({
 
   // Determine if we're in tabbed mode
   const isTabbedMode = tabs && tabs.length > 0;
+
+  // Determine if we're in custom content mode (children provided, no code editor)
+  const isCustomContentMode = !isTabbedMode && !value && !onChange && children !== undefined;
 
   // Get current content based on mode
   const currentTab = isTabbedMode ? tabs.find(t => t.id === activeTab) || tabs[0] : null;
@@ -274,8 +281,10 @@ export function CodePanel({
     <div
       className={cn(
         'bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden',
+        isCustomContentMode && 'flex flex-col',
         className
       )}
+      style={isCustomContentMode ? { height } : undefined}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-0">
@@ -359,9 +368,21 @@ export function CodePanel({
       </div>
 
       {/* Editor Area */}
-      <div className="pt-px pb-1 px-1">
-        <div style={{ height }}>
+      <div className={cn(
+        'pt-px pb-1 px-1',
+        isCustomContentMode && 'flex-1 overflow-hidden'
+      )}>
+        <div style={isCustomContentMode ? { height: '100%' } : { height }}>
           {(() => {
+            // Custom content mode (children provided, no code editor)
+            if (isCustomContentMode) {
+              return (
+                <div className="h-full overflow-auto bg-white dark:bg-neutral-900 rounded-md p-4">
+                  {children}
+                </div>
+              );
+            }
+
             // Check if we have custom content for this tab
             if (isTabbedMode && activeTab && customTabContent) {
               const customContent = customTabContent(activeTab);
@@ -369,29 +390,30 @@ export function CodePanel({
                 return customContent;
               }
             }
+
             // Default code editor (for non-tabbed mode or when no custom content)
             return (
-          <CodeEditorCore
-            key={isTabbedMode ? activeTab : 'single'}
-            value={currentValue}
-            onChange={readOnly ? undefined : handleValueChange}
-            language={currentLanguage}
-            theme={theme}
-            wrapText={wrapText}
-            showLineNumbers={lineNumbers}
-            readOnly={readOnly}
-            placeholder={placeholder}
-            height={height}
-            singleLine={singleLine}
-            onMount={handleEditorMount}
-          />
+              <CodeEditorCore
+                key={isTabbedMode ? activeTab : 'single'}
+                value={currentValue}
+                onChange={readOnly ? undefined : handleValueChange}
+                language={currentLanguage}
+                theme={theme}
+                wrapText={wrapText}
+                showLineNumbers={lineNumbers}
+                readOnly={readOnly}
+                placeholder={placeholder}
+                height={height}
+                singleLine={singleLine}
+                onMount={handleEditorMount}
+              />
             );
           })()}
         </div>
       </div>
 
       {/* Footer */}
-      {(footerLeftContent || footerRightContent || showStats || (showWrapToggle && onWrapTextChange)) && (
+      {(alwaysShowFooter || footerLeftContent || footerRightContent || showStats || (showWrapToggle && onWrapTextChange)) && (
         <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
           <div className="flex items-center gap-4">
             {/* Editor Settings Menu */}
