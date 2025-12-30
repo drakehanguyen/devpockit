@@ -39,7 +39,7 @@ export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
   useEffect(() => {
     if (!hasHydratedRef.current && toolState) {
       hasHydratedRef.current = true;
-      setIsHydrated(true);
+    setIsHydrated(true);
       if (toolState.options) {
         const opts = toolState.options as LoremOptions;
         setOptions(opts);

@@ -239,11 +239,11 @@ export function AppSidebar({
                         tooltip={{
                           children: (
                             <div className="flex flex-col gap-1">
-                              <div className="font-semibold border-b border-border pb-1 mb-1">{category.name}</div>
+                              <div className="font-semibold border-b border-neutral-200 dark:border-neutral-700 pb-1 mb-1 text-neutral-900 dark:text-neutral-100">{category.name}</div>
                               {category.tools.map((tool) => (
                                 <div
                                   key={tool.id}
-                                  className="text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground py-1 px-2 rounded-md -mx-2"
+                                  className="text-xs cursor-pointer hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-700 dark:hover:text-neutral-100 dark:text-neutral-100 py-1 px-2 rounded-md -mx-2"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     handleToolSelect(tool.id)
@@ -286,8 +286,8 @@ export function AppSidebar({
       <SidebarFooter className="px-2 py-2 group-data-[collapsible=icon]:hidden">
         <div className="space-y-2">
           {/* Code Editor Theme Selector */}
-          <div className="bg-[#f5f5f5] dark:bg-[#262626] rounded-[10px] p-2">
-            <div className="text-xs font-medium text-[#525252] dark:text-[#a3a3a3] mb-1.5 px-1">
+          <div className="bg-neutral-100 dark:bg-neutral-800 rounded-[10px] p-2">
+            <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">
               Code Editor Theme
             </div>
             <Select
@@ -308,30 +308,30 @@ export function AppSidebar({
           </div>
 
           {/* Dark/Light Mode Toggle */}
-          <div className="bg-[#f5f5f5] dark:bg-[#262626] rounded-[10px] p-[3px] flex items-center">
+          <div className="bg-neutral-100 dark:bg-neutral-800 rounded-[10px] p-[3px] flex items-center">
             <button
               onClick={() => setTheme('light')}
               className={cn(
                 'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
                 mounted && theme === 'light'
-                  ? 'bg-white dark:bg-[#171717] shadow-sm'
+                  ? 'bg-white dark:bg-neutral-900 shadow-sm'
                   : 'bg-transparent'
               )}
               title="Light mode"
             >
-              <Sun className="h-4 w-4 text-[#525252]" />
+              <Sun className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
             </button>
             <button
               onClick={() => setTheme('dark')}
               className={cn(
                 'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
                 mounted && theme === 'dark'
-                  ? 'bg-white dark:bg-[#171717] shadow-sm'
+                  ? 'bg-white dark:bg-neutral-900 shadow-sm'
                   : 'bg-transparent'
               )}
               title="Dark mode"
             >
-              <Moon className="h-4 w-4 text-[#525252]" />
+              <Moon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
             </button>
           </div>
         </div>
