@@ -41,6 +41,8 @@ export interface CodePanelProps {
   theme?: CodeEditorTheme;
   wrapText?: boolean;
   onWrapTextChange?: (wrapText: boolean) => void;
+  showLineNumbers?: boolean;
+  onShowLineNumbersChange?: (showLineNumbers: boolean) => void;
   placeholder?: string;
   readOnly?: boolean; // If not provided, auto-detect from onChange
 
@@ -74,6 +76,8 @@ export function CodePanel({
   theme = 'basicDark',
   wrapText = true,
   onWrapTextChange,
+  showLineNumbers = true,
+  onShowLineNumbersChange,
   placeholder,
   readOnly: readOnlyProp,
   showCopyButton = true,
@@ -94,6 +98,7 @@ export function CodePanel({
   const [stickyScroll, setStickyScroll] = useState(false);
   const [renderWhitespace, setRenderWhitespace] = useState(false);
   const [renderControlCharacters, setRenderControlCharacters] = useState(false);
+  const [lineNumbers, setLineNumbers] = useState(showLineNumbers);
   // For tabbed mode: store editors by tab ID. For single mode: use 'single' as key
   const [editorInstances, setEditorInstances] = useState<Map<string, Monaco.editor.IStandaloneCodeEditor>>(new Map());
 
@@ -145,10 +150,16 @@ export function CodePanel({
       },
       renderWhitespace: renderWhitespace ? 'all' : 'none',
       renderControlCharacters: renderControlCharacters,
+      lineNumbers: lineNumbers ? 'on' : 'off',
     });
     // Call the original onEditorMount if provided
     onEditorMount?.(editor, monaco);
   };
+
+  // Sync lineNumbers state with prop changes
+  useEffect(() => {
+    setLineNumbers(showLineNumbers);
+  }, [showLineNumbers]);
 
   // Update editor options when state changes (for all editors in tabbed mode, or single editor)
   useEffect(() => {
@@ -160,10 +171,11 @@ export function CodePanel({
           },
           renderWhitespace: renderWhitespace ? 'all' : 'none',
           renderControlCharacters: renderControlCharacters,
+          lineNumbers: lineNumbers ? 'on' : 'off',
         });
       });
     }
-  }, [editorInstances, stickyScroll, renderWhitespace, renderControlCharacters]);
+  }, [editorInstances, stickyScroll, renderWhitespace, renderControlCharacters, lineNumbers]);
 
   // Settings change handlers
   const handleStickyScrollChange = (enabled: boolean) => {
@@ -176,6 +188,11 @@ export function CodePanel({
 
   const handleRenderControlCharactersChange = (enabled: boolean) => {
     setRenderControlCharacters(enabled);
+  };
+
+  const handleShowLineNumbersChange = (enabled: boolean) => {
+    setLineNumbers(enabled);
+    onShowLineNumbersChange?.(enabled);
   };
 
   const handleZoomIn = () => {
@@ -295,6 +312,7 @@ export function CodePanel({
             language={currentLanguage}
             theme={theme}
             wrapText={wrapText}
+            showLineNumbers={lineNumbers}
             readOnly={readOnly}
             placeholder={placeholder}
             height={height}
@@ -319,6 +337,8 @@ export function CodePanel({
                 onRenderWhitespaceChange={handleRenderWhitespaceChange}
                 renderControlCharacters={renderControlCharacters}
                 onRenderControlCharactersChange={handleRenderControlCharactersChange}
+                showLineNumbers={lineNumbers}
+                onShowLineNumbersChange={handleShowLineNumbersChange}
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}
                 onResetZoom={handleResetZoom}

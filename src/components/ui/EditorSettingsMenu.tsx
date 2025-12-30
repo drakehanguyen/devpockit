@@ -38,6 +38,10 @@ export interface EditorSettingsMenuProps {
   renderControlCharacters: boolean;
   onRenderControlCharactersChange: (enabled: boolean) => void;
 
+  // Line Numbers
+  showLineNumbers: boolean;
+  onShowLineNumbersChange: (enabled: boolean) => void;
+
   // Zoom actions
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -57,6 +61,8 @@ export function EditorSettingsMenu({
   onRenderWhitespaceChange,
   renderControlCharacters,
   onRenderControlCharactersChange,
+  showLineNumbers,
+  onShowLineNumbersChange,
   onZoomIn,
   onZoomOut,
   onResetZoom,
@@ -98,6 +104,15 @@ export function EditorSettingsMenu({
       });
     }
     onRenderControlCharactersChange(checked);
+  };
+
+  const handleShowLineNumbersChange = (checked: boolean) => {
+    if (editorInstance) {
+      editorInstance.updateOptions({
+        lineNumbers: checked ? 'on' : 'off',
+      });
+    }
+    onShowLineNumbersChange(checked);
   };
 
   const handleZoomIn = () => {
@@ -146,6 +161,15 @@ export function EditorSettingsMenu({
         sideOffset={8}
         className="min-w-[200px]"
       >
+        {/* Line Numbers */}
+        <DropdownMenuCheckboxItem
+          checked={showLineNumbers}
+          onCheckedChange={handleShowLineNumbersChange}
+          disabled={!isEditorAvailable}
+        >
+          Line Numbers
+        </DropdownMenuCheckboxItem>
+
         {/* Text Wrap */}
         <DropdownMenuCheckboxItem
           checked={wrapText}
