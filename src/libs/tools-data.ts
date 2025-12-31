@@ -56,6 +56,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'regex-tester': Search,
   'system-info': Info,
   'number-base-converter': Binary,
+  'base-encoder': Binary,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -246,6 +247,18 @@ export const toolCategories: ToolCategory[] = [
         isPopular: true,
         path: '/tools/encoders/url-decoder',
         component: 'UrlDecoderTool',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'base-encoder',
+        name: 'Base Encoder/Decoder',
+        description: 'Encode and decode text using Base64, Base32, Base16 (hex), Base85, and other base encodings',
+        category: 'encoders',
+        icon: '🔢',
+        isPopular: true,
+        path: '/tools/encoders/base-encoder',
+        component: 'BaseEncoder',
         supportsDesktop: true,
         supportsMobile: true,
       },
