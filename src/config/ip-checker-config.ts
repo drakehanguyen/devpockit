@@ -1,13 +1,6 @@
-import { IpCheckerOptions } from '@/libs/ip-checker';
+import { DEFAULT_IP_OPTIONS as LIB_DEFAULT_IP_OPTIONS, IpCheckerOptions } from '@/libs/ip-checker';
 
-export const DEFAULT_IP_OPTIONS: IpCheckerOptions = {
-  showLocation: true,
-  showISP: true,
-  showTimezone: true,
-  showIPv6: true,
-  autoRefresh: false,
-  refreshInterval: 30
-};
+export const DEFAULT_IP_OPTIONS: IpCheckerOptions = LIB_DEFAULT_IP_OPTIONS;
 
 export const IP_CHECKER_EXAMPLES = [
   {
@@ -34,20 +27,20 @@ export const IP_CHECKER_EXAMPLES = [
 
 export const IP_CHECKER_HELP = {
   title: 'IP Address Lookup',
-  description: 'Look up information about your current public IP address and network details',
+  description: 'Look up information about any IP address or your current public IP address and network details',
   features: [
-    'Get your public IP address (IPv4 and IPv6)',
+    'Check any IP address (IPv4 and IPv6)',
+    'Get your public IP address automatically',
     'View location information (country, region, city)',
     'Check ISP and organization details',
     'See timezone information',
     'Toggle IPv6 display on/off',
-    'Auto-refresh capability',
     'Multiple service fallbacks for reliability'
   ],
   tips: [
-    'This tool shows your public IP address as seen by external services',
+    'Switch between "My IP" and "Custom IP" modes using the buttons',
+    'Enter any valid IPv4 or IPv6 address to check',
     'Location information is approximate and based on IP geolocation',
-    'Use auto-refresh to monitor IP changes',
-    'Information is retrieved from multiple reliable sources'
+    'Information is retrieved from reliable sources'
   ]
 };

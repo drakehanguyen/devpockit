@@ -4,11 +4,11 @@ import { ToolStateProvider, useToolStateContext } from '@/components/providers/T
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { getToolComponent } from '@/libs/tool-components';
 import { getToolById } from '@/libs/tools-data';
-import { cn } from '@/libs/utils';
 import { isValidCategoryUrl, isValidToolUrl, parseToolUrl } from '@/libs/url-utils';
+import { cn } from '@/libs/utils';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, startTransition } from 'react';
-import { AppSidebar } from '../app-sidebar';
+import { startTransition, useEffect, useState } from 'react';
+import { AppSidebar } from '../AppSidebar';
 import { WelcomePage } from '../pages/WelcomePage';
 import { MobileTopBar } from './MobileTopBar';
 import { TopNavTabs, type ActiveTab } from './TopNavTabs';
@@ -89,6 +89,7 @@ function AppLayoutInner({ children }: AppLayoutProps) {
   const { isMobile } = useSidebar();
   const [activeTabs, setActiveTabs] = useState<ActiveTab[]>([]);
   const [selectedTool, setSelectedTool] = useState<string | undefined>();
+  const [previousTool, setPreviousTool] = useState<string | undefined>();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -100,6 +101,8 @@ function AppLayoutInner({ children }: AppLayoutProps) {
         // Update selectedTool and tabs using startTransition for non-urgent updates
         startTransition(() => {
           setSelectedTool(parsed.toolId);
+          // Update previousTool to track the last active tool
+          setPreviousTool(parsed.toolId);
 
           // Update tabs to reflect the current tool
           if (!isMobile) {
@@ -152,10 +155,19 @@ function AppLayoutInner({ children }: AppLayoutProps) {
         return;
       }
 
-      // Escape to close current tool or go to welcome
+      // Escape to toggle between current tool and welcome page
       if (e.key === 'Escape') {
         if (selectedTool) {
+          // Save current tool and close it
+          setPreviousTool(selectedTool);
           setSelectedTool(undefined);
+        } else if (previousTool) {
+          // Restore previous tool
+          const tool = getToolById(previousTool);
+          if (tool) {
+            router.push(`/tools/${tool.category}/${previousTool}`);
+            setSelectedTool(previousTool);
+          }
         }
       }
 
@@ -171,12 +183,14 @@ function AppLayoutInner({ children }: AppLayoutProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedTool]);
+  }, [selectedTool, previousTool, router]);
 
   const handleToolSelect = (toolId: string) => {
     const tool = getToolById(toolId);
     if (!tool) return;
 
+    // Update previousTool to track the last active tool
+    setPreviousTool(toolId);
     // Navigate to the tool URL - the useEffect will handle tab management
     router.push(`/tools/${tool.category}/${toolId}`);
   };
@@ -233,7 +247,10 @@ function AppLayoutInner({ children }: AppLayoutProps) {
   };
 
   const handleHomeClick = () => {
-    router.push('/');
+    // Match ESC key behavior: close current tool by setting selectedTool to undefined
+    if (selectedTool) {
+      setSelectedTool(undefined);
+    }
     if (!isMobile) {
       setActiveTabs(tabs => tabs.map(tab => ({ ...tab, isActive: false })));
     }

@@ -1,7 +1,7 @@
 /**
  * EditorSettingsMenu Component
  * A dropdown menu for code editor settings with upward-opening menu
- * Includes: Text Wrap, Sticky Scroll, Render Whitespace, Render Control Characters, Zoom controls
+ * Includes: Text Wrap, Sticky Scroll, Render Whitespace, Render Control Characters, Auto-complete, Zoom controls
  */
 
 'use client';
@@ -42,6 +42,10 @@ export interface EditorSettingsMenuProps {
   showLineNumbers: boolean;
   onShowLineNumbersChange: (enabled: boolean) => void;
 
+  // Auto-complete
+  autoComplete: boolean;
+  onAutoCompleteChange: (enabled: boolean) => void;
+
   // Zoom actions
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -63,6 +67,8 @@ export function EditorSettingsMenu({
   onRenderControlCharactersChange,
   showLineNumbers,
   onShowLineNumbersChange,
+  autoComplete,
+  onAutoCompleteChange,
   onZoomIn,
   onZoomOut,
   onResetZoom,
@@ -113,6 +119,18 @@ export function EditorSettingsMenu({
       });
     }
     onShowLineNumbersChange(checked);
+  };
+
+  const handleAutoCompleteChange = (checked: boolean) => {
+    if (editorInstance) {
+      editorInstance.updateOptions({
+        quickSuggestions: checked,
+        suggestOnTriggerCharacters: checked,
+        acceptSuggestionOnCommitCharacter: checked,
+        tabCompletion: checked ? 'on' : 'off',
+      });
+    }
+    onAutoCompleteChange(checked);
   };
 
   const handleZoomIn = () => {
@@ -204,6 +222,15 @@ export function EditorSettingsMenu({
           disabled={!isEditorAvailable}
         >
           Render Control Character
+        </DropdownMenuCheckboxItem>
+
+        {/* Auto-complete */}
+        <DropdownMenuCheckboxItem
+          checked={autoComplete}
+          onCheckedChange={handleAutoCompleteChange}
+          disabled={!isEditorAvailable}
+        >
+          Auto-complete
         </DropdownMenuCheckboxItem>
 
         {/* Divider */}

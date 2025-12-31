@@ -523,7 +523,13 @@ describe('JsonFormatter', () => {
 - **TypeScript**: Strict mode, proper typing
 - **Components**: Functional components with hooks
 - **Naming**: PascalCase for components, camelCase for functions
-- **Files**: kebab-case for file names
+- **Files**:
+  - **Component files**: PascalCase (Next.js default, e.g., `Button.tsx`, `UserProfile.tsx`)
+  - **UI component files**: kebab-case (shadcn/ui convention, e.g., `button.tsx`, `input.tsx`, `dropdown-menu.tsx`)
+  - **Route folders**: kebab-case/lowercase (Next.js App Router convention, e.g., `user-profile/`, `api/`)
+  - **Route files**: lowercase special files (`page.tsx`, `layout.tsx`, `route.ts`, `loading.tsx`, `error.tsx`)
+  - **Utility/config files**: kebab-case or camelCase (e.g., `utils.ts`, `api-config.ts`)
+  - **Hook files**: camelCase (e.g., `useMobile.tsx`, `useMonacoEditor.ts`)
 - **Imports**: Absolute imports with path mapping
 - **Comments**: JSDoc for public APIs
 

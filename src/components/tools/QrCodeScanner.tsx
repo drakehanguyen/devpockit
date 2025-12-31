@@ -3,11 +3,11 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ContentPanel } from '@/components/ui/ContentPanel';
-import { cn } from '@/libs/utils';
+import { CodePanel } from '@/components/ui/code-panel';
 import {
   CameraManager
 } from '@/libs/qr-code-decoder';
+import { cn } from '@/libs/utils';
 import {
   QrDecoderOptions,
   QrDecoderResult
@@ -26,7 +26,7 @@ import {
   Share,
   Trash2
 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState, startTransition } from 'react';
+import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
 import { QR_SCANNER_CONFIG } from '../../config/qr-code-scanner-config';
 
 interface QrCodeScannerProps {
@@ -368,8 +368,11 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
           {/* Main Content - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel - Camera */}
-            <ContentPanel
+            <CodePanel
               title="Camera Scanner"
+              height="600px"
+              showCopyButton={false}
+              showWrapToggle={false}
               headerActions={
                 isCameraActive && (
                   <div className="flex items-center gap-1">
@@ -458,11 +461,14 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
                   </div>
                 )}
               </div>
-            </ContentPanel>
+            </CodePanel>
 
             {/* Output Panel - Results */}
-            <ContentPanel
+            <CodePanel
               title="Scan Result"
+              height="600px"
+              showCopyButton={false}
+              showWrapToggle={false}
               headerActions={
                 results.length > 0 && (
                   <div className="flex items-center gap-2">
@@ -537,7 +543,7 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
                   Scanned QR content will appear here
                 </div>
               )}
-            </ContentPanel>
+            </CodePanel>
           </div>
 
           {/* Error Display */}

@@ -3,7 +3,7 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { CronFieldBuilder } from '@/components/tools/CronFieldBuilder';
 import { Button } from '@/components/ui/button';
-import { CodePanel } from '@/components/ui/CodePanel';
+import { CodePanel } from '@/components/ui/code-panel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LabeledInput } from '@/components/ui/labeled-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

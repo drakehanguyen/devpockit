@@ -262,7 +262,7 @@ export function AppSidebar({
                         <ChevronRight className="ml-auto h-8 w-8 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
-                    <CollapsibleContent>
+                    <CollapsibleContent suppressHydrationWarning>
                       <SidebarMenuSub>
                         {category.tools.map((tool) => (
                           <SidebarMenuSubItem key={tool.id}>

@@ -19,12 +19,18 @@ export const getToolComponent = async (componentName: string) => {
     'ListComparison': () => import('@/components/tools/ListComparison').then(m => m.ListComparison),
     'ListConverter': () => import('@/components/tools/ListConverter').then(m => m.ListConverter),
     'JsonPathFinder': () => import('@/components/tools/JsonPathFinder').then(m => m.JsonPathFinder),
+    'XmlPathFinder': () => import('@/components/tools/XmlPathFinder').then(m => m.XmlPathFinder),
+    'YamlPathFinder': () => import('@/components/tools/YamlPathFinder').then(m => m.YamlPathFinder),
     'JsonSchemaGenerator': () => import('@/components/tools/JsonSchemaGenerator').then(m => m.JsonSchemaGenerator),
     'SchemaConverter': () => import('@/components/tools/SchemaConverter').then(m => m.SchemaConverter),
     'CronParser': () => import('@/components/tools/CronParser').then(m => m.CronParser),
     'JwtDecoder': () => import('@/components/tools/JwtDecoder').then(m => m.JwtDecoder),
     'JwtEncoder': () => import('@/components/tools/JwtEncoder').then(m => m.JwtEncoder),
     'RegexTester': () => import('@/components/tools/RegexTester').then(m => m.RegexTester),
+    'SystemInfo': () => import('@/components/tools/SystemInfo').then(m => m.SystemInfo),
+    'NumberBaseConverter': () => import('@/components/tools/NumberBaseConverter').then(m => m.NumberBaseConverter),
+    'BaseEncoder': () => import('@/components/tools/BaseEncoder').then(m => m.BaseEncoder),
+    'HashGenerator': () => import('@/components/tools/HashGenerator').then(m => m.HashGenerator),
   };
 
   const loader = componentMap[componentName];

@@ -3,7 +3,7 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ContentPanel } from '@/components/ui/ContentPanel';
+import { CodePanel } from '@/components/ui/code-panel';
 import { DEFAULT_QR_DECODER_OPTIONS } from '@/config/qr-code-decoder-config';
 import {
   decodeQrFromImage,
@@ -310,8 +310,11 @@ export function QrCodeDecoder({ className, onResult, onError }: QrCodeDecoderPro
           {/* Main Content - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel - Upload */}
-            <ContentPanel
+            <CodePanel
               title="Upload Image"
+              height="600px"
+              showCopyButton={false}
+              showWrapToggle={false}
               headerActions={
                 files.length > 0 && (
                   <button
@@ -395,11 +398,14 @@ export function QrCodeDecoder({ className, onResult, onError }: QrCodeDecoderPro
                   className="hidden"
                 />
               </div>
-            </ContentPanel>
+            </CodePanel>
 
             {/* Output Panel - Results */}
-            <ContentPanel
+            <CodePanel
               title="Decoded Result"
+              height="600px"
+              showCopyButton={false}
+              showWrapToggle={false}
               headerActions={
                 results.length > 0 && (
                   <div className="flex items-center gap-2">
@@ -472,7 +478,7 @@ export function QrCodeDecoder({ className, onResult, onError }: QrCodeDecoderPro
                   Decoded QR content will appear here
                 </div>
               )}
-            </ContentPanel>
+            </CodePanel>
           </div>
 
           {/* Error Display */}

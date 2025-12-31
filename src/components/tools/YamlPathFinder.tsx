@@ -9,37 +9,39 @@ import { Input } from '@/components/ui/input';
 import { JsonTreeView } from '@/components/ui/json-tree-view';
 import { Label } from '@/components/ui/label';
 import {
-  DEFAULT_JSON_PATH_OPTIONS,
-  JSON_PATH_COMMON_PATTERNS,
-  JSON_PATH_EXAMPLES,
-  type JsonPathFinderOptions
-} from '@/config/json-path-finder-config';
+  DEFAULT_YAML_PATH_OPTIONS,
+  YAML_PATH_COMMON_PATTERNS,
+  YAML_PATH_EXAMPLES,
+  type YamlPathFinderOptions
+} from '@/config/yaml-path-finder-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import {
-  evaluateJsonPath,
-  formatJsonPathResults,
-  validateJsonPath,
-  type JsonPathResult
-} from '@/libs/json-path-finder';
+  evaluateYamlPath,
+  formatYamlPathResults,
+  parseYamlWithMetadata,
+  validateYamlPath,
+  type YamlPathResult
+} from '@/libs/yaml-path-finder';
 import { cn } from '@/libs/utils';
+import { stringify } from 'yaml';
 import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-interface JsonPathFinderProps {
+interface YamlPathFinderProps {
   className?: string;
 }
 
-export function JsonPathFinder({ className }: JsonPathFinderProps) {
-  const { toolState, updateToolState } = useToolState('json-path-finder');
+export function YamlPathFinder({ className }: YamlPathFinderProps) {
+  const { toolState, updateToolState } = useToolState('yaml-path-finder');
 
   // Initialize with defaults to avoid hydration mismatch
-  const [options, setOptions] = useState<JsonPathFinderOptions>(DEFAULT_JSON_PATH_OPTIONS);
-  const [jsonInput, setJsonInput] = useState<string>('');
+  const [options, setOptions] = useState<YamlPathFinderOptions>(DEFAULT_YAML_PATH_OPTIONS);
+  const [yamlInput, setYamlInput] = useState<string>('');
   const [pathInput, setPathInput] = useState<string>('');
   const [output, setOutput] = useState<string>('');
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [error, setError] = useState<string>('');
-  const [result, setResult] = useState<JsonPathResult | null>(null);
+  const [result, setResult] = useState<YamlPathResult | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('tree');
   const [getExpandedJson, setGetExpandedJson] = useState<(() => string) | null>(null);
@@ -53,12 +55,12 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
   useEffect(() => {
     setIsHydrated(true);
     if (toolState) {
-      if (toolState.options) setOptions(toolState.options as JsonPathFinderOptions);
-      if (toolState.jsonInput) setJsonInput(toolState.jsonInput as string);
+      if (toolState.options) setOptions(toolState.options as YamlPathFinderOptions);
+      if (toolState.yamlInput) setYamlInput(toolState.yamlInput as string);
       if (toolState.pathInput) setPathInput(toolState.pathInput as string);
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
-      if (toolState.result) setResult(toolState.result as JsonPathResult);
+      if (toolState.result) setResult(toolState.result as YamlPathResult);
       if (toolState.activeTab) setActiveTab(toolState.activeTab as string);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,7 +71,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     if (isHydrated) {
       updateToolState({
         options,
-        jsonInput,
+        yamlInput,
         pathInput,
         output,
         error,
@@ -78,13 +80,13 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, jsonInput, pathInput, output, error, result, activeTab, isHydrated]);
+  }, [options, yamlInput, pathInput, output, error, result, activeTab, isHydrated]);
 
   // Reset local state when tool state is cleared
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
-      setOptions(DEFAULT_JSON_PATH_OPTIONS);
-      setJsonInput('');
+      setOptions(DEFAULT_YAML_PATH_OPTIONS);
+      setYamlInput('');
       setPathInput('');
       setOutput('');
       setError('');
@@ -94,15 +96,15 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
   }, [toolState, isHydrated]);
 
   const handleEvaluate = async () => {
-    if (!jsonInput.trim()) {
-      setError('Please enter JSON data');
+    if (!yamlInput.trim()) {
+      setError('Please enter YAML data');
       setOutput('');
       setResult(null);
       return;
     }
 
     if (!pathInput.trim()) {
-      setError('Please enter a JSONPath expression');
+      setError('Please enter a YAMLPath expression');
       setOutput('');
       setResult(null);
       return;
@@ -112,37 +114,56 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     setError('');
 
     try {
-      // Validate JSONPath syntax
-      const pathValidation = validateJsonPath(pathInput);
+      // Validate YAMLPath syntax
+      const pathValidation = validateYamlPath(pathInput);
       if (!pathValidation.isValid) {
-        setError(pathValidation.error || 'Invalid JSONPath expression');
+        setError(pathValidation.error || 'Invalid YAMLPath expression');
         setOutput('');
         setResult(null);
         return;
       }
 
-      // Parse JSON
-      let jsonData: any;
-      try {
-        jsonData = JSON.parse(jsonInput);
-      } catch (parseError) {
-        setError(parseError instanceof Error ? parseError.message : 'Invalid JSON format');
+      // Parse YAML with metadata
+      const parseResult = parseYamlWithMetadata(yamlInput);
+      if (parseResult.error) {
+        setError(parseResult.error);
         setOutput('');
         setResult(null);
         return;
       }
+
+      if (parseResult.documents.length === 0) {
+        setError('No YAML documents found');
+        setOutput('');
+        setResult(null);
+        return;
+      }
+
+      // For now, evaluate against the first document
+      // TODO: Support multi-document evaluation
+      const firstDoc = parseResult.documents[0];
+      const metadata = {
+        anchors: firstDoc.anchors,
+        aliases: firstDoc.aliases,
+        tags: firstDoc.tags
+      };
 
       // Simulate async operation for better UX
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Evaluate JSONPath
-      const pathResult = evaluateJsonPath(jsonData, pathInput);
+      // Evaluate YAMLPath
+      const pathResult = evaluateYamlPath(
+        firstDoc.content,
+        pathInput,
+        options,
+        metadata
+      );
 
       if (pathResult.success) {
         setResult(pathResult);
-        setOutput(formatJsonPathResults(pathResult));
+        setOutput(formatYamlPathResults(pathResult));
       } else {
-        setError(pathResult.error || 'JSONPath evaluation failed');
+        setError(pathResult.error || 'YAMLPath evaluation failed');
         setOutput('');
         setResult(null);
       }
@@ -155,19 +176,19 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     }
   };
 
-  const handleLoadExample = (example: typeof JSON_PATH_EXAMPLES[0]) => {
-    setJsonInput(example.json);
+  const handleLoadExample = (example: typeof YAML_PATH_EXAMPLES[0]) => {
+    setYamlInput(example.yaml);
     setPathInput(example.path);
     setError('');
     setOutput('');
     setResult(null);
   };
 
-  const handleLoadPattern = (pattern: typeof JSON_PATH_COMMON_PATTERNS[0]) => {
+  const handleLoadPattern = (pattern: typeof YAML_PATH_COMMON_PATTERNS[0]) => {
     setPathInput(pattern.example);
     // Focus on path input
     setTimeout(() => {
-      const pathInputElement = document.querySelector('input[placeholder*="JSONPath"]') as HTMLInputElement;
+      const pathInputElement = document.querySelector('input[placeholder*="YAMLPath"]') as HTMLInputElement;
       if (pathInputElement) {
         pathInputElement.focus();
       }
@@ -183,15 +204,19 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     return text.split('\n').length;
   };
 
-  // Parse JSON safely
-  const parsedJsonData = useMemo(() => {
-    if (!jsonInput.trim()) return null;
+  // Parse YAML safely
+  const parsedYamlData = useMemo(() => {
+    if (!yamlInput.trim()) return null;
     try {
-      return JSON.parse(jsonInput);
+      const parseResult = parseYamlWithMetadata(yamlInput);
+      if (parseResult.error || parseResult.documents.length === 0) {
+        return null;
+      }
+      return parseResult.documents[0].content;
     } catch {
       return null;
     }
-  }, [jsonInput]);
+  }, [yamlInput]);
 
   // Create output tabs - Always show both tabs
   const outputTabs: CodeOutputTab[] = useMemo(() => {
@@ -200,7 +225,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
         id: 'tree',
         label: 'Tree View',
         value: '', // Not used for tree view
-        language: 'json'
+        language: 'yaml'
       },
       {
         id: 'results',
@@ -214,14 +239,12 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
   }, [output]);
 
   // Ensure activeTab is valid when outputTabs change
-  // Default to 'tree' if available, otherwise use first available tab
   useEffect(() => {
     if (outputTabs.length > 0) {
       const treeTab = outputTabs.find(tab => tab.id === 'tree');
       const currentTab = outputTabs.find(tab => tab.id === activeTab);
 
       if (!currentTab) {
-        // If current tab is not available, switch to tree if available, otherwise first tab
         setActiveTab(treeTab ? 'tree' : outputTabs[0].id);
       }
     }
@@ -230,12 +253,12 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
   // Custom tab content renderer
   const renderCustomTabContent = (tabId: string): React.ReactNode => {
     if (tabId === 'tree') {
-      // Show tree view if JSON is valid, otherwise show empty state message
-      if (parsedJsonData !== null) {
+      // Show tree view if YAML is valid, otherwise show empty state message
+      if (parsedYamlData !== null) {
         return (
           <div className="h-full w-full">
             <JsonTreeView
-              data={parsedJsonData}
+              data={parsedYamlData}
               highlightedPaths={result?.paths || []}
               onPathClick={(path) => {
                 // Copy path to clipboard
@@ -248,11 +271,11 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
           </div>
         );
       }
-      // Show empty state when no JSON is provided
+      // Show empty state when no YAML is provided
       return (
         <div className="h-full w-full flex items-center justify-center text-neutral-500 dark:text-neutral-400">
           <div className="text-center">
-            <p className="text-sm">Enter JSON data to view the tree structure</p>
+            <p className="text-sm">Enter YAML data to view the tree structure</p>
           </div>
         </div>
       );
@@ -260,51 +283,74 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     return null;
   };
 
-  // Custom copy handler for tree view
+  // Custom copy handler for tree view and results
   const handleTreeViewCopy = useCallback(async (): Promise<string | null> => {
     if (activeTab === 'tree') {
       if (getExpandedJson) {
         try {
           const json = getExpandedJson();
-          console.log('Copying expanded JSON, length:', json?.length || 0);
-          return json || '';
+          if (!json) return '';
+
+          // Parse JSON and convert to YAML
+          try {
+            const jsonData = JSON.parse(json);
+            const yaml = stringify(jsonData, { indent: 2, lineWidth: 0 });
+            console.log('Copying expanded YAML, length:', yaml?.length || 0);
+            return yaml;
+          } catch (parseErr) {
+            // If JSON parsing fails, return the JSON string as-is
+            console.warn('Failed to parse JSON for YAML conversion:', parseErr);
+            return json;
+          }
         } catch (err) {
           console.error('Failed to get expanded JSON:', err);
           return null;
         }
       }
       console.warn('getExpandedJson function not available');
-      // Function not ready yet, but button should still be enabled
-      // Return empty string so button is clickable
       return '';
+    } else if (activeTab === 'results') {
+      // For results tab, convert JSON output to YAML
+      if (output) {
+        try {
+          // Try to parse the output as JSON and convert to YAML
+          const jsonData = JSON.parse(output);
+          const yaml = stringify(jsonData, { indent: 2, lineWidth: 0 });
+          return yaml;
+        } catch (parseErr) {
+          // If it's not valid JSON, return as-is (might already be YAML or error message)
+          return output;
+        }
+      }
+      return null;
     }
     return null; // Use default copy behavior for other tabs
-  }, [activeTab, getExpandedJson]);
+  }, [activeTab, getExpandedJson, output]);
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header Section */}
       <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
         <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
-          JSON Path Finder
+          YAML Path Finder
         </h1>
         <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
-          Query and extract data from JSON using JSONPath expressions
+          Query and extract data from YAML using YAMLPath expressions
         </p>
       </div>
 
       {/* Body Section */}
       <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
         <div className="flex flex-col gap-4">
-          {/* JSONPath Input */}
+          {/* YAMLPath Input */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="jsonpath-input" className="text-sm font-medium">
-              JSONPath Expression
+            <Label htmlFor="yamlpath-input" className="text-sm font-medium">
+              YAMLPath Expression
             </Label>
             <div className="flex items-center gap-2">
               <Input
-                id="jsonpath-input"
-                placeholder="Enter JSONPath (e.g., $.users[*].name)"
+                id="yamlpath-input"
+                placeholder="Enter YAMLPath (e.g., $.users[*].name)"
                 value={pathInput}
                 onChange={(e) => setPathInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -317,7 +363,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
               />
               <Button
                 onClick={handleEvaluate}
-                disabled={!jsonInput.trim() || !pathInput.trim() || isEvaluating}
+                disabled={!yamlInput.trim() || !pathInput.trim() || isEvaluating}
                 variant="default"
                 size="sm"
                 className="h-10 px-4"
@@ -343,7 +389,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto w-64">
-                  {JSON_PATH_COMMON_PATTERNS.map((pattern, index) => (
+                  {YAML_PATH_COMMON_PATTERNS.map((pattern, index) => (
                     <DropdownMenuItem
                       key={index}
                       onClick={() => handleLoadPattern(pattern)}
@@ -365,10 +411,10 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
             <CodePanel
-              title="JSON Input"
-              value={jsonInput}
-              onChange={setJsonInput}
-              language="json"
+              title="YAML Input"
+              value={yamlInput}
+              onChange={setYamlInput}
+              language="yaml"
               height="500px"
               theme={theme}
               wrapText={inputWrapText}
@@ -388,7 +434,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto">
-                    {JSON_PATH_EXAMPLES.map((example, index) => (
+                    {YAML_PATH_EXAMPLES.map((example, index) => (
                       <DropdownMenuItem
                         key={index}
                         onClick={() => handleLoadExample(example)}
@@ -407,7 +453,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
                 </DropdownMenu>
               }
               footerLeftContent={
-                <span>{getCharacterCount(jsonInput)} characters</span>
+                <span>{getCharacterCount(yamlInput)} characters</span>
               }
             />
 
@@ -470,3 +516,4 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     </div>
   );
 }
+

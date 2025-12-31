@@ -22,7 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/useMobile"
 import { cn } from "@/libs/utils"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
@@ -565,6 +565,11 @@ const SidebarMenuButton = React.forwardRef<
   ) => {
     const Comp = asChild ? Slot : "button"
     const { isMobile, state } = useSidebar()
+    const [isMounted, setIsMounted] = React.useState(false)
+
+    React.useEffect(() => {
+      setIsMounted(true)
+    }, [])
 
     const button = (
       <Comp
@@ -573,6 +578,7 @@ const SidebarMenuButton = React.forwardRef<
         data-size={size}
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        suppressHydrationWarning
         {...props}
       />
     )
@@ -587,9 +593,16 @@ const SidebarMenuButton = React.forwardRef<
       }
     }
 
+    // Only render Tooltip on client to avoid hydration mismatch
+    if (!isMounted) {
+      return button
+    }
+
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipTrigger asChild suppressHydrationWarning>
+          {button}
+        </TooltipTrigger>
         <TooltipContent
           side="right"
           align="center"

@@ -2,7 +2,7 @@
 
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
-import { CodePanel } from '@/components/ui/CodePanel';
+import { CodePanel } from '@/components/ui/code-panel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import {

@@ -6,43 +6,43 @@ import type { CodeOutputTab } from '@/components/ui/code-panel';
 import { CodePanel } from '@/components/ui/code-panel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { JsonTreeView } from '@/components/ui/json-tree-view';
+import { XmlTreeView } from '@/components/ui/xml-tree-view';
 import { Label } from '@/components/ui/label';
 import {
-  DEFAULT_JSON_PATH_OPTIONS,
-  JSON_PATH_COMMON_PATTERNS,
-  JSON_PATH_EXAMPLES,
-  type JsonPathFinderOptions
-} from '@/config/json-path-finder-config';
+  DEFAULT_XML_PATH_OPTIONS,
+  XML_PATH_COMMON_PATTERNS,
+  XML_PATH_EXAMPLES,
+  type XmlPathFinderOptions
+} from '@/config/xml-path-finder-config';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import {
-  evaluateJsonPath,
-  formatJsonPathResults,
-  validateJsonPath,
-  type JsonPathResult
-} from '@/libs/json-path-finder';
+  evaluateXPath,
+  formatXPathResults,
+  validateXPath,
+  type XmlPathResult
+} from '@/libs/xml-path-finder';
 import { cn } from '@/libs/utils';
 import { ArrowPathIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-interface JsonPathFinderProps {
+interface XmlPathFinderProps {
   className?: string;
 }
 
-export function JsonPathFinder({ className }: JsonPathFinderProps) {
-  const { toolState, updateToolState } = useToolState('json-path-finder');
+export function XmlPathFinder({ className }: XmlPathFinderProps) {
+  const { toolState, updateToolState } = useToolState('xml-path-finder');
 
   // Initialize with defaults to avoid hydration mismatch
-  const [options, setOptions] = useState<JsonPathFinderOptions>(DEFAULT_JSON_PATH_OPTIONS);
-  const [jsonInput, setJsonInput] = useState<string>('');
+  const [options, setOptions] = useState<XmlPathFinderOptions>(DEFAULT_XML_PATH_OPTIONS);
+  const [xmlInput, setXmlInput] = useState<string>('');
   const [pathInput, setPathInput] = useState<string>('');
   const [output, setOutput] = useState<string>('');
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [error, setError] = useState<string>('');
-  const [result, setResult] = useState<JsonPathResult | null>(null);
+  const [result, setResult] = useState<XmlPathResult | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('tree');
-  const [getExpandedJson, setGetExpandedJson] = useState<(() => string) | null>(null);
+  const [getExpandedXml, setGetExpandedXml] = useState<(() => string) | null>(null);
 
   // Editor settings
   const [theme] = useCodeEditorTheme('basicDark');
@@ -53,12 +53,12 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
   useEffect(() => {
     setIsHydrated(true);
     if (toolState) {
-      if (toolState.options) setOptions(toolState.options as JsonPathFinderOptions);
-      if (toolState.jsonInput) setJsonInput(toolState.jsonInput as string);
+      if (toolState.options) setOptions(toolState.options as XmlPathFinderOptions);
+      if (toolState.xmlInput) setXmlInput(toolState.xmlInput as string);
       if (toolState.pathInput) setPathInput(toolState.pathInput as string);
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
-      if (toolState.result) setResult(toolState.result as JsonPathResult);
+      if (toolState.result) setResult(toolState.result as XmlPathResult);
       if (toolState.activeTab) setActiveTab(toolState.activeTab as string);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,7 +69,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     if (isHydrated) {
       updateToolState({
         options,
-        jsonInput,
+        xmlInput,
         pathInput,
         output,
         error,
@@ -78,13 +78,13 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, jsonInput, pathInput, output, error, result, activeTab, isHydrated]);
+  }, [options, xmlInput, pathInput, output, error, result, activeTab, isHydrated]);
 
   // Reset local state when tool state is cleared
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
-      setOptions(DEFAULT_JSON_PATH_OPTIONS);
-      setJsonInput('');
+      setOptions(DEFAULT_XML_PATH_OPTIONS);
+      setXmlInput('');
       setPathInput('');
       setOutput('');
       setError('');
@@ -94,15 +94,15 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
   }, [toolState, isHydrated]);
 
   const handleEvaluate = async () => {
-    if (!jsonInput.trim()) {
-      setError('Please enter JSON data');
+    if (!xmlInput.trim()) {
+      setError('Please enter XML data');
       setOutput('');
       setResult(null);
       return;
     }
 
     if (!pathInput.trim()) {
-      setError('Please enter a JSONPath expression');
+      setError('Please enter an XPath expression');
       setOutput('');
       setResult(null);
       return;
@@ -112,21 +112,10 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     setError('');
 
     try {
-      // Validate JSONPath syntax
-      const pathValidation = validateJsonPath(pathInput);
+      // Validate XPath syntax
+      const pathValidation = validateXPath(pathInput);
       if (!pathValidation.isValid) {
-        setError(pathValidation.error || 'Invalid JSONPath expression');
-        setOutput('');
-        setResult(null);
-        return;
-      }
-
-      // Parse JSON
-      let jsonData: any;
-      try {
-        jsonData = JSON.parse(jsonInput);
-      } catch (parseError) {
-        setError(parseError instanceof Error ? parseError.message : 'Invalid JSON format');
+        setError(pathValidation.error || 'Invalid XPath expression');
         setOutput('');
         setResult(null);
         return;
@@ -135,14 +124,14 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
       // Simulate async operation for better UX
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Evaluate JSONPath
-      const pathResult = evaluateJsonPath(jsonData, pathInput);
+      // Evaluate XPath
+      const pathResult = evaluateXPath(xmlInput, pathInput);
 
       if (pathResult.success) {
         setResult(pathResult);
-        setOutput(formatJsonPathResults(pathResult));
+        setOutput(formatXPathResults(pathResult));
       } else {
-        setError(pathResult.error || 'JSONPath evaluation failed');
+        setError(pathResult.error || 'XPath evaluation failed');
         setOutput('');
         setResult(null);
       }
@@ -155,19 +144,19 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     }
   };
 
-  const handleLoadExample = (example: typeof JSON_PATH_EXAMPLES[0]) => {
-    setJsonInput(example.json);
+  const handleLoadExample = (example: typeof XML_PATH_EXAMPLES[0]) => {
+    setXmlInput(example.xml);
     setPathInput(example.path);
     setError('');
     setOutput('');
     setResult(null);
   };
 
-  const handleLoadPattern = (pattern: typeof JSON_PATH_COMMON_PATTERNS[0]) => {
+  const handleLoadPattern = (pattern: typeof XML_PATH_COMMON_PATTERNS[0]) => {
     setPathInput(pattern.example);
     // Focus on path input
     setTimeout(() => {
-      const pathInputElement = document.querySelector('input[placeholder*="JSONPath"]') as HTMLInputElement;
+      const pathInputElement = document.querySelector('input[placeholder*="XPath"]') as HTMLInputElement;
       if (pathInputElement) {
         pathInputElement.focus();
       }
@@ -183,15 +172,18 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     return text.split('\n').length;
   };
 
-  // Parse JSON safely
-  const parsedJsonData = useMemo(() => {
-    if (!jsonInput.trim()) return null;
+  // Validate XML safely
+  const isValidXml = useMemo(() => {
+    if (!xmlInput.trim()) return false;
     try {
-      return JSON.parse(jsonInput);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xmlInput, 'text/xml');
+      const parserError = doc.querySelector('parsererror');
+      return !parserError;
     } catch {
-      return null;
+      return false;
     }
-  }, [jsonInput]);
+  }, [xmlInput]);
 
   // Create output tabs - Always show both tabs
   const outputTabs: CodeOutputTab[] = useMemo(() => {
@@ -200,7 +192,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
         id: 'tree',
         label: 'Tree View',
         value: '', // Not used for tree view
-        language: 'json'
+        language: 'xml'
       },
       {
         id: 'results',
@@ -230,29 +222,29 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
   // Custom tab content renderer
   const renderCustomTabContent = (tabId: string): React.ReactNode => {
     if (tabId === 'tree') {
-      // Show tree view if JSON is valid, otherwise show empty state message
-      if (parsedJsonData !== null) {
+      // Show tree view if XML is valid, otherwise show empty state message
+      if (isValidXml && xmlInput.trim()) {
         return (
           <div className="h-full w-full">
-            <JsonTreeView
-              data={parsedJsonData}
+            <XmlTreeView
+              xmlString={xmlInput}
               highlightedPaths={result?.paths || []}
               onPathClick={(path) => {
                 // Copy path to clipboard
                 navigator.clipboard.writeText(path).catch(console.error);
               }}
-              onGetExpandedJson={(fn: () => string) => setGetExpandedJson(() => fn)}
+              onGetExpandedXml={(fn: () => string) => setGetExpandedXml(() => fn)}
               maxDepth={3}
               height="500px"
             />
           </div>
         );
       }
-      // Show empty state when no JSON is provided
+      // Show empty state when no XML is provided
       return (
         <div className="h-full w-full flex items-center justify-center text-neutral-500 dark:text-neutral-400">
           <div className="text-center">
-            <p className="text-sm">Enter JSON data to view the tree structure</p>
+            <p className="text-sm">Enter XML data to view the tree structure</p>
           </div>
         </div>
       );
@@ -263,48 +255,48 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
   // Custom copy handler for tree view
   const handleTreeViewCopy = useCallback(async (): Promise<string | null> => {
     if (activeTab === 'tree') {
-      if (getExpandedJson) {
+      if (getExpandedXml) {
         try {
-          const json = getExpandedJson();
-          console.log('Copying expanded JSON, length:', json?.length || 0);
-          return json || '';
+          const xml = getExpandedXml();
+          console.log('Copying expanded XML, length:', xml?.length || 0);
+          return xml || '';
         } catch (err) {
-          console.error('Failed to get expanded JSON:', err);
+          console.error('Failed to get expanded XML:', err);
           return null;
         }
       }
-      console.warn('getExpandedJson function not available');
+      console.warn('getExpandedXml function not available');
       // Function not ready yet, but button should still be enabled
       // Return empty string so button is clickable
       return '';
     }
     return null; // Use default copy behavior for other tabs
-  }, [activeTab, getExpandedJson]);
+  }, [activeTab, getExpandedXml]);
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header Section */}
       <div className="bg-background px-[28px] pt-[36px] pb-[20px]">
         <h1 className="text-[32px] font-normal leading-6 tracking-normal text-neutral-900 dark:text-neutral-100 mb-3">
-          JSON Path Finder
+          XML Path Finder
         </h1>
         <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
-          Query and extract data from JSON using JSONPath expressions
+          Query and extract data from XML using XPath expressions
         </p>
       </div>
 
       {/* Body Section */}
       <div className="flex-1 bg-background px-[24px] pt-6 pb-10">
         <div className="flex flex-col gap-4">
-          {/* JSONPath Input */}
+          {/* XPath Input */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="jsonpath-input" className="text-sm font-medium">
-              JSONPath Expression
+            <Label htmlFor="xpath-input" className="text-sm font-medium">
+              XPath Expression
             </Label>
             <div className="flex items-center gap-2">
               <Input
-                id="jsonpath-input"
-                placeholder="Enter JSONPath (e.g., $.users[*].name)"
+                id="xpath-input"
+                placeholder="Enter XPath (e.g., /root/child or //element[@attr='value'])"
                 value={pathInput}
                 onChange={(e) => setPathInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -317,7 +309,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
               />
               <Button
                 onClick={handleEvaluate}
-                disabled={!jsonInput.trim() || !pathInput.trim() || isEvaluating}
+                disabled={!xmlInput.trim() || !pathInput.trim() || isEvaluating}
                 variant="default"
                 size="sm"
                 className="h-10 px-4"
@@ -343,7 +335,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto w-64">
-                  {JSON_PATH_COMMON_PATTERNS.map((pattern, index) => (
+                  {XML_PATH_COMMON_PATTERNS.map((pattern, index) => (
                     <DropdownMenuItem
                       key={index}
                       onClick={() => handleLoadPattern(pattern)}
@@ -365,10 +357,10 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Input Panel */}
             <CodePanel
-              title="JSON Input"
-              value={jsonInput}
-              onChange={setJsonInput}
-              language="json"
+              title="XML Input"
+              value={xmlInput}
+              onChange={setXmlInput}
+              language="xml"
               height="500px"
               theme={theme}
               wrapText={inputWrapText}
@@ -388,7 +380,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto">
-                    {JSON_PATH_EXAMPLES.map((example, index) => (
+                    {XML_PATH_EXAMPLES.map((example, index) => (
                       <DropdownMenuItem
                         key={index}
                         onClick={() => handleLoadExample(example)}
@@ -407,7 +399,7 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
                 </DropdownMenu>
               }
               footerLeftContent={
-                <span>{getCharacterCount(jsonInput)} characters</span>
+                <span>{getCharacterCount(xmlInput)} characters</span>
               }
             />
 
@@ -470,3 +462,4 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
     </div>
   );
 }
+

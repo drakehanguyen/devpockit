@@ -6,8 +6,9 @@
 
 'use client';
 
-import { CodeEditorCore } from '@/components/ui/CodeEditorCore';
-import { EditorSettingsMenu } from '@/components/ui/EditorSettingsMenu';
+import { CodeEditorCore } from '@/components/ui/code-editor-core';
+import { EditorSettingsMenu } from '@/components/ui/editor-settings-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { type CodeEditorTheme } from '@/config/code-editor-themes';
 import { cn } from '@/libs/utils';
 import { Check, Copy, Trash2 } from 'lucide-react';
@@ -57,6 +58,10 @@ export interface CodePanelProps {
   headerActions?: React.ReactNode;
   footerLeftContent?: React.ReactNode;
   footerRightContent?: React.ReactNode;
+  customTabContent?: (tabId: string) => React.ReactNode; // Custom render function for specific tabs
+  children?: React.ReactNode; // Custom content for single mode (alternative to code editor)
+  onCopy?: () => Promise<string | null>; // Custom copy handler, returns content to copy or null to use default
+  alwaysShowFooter?: boolean; // Whether to always show footer even if no content
 
   // Editor mount callback
   onEditorMount?: (editor: any, monaco: any) => void;
@@ -89,6 +94,10 @@ export function CodePanel({
   headerActions,
   footerLeftContent,
   footerRightContent,
+  customTabContent,
+  children,
+  onCopy: customOnCopy,
+  alwaysShowFooter = false,
   onEditorMount,
   className,
 }: CodePanelProps) {
@@ -101,11 +110,15 @@ export function CodePanel({
   const [renderWhitespace, setRenderWhitespace] = useState(false);
   const [renderControlCharacters, setRenderControlCharacters] = useState(false);
   const [lineNumbers, setLineNumbers] = useState(showLineNumbers);
+  const [autoComplete, setAutoComplete] = useState(false); // Disabled by default
   // For tabbed mode: store editors by tab ID. For single mode: use 'single' as key
   const [editorInstances, setEditorInstances] = useState<Map<string, Monaco.editor.IStandaloneCodeEditor>>(new Map());
 
   // Determine if we're in tabbed mode
   const isTabbedMode = tabs && tabs.length > 0;
+
+  // Determine if we're in custom content mode (children provided, no code editor)
+  const isCustomContentMode = !isTabbedMode && !value && !onChange && children !== undefined;
 
   // Get current content based on mode
   const currentTab = isTabbedMode ? tabs.find(t => t.id === activeTab) || tabs[0] : null;
@@ -115,12 +128,47 @@ export function CodePanel({
   const currentEditorInstance = editorInstances.get(currentEditorKey) || null;
 
   const hasContent = currentValue && currentValue.trim().length > 0;
+  const hasCustomCopy = customOnCopy !== undefined;
+  const canCopy = hasContent || hasCustomCopy;
+
+  // Debug: Log copy button state
+  // console.log('Copy button state:', { hasContent, hasCustomCopy, canCopy, customOnCopy: !!customOnCopy });
 
   // Copy handler
   const handleCopy = async () => {
-    if (!currentValue) return;
     try {
-      await navigator.clipboard.writeText(currentValue);
+      let textToCopy = '';
+
+      // Use custom copy handler if provided
+      if (customOnCopy) {
+        console.log('Using custom copy handler');
+        const customContent = await customOnCopy();
+        console.log('Custom content received:', customContent ? `Length: ${customContent.length}` : 'null/empty');
+        if (customContent !== null && customContent !== '') {
+          textToCopy = customContent;
+        } else if (customContent === null && currentValue) {
+          // Custom handler returned null, fall back to currentValue
+          textToCopy = currentValue;
+        } else {
+          // Custom handler returned empty or null with no currentValue
+          console.warn('Nothing to copy - custom handler returned empty/null and no currentValue');
+          return; // Nothing to copy
+        }
+      } else {
+        // No custom handler, use currentValue
+        if (!currentValue) {
+          return; // Nothing to copy
+        }
+        textToCopy = currentValue;
+      }
+
+      if (!textToCopy) {
+        console.warn('Nothing to copy - textToCopy is empty');
+        return; // Nothing to copy
+      }
+
+      console.log('Copying text, length:', textToCopy.length);
+      await navigator.clipboard.writeText(textToCopy);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
@@ -153,6 +201,10 @@ export function CodePanel({
       renderWhitespace: renderWhitespace ? 'all' : 'none',
       renderControlCharacters: renderControlCharacters,
       lineNumbers: lineNumbers ? 'on' : 'off',
+      quickSuggestions: autoComplete,
+      suggestOnTriggerCharacters: autoComplete,
+      acceptSuggestionOnCommitCharacter: autoComplete,
+      tabCompletion: autoComplete ? 'on' : 'off',
     });
     // Call the original onEditorMount if provided
     onEditorMount?.(editor, monaco);
@@ -174,10 +226,14 @@ export function CodePanel({
           renderWhitespace: renderWhitespace ? 'all' : 'none',
           renderControlCharacters: renderControlCharacters,
           lineNumbers: lineNumbers ? 'on' : 'off',
+          quickSuggestions: autoComplete,
+          suggestOnTriggerCharacters: autoComplete,
+          acceptSuggestionOnCommitCharacter: autoComplete,
+          tabCompletion: autoComplete ? 'on' : 'off',
         });
       });
     }
-  }, [editorInstances, stickyScroll, renderWhitespace, renderControlCharacters, lineNumbers]);
+  }, [editorInstances, stickyScroll, renderWhitespace, renderControlCharacters, lineNumbers, autoComplete]);
 
   // Settings change handlers
   const handleStickyScrollChange = (enabled: boolean) => {
@@ -195,6 +251,10 @@ export function CodePanel({
   const handleShowLineNumbersChange = (enabled: boolean) => {
     setLineNumbers(enabled);
     onShowLineNumbersChange?.(enabled);
+  };
+
+  const handleAutoCompleteChange = (enabled: boolean) => {
+    setAutoComplete(enabled);
   };
 
   const handleZoomIn = () => {
@@ -234,8 +294,10 @@ export function CodePanel({
     <div
       className={cn(
         'bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[10px] overflow-hidden',
+        isCustomContentMode && 'flex flex-col',
         className
       )}
+      style={isCustomContentMode ? { height } : undefined}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-0">
@@ -285,47 +347,86 @@ export function CodePanel({
 
           {/* Copy Button */}
           {showCopyButton && (
-            <button
-              onClick={handleCopy}
-              disabled={!hasContent}
-              className={cn(
-                'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-                !hasContent && 'opacity-50 cursor-not-allowed'
-              )}
-              aria-label="Copy to clipboard"
-            >
-              {copySuccess ? (
-                <Check className="h-4 w-4 text-orange-600" />
-              ) : (
-                <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
-              )}
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleCopy();
+                    }}
+                    disabled={!canCopy}
+                    className={cn(
+                      'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors relative z-10 cursor-pointer',
+                      !canCopy && 'opacity-50 cursor-not-allowed'
+                    )}
+                    aria-label="Copy to clipboard"
+                    type="button"
+                  >
+                    {copySuccess ? (
+                      <Check className="h-4 w-4 text-orange-600" />
+                    ) : (
+                      <Copy className="h-4 w-4 text-neutral-900 dark:text-neutral-300" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isTabbedMode && activeTab === 'tree' ? 'Copy expanded JSON' : 'Copy to clipboard'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>
 
       {/* Editor Area */}
-      <div className="pt-px pb-1 px-1">
-        <div style={{ height }}>
-          <CodeEditorCore
-            key={isTabbedMode ? activeTab : 'single'}
-            value={currentValue}
-            onChange={readOnly ? undefined : handleValueChange}
-            language={currentLanguage}
-            theme={theme}
-            wrapText={wrapText}
-            showLineNumbers={lineNumbers}
-            readOnly={readOnly}
-            placeholder={placeholder}
-            height={height}
-            singleLine={singleLine}
-            onMount={handleEditorMount}
-          />
+      <div className={cn(
+        'pt-px pb-1 px-1',
+        isCustomContentMode && 'flex-1 overflow-hidden'
+      )}>
+        <div style={isCustomContentMode ? { height: '100%' } : { height }}>
+          {(() => {
+            // Custom content mode (children provided, no code editor)
+            if (isCustomContentMode) {
+              return (
+                <div className="h-full overflow-auto bg-white dark:bg-neutral-900 rounded-md p-4">
+                  {children}
+                </div>
+              );
+            }
+
+            // Check if we have custom content for this tab
+            if (isTabbedMode && activeTab && customTabContent) {
+              const customContent = customTabContent(activeTab);
+              if (customContent !== null && customContent !== undefined) {
+                return customContent;
+              }
+            }
+
+            // Default code editor (for non-tabbed mode or when no custom content)
+            return (
+              <CodeEditorCore
+                key={isTabbedMode ? activeTab : 'single'}
+                value={currentValue}
+                onChange={readOnly ? undefined : handleValueChange}
+                language={currentLanguage}
+                theme={theme}
+                wrapText={wrapText}
+                showLineNumbers={lineNumbers}
+                readOnly={readOnly}
+                placeholder={placeholder}
+                height={height}
+                singleLine={singleLine}
+                onMount={handleEditorMount}
+              />
+            );
+          })()}
         </div>
       </div>
 
       {/* Footer */}
-      {(footerLeftContent || footerRightContent || showStats || (showWrapToggle && onWrapTextChange)) && (
+      {(alwaysShowFooter || footerLeftContent || footerRightContent || showStats || (showWrapToggle && onWrapTextChange)) && (
         <div className="flex items-center justify-between px-3 py-2 min-h-[52px] text-sm text-neutral-600 dark:text-neutral-400">
           <div className="flex items-center gap-4">
             {/* Editor Settings Menu */}
@@ -342,6 +443,8 @@ export function CodePanel({
                 onRenderControlCharactersChange={handleRenderControlCharactersChange}
                 showLineNumbers={lineNumbers}
                 onShowLineNumbersChange={handleShowLineNumbersChange}
+                autoComplete={autoComplete}
+                onAutoCompleteChange={handleAutoCompleteChange}
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}
                 onResetZoom={handleResetZoom}
