@@ -3,10 +3,10 @@
 import { useToolState } from '@/components/providers/ToolStateProvider';
 import { Button } from '@/components/ui/button';
 import { CodePanel } from '@/components/ui/code-panel';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LabeledInput } from '@/components/ui/labeled-input';
 import { Switch } from '@/components/ui/switch';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
-import { DEFAULT_IP_OPTIONS, IpCheckerOptions, IpInfo, formatIpInfo, getPublicIpInfo } from '@/libs/ip-checker';
+import { DEFAULT_IP_OPTIONS, IpCheckerOptions, IpInfo, formatIpInfo, getIpInfo } from '@/libs/ip-checker';
 import { cn } from '@/libs/utils';
 import { ArrowPathIcon, BuildingOfficeIcon, ClockIcon, GlobeAltIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -26,6 +26,7 @@ export function IpChecker({ className }: IpCheckerProps) {
   const [ipInfo, setIpInfo] = useState<IpInfo | null>(null);
   const [lastChecked, setLastChecked] = useState<string>('');
   const [isHydrated, setIsHydrated] = useState(false);
+  const [customIp, setCustomIp] = useState<string>('');
 
   // Editor settings
   const [theme] = useCodeEditorTheme('basicDark');
@@ -38,12 +39,12 @@ export function IpChecker({ className }: IpCheckerProps) {
   // Track if we've already hydrated to prevent re-hydration on toolState changes
   const hasHydratedRef = useRef(false);
 
-  const handleCheckIp = useCallback(async () => {
+  const handleCheckMyIp = useCallback(async () => {
     setIsLoading(true);
     setError('');
 
     try {
-      const info = await getPublicIpInfo();
+      const info = await getIpInfo();
       setIpInfo(info);
 
       const formatted = formatIpInfo(info, optionsRef.current);
@@ -53,15 +54,19 @@ export function IpChecker({ className }: IpCheckerProps) {
       let errorMessage = 'Failed to get IP information';
 
       if (err instanceof Error) {
-        if (err.message.includes('All IP services failed')) {
+        if (err.message.includes('Rate limit')) {
+          errorMessage = err.message;
+        } else if (err.message.includes('All IP services failed')) {
           errorMessage = 'Unable to connect to IP services. Please check your internet connection and try again.';
-        } else if (err.message.includes('timeout')) {
-          errorMessage = 'Request timed out. Please try again.';
+        } else if (err.message.includes('timeout') || err.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to reach IP services. This could be due to network issues or rate limiting. Please try again later.';
         } else if (err.message.includes('HTTP error')) {
           errorMessage = 'Service temporarily unavailable. Please try again later.';
         } else {
           errorMessage = err.message;
         }
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        errorMessage = String(err.message);
       }
 
       setError(errorMessage);
@@ -70,6 +75,54 @@ export function IpChecker({ className }: IpCheckerProps) {
       setIsLoading(false);
     }
   }, []);
+
+  const handleCheckCustomIp = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const ipToCheck = customIp.trim();
+
+      // Validate custom IP
+      if (!ipToCheck) {
+        setError('Please enter an IP address to check');
+        setIsLoading(false);
+        return;
+      }
+
+      const info = await getIpInfo(ipToCheck);
+      setIpInfo(info);
+
+      const formatted = formatIpInfo(info, optionsRef.current);
+      setOutput(formatted);
+      setLastChecked(new Date().toLocaleString());
+    } catch (err) {
+      let errorMessage = 'Failed to get IP information';
+
+      if (err instanceof Error) {
+        if (err.message.includes('Rate limit')) {
+          errorMessage = err.message;
+        } else if (err.message.includes('Invalid IP address')) {
+          errorMessage = err.message;
+        } else if (err.message.includes('All IP services failed')) {
+          errorMessage = 'Unable to connect to IP services. Please check your internet connection and try again.';
+        } else if (err.message.includes('timeout') || err.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to reach IP services. This could be due to network issues or rate limiting. Please try again later.';
+        } else if (err.message.includes('HTTP error')) {
+          errorMessage = 'Service temporarily unavailable. Please try again later.';
+        } else {
+          errorMessage = err.message;
+        }
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        errorMessage = String(err.message);
+      }
+
+      setError(errorMessage);
+      setOutput('');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [customIp]);
 
   // Hydrate state from toolState after mount (client-side only)
   useEffect(() => {
@@ -80,6 +133,7 @@ export function IpChecker({ className }: IpCheckerProps) {
       if (toolState.output) setOutput(toolState.output as string);
       if (toolState.error) setError(toolState.error as string);
       if (toolState.ipInfo) setIpInfo(toolState.ipInfo as IpInfo);
+      if (toolState.customIp) setCustomIp(toolState.customIp as string);
     } else if (!hasHydratedRef.current) {
       // Still mark as hydrated even if no toolState exists
       hasHydratedRef.current = true;
@@ -94,21 +148,12 @@ export function IpChecker({ className }: IpCheckerProps) {
         options,
         output,
         error,
-        ipInfo: ipInfo || undefined
+        ipInfo: ipInfo || undefined,
+        customIp
       });
     }
-  }, [options, output, error, ipInfo, isHydrated, updateToolState]);
+  }, [options, output, error, ipInfo, isHydrated, updateToolState, customIp]);
 
-  // Auto-refresh functionality
-  useEffect(() => {
-    if (options.autoRefresh && options.refreshInterval > 0) {
-      const interval = setInterval(() => {
-        handleCheckIp();
-      }, options.refreshInterval * 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [options.autoRefresh, options.refreshInterval, handleCheckIp]);
 
   // Reset state when tool is cleared
   useEffect(() => {
@@ -118,6 +163,7 @@ export function IpChecker({ className }: IpCheckerProps) {
       setError('');
       setIpInfo(null);
       setLastChecked('');
+      setCustomIp('');
     }
   }, [toolState, isHydrated]);
 
@@ -138,7 +184,7 @@ export function IpChecker({ className }: IpCheckerProps) {
           IP Address Lookup
         </h1>
         <p className="text-sm leading-5 tracking-normal text-neutral-900 dark:text-neutral-100">
-          Look up information about your current public IP address and network details
+          Look up information about any IP address or your current public IP address and network details
         </p>
       </div>
 
@@ -147,6 +193,59 @@ export function IpChecker({ className }: IpCheckerProps) {
         <div className="flex flex-col gap-4">
           {/* Controls */}
           <div className="flex flex-col gap-4">
+            {/* IP Input Section */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <LabeledInput
+                  label="IP Address:"
+                  value={customIp}
+                  onChange={(value) => setCustomIp(value)}
+                  placeholder="Enter IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888)"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !isLoading && customIp.trim()) {
+                      handleCheckCustomIp();
+                    }
+                  }}
+                  disabled={isLoading}
+                  containerClassName="min-w-[650px] max-w-md"
+                />
+
+                {/* Check Custom IP Button */}
+                <Button
+                  onClick={handleCheckCustomIp}
+                  disabled={isLoading || !customIp.trim()}
+                  variant="default"
+                  size="default"
+                >
+                  {isLoading ? (
+                    <>
+                      <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
+                      Checking...
+                    </>
+                  ) : (
+                    'Check Custom IP'
+                  )}
+                </Button>
+              </div>
+
+              {/* Check My IP Button */}
+              <Button
+                onClick={handleCheckMyIp}
+                disabled={isLoading}
+                variant="default"
+                size="default"
+              >
+                {isLoading ? (
+                  <>
+                    <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
+                    Checking...
+                  </>
+                ) : (
+                  'Check My IP'
+                )}
+              </Button>
+            </div>
+
             {/* Main Controls Row */}
             <div className="flex items-center gap-3 flex-wrap">
               {/* Show Location */}
@@ -201,49 +300,6 @@ export function IpChecker({ className }: IpCheckerProps) {
                 </span>
               </div>
             </div>
-
-            {/* Second Controls Row */}
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Auto Refresh */}
-              <Select
-                value={options.autoRefresh ? options.refreshInterval.toString() : 'off'}
-                onValueChange={(value) => {
-                  if (value === 'off') {
-                    handleOptionChange('autoRefresh', false);
-                  } else {
-                    handleOptionChange('autoRefresh', true);
-                    handleOptionChange('refreshInterval', parseInt(value));
-                  }
-                }}
-              >
-                <SelectTrigger label="Auto Refresh:">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="off">Off</SelectItem>
-                  <SelectItem value="30">30 seconds</SelectItem>
-                  <SelectItem value="60">1 minute</SelectItem>
-                  <SelectItem value="300">5 minutes</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Check IP Button */}
-              <Button
-                onClick={handleCheckIp}
-                disabled={isLoading}
-                variant="default"
-                size="default"
-              >
-                {isLoading ? (
-                  <>
-                    <ArrowPathIcon className="h-4 w-4 animate-spin mr-2" />
-                    Checking...
-                  </>
-                ) : (
-                  'Check My IP'
-                )}
-              </Button>
-            </div>
           </div>
 
           {/* Output Panel */}
@@ -255,24 +311,32 @@ export function IpChecker({ className }: IpCheckerProps) {
             theme={theme}
             wrapText={wrapText}
             onWrapTextChange={setWrapText}
+            alwaysShowFooter={!!error || !!lastChecked || !!output}
             footerLeftContent={
-              output && (
-                <>
-                  <span>{getLineCount(output)} lines</span>
-                  {lastChecked && <span>Last checked: {lastChecked}</span>}
-                </>
-              )
+              <div className="flex items-center gap-4 flex-wrap">
+                {output && (
+                  <span className="text-neutral-600 dark:text-neutral-400">
+                    {getLineCount(output)} lines
+                  </span>
+                )}
+                {lastChecked && !error && (
+                  <span className="text-neutral-600 dark:text-neutral-400">
+                    Last checked: {lastChecked}
+                  </span>
+                )}
+                {error && (
+                  <span className="text-red-700 dark:text-red-300 font-medium">
+                    ⚠ {error}
+                  </span>
+                )}
+                {error && lastChecked && (
+                  <span className="text-neutral-600 dark:text-neutral-400">
+                    Last checked: {lastChecked}
+                  </span>
+                )}
+              </div>
             }
           />
-
-          {/* Error Display */}
-          {error && (
-            <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <div className="text-sm text-red-700 dark:text-red-300">
-                {error}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

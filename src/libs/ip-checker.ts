@@ -17,17 +17,13 @@ export interface IpCheckerOptions {
   showISP: boolean;
   showTimezone: boolean;
   showIPv6: boolean;
-  autoRefresh: boolean;
-  refreshInterval: number; // seconds
 }
 
 export const DEFAULT_IP_OPTIONS: IpCheckerOptions = {
   showLocation: true,
   showISP: true,
   showTimezone: true,
-  showIPv6: true,
-  autoRefresh: false,
-  refreshInterval: 30
+  showIPv6: true
 };
 
 /**
@@ -72,6 +68,85 @@ function isIPv6(ip: string): boolean {
 }
 
 /**
+ * Get IP address information for a specific IP or current public IP
+ * @param ip - Optional IP address to check. If not provided, checks current public IP
+ * @returns IP information including location, ISP, and timezone
+ */
+export async function getIpInfo(ip?: string): Promise<IpInfo> {
+  // If IP is provided, validate and query that specific IP
+  if (ip) {
+    const trimmedIp = ip.trim();
+
+    // Validate IP format
+    if (!isIPv4(trimmedIp) && !isIPv6(trimmedIp)) {
+      throw new Error('Invalid IP address format. Please enter a valid IPv4 or IPv6 address.');
+    }
+
+    // Use ipapi.co to query the specific IP
+    try {
+      const response = await fetch(`https://ipapi.co/${trimmedIp}/json/`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('IP address not found or invalid');
+        }
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later. (Free tier: 1,000 requests/day)');
+        }
+        if (response.status === 403) {
+          throw new Error('Access forbidden. This may be due to rate limiting or service restrictions.');
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Check for error in response
+      if (data.error) {
+        // ipapi.co returns error messages in the response
+        if (data.reason) {
+          if (data.reason.includes('rate limit') || data.reason.includes('quota')) {
+            throw new Error('Rate limit exceeded. Please try again later. (Free tier: 1,000 requests/day)');
+          }
+          throw new Error(data.reason);
+        }
+        throw new Error('Failed to get IP information');
+      }
+
+      const queriedIp = data.ip || trimmedIp;
+      const ipv4 = isIPv4(queriedIp) ? queriedIp : null;
+      const ipv6 = isIPv6(queriedIp) ? queriedIp : null;
+
+      return {
+        ipv4,
+        ipv6,
+        country: data.country_name || data.country || 'Unknown',
+        region: data.region || data.regionName || 'Unknown',
+        city: data.city || 'Unknown',
+        isp: data.org || data.isp || 'Unknown',
+        organization: data.org || data.organization || 'Unknown',
+        timezone: data.timezone || 'Unknown',
+        latitude: data.latitude || data.lat || 0,
+        longitude: data.longitude || data.lon || 0,
+        query_time: new Date().toISOString()
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to get IP information');
+    }
+  }
+
+  // If no IP provided, get current public IP (original behavior)
+  return getPublicIpInfo();
+}
+
+/**
  * Get public IP address and basic network information
  * Uses multiple services for reliability with fallbacks
  */
@@ -97,6 +172,12 @@ export async function getPublicIpInfo(): Promise<IpInfo> {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
+        }
+        if (response.status === 403) {
+          throw new Error('Access forbidden. This may be due to rate limiting.');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
