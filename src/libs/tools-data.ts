@@ -57,6 +57,7 @@ export const toolIcons: Record<string, LucideIcon> = {
   'system-info': Info,
   'number-base-converter': Binary,
   'base-encoder': Binary,
+  'hash-generator': Hash,
 };
 
 export const toolCategories: ToolCategory[] = [
@@ -178,6 +179,18 @@ export const toolCategories: ToolCategory[] = [
         isPopular: true,
         path: '/tools/cryptography/jwt-encoder',
         component: 'JwtEncoder',
+        supportsDesktop: true,
+        supportsMobile: true,
+      },
+      {
+        id: 'hash-generator',
+        name: 'Hash Generator',
+        description: 'Generate cryptographic hashes using SHA-1, SHA-256, SHA-512, and SHA-3 algorithms with salt support',
+        category: 'cryptography',
+        icon: '🔐',
+        isPopular: true,
+        path: '/tools/cryptography/hash-generator',
+        component: 'HashGenerator',
         supportsDesktop: true,
         supportsMobile: true,
       },

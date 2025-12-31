@@ -30,6 +30,7 @@ export const getToolComponent = async (componentName: string) => {
     'SystemInfo': () => import('@/components/tools/SystemInfo').then(m => m.SystemInfo),
     'NumberBaseConverter': () => import('@/components/tools/NumberBaseConverter').then(m => m.NumberBaseConverter),
     'BaseEncoder': () => import('@/components/tools/BaseEncoder').then(m => m.BaseEncoder),
+    'HashGenerator': () => import('@/components/tools/HashGenerator').then(m => m.HashGenerator),
   };
 
   const loader = componentMap[componentName];
