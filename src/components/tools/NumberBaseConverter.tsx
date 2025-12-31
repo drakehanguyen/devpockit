@@ -34,7 +34,7 @@ import {
 } from '@/libs/number-base-converter';
 import { cn } from '@/libs/utils';
 import { CheckIcon, ChevronDownIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface NumberBaseConverterProps {
   className?: string;
@@ -52,23 +52,30 @@ export function NumberBaseConverter({ className }: NumberBaseConverterProps) {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('converted');
+  const hasHydratedRef = useRef(false);
 
   const [theme] = useCodeEditorTheme('basicDark');
   const [wrapText, setWrapText] = useState(true);
 
   // Hydrate state from toolState after mount
   useEffect(() => {
-    setIsHydrated(true);
-    if (toolState) {
-      if (toolState.options) {
-        setOptions(toolState.options as NumberBaseOptions);
-      }
-      if (toolState.input) setInput(toolState.input as string);
-      if (toolState.output) setOutput(toolState.output as string);
-      if (toolState.error) setError(toolState.error as string);
-      if (toolState.activeTab) setActiveTab(toolState.activeTab as string);
+    if (!hasHydratedRef.current) {
+      hasHydratedRef.current = true;
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setIsHydrated(true);
+        if (toolState) {
+          if (toolState.options) {
+            setOptions(toolState.options as NumberBaseOptions);
+          }
+          if (toolState.input) setInput(toolState.input as string);
+          if (toolState.output) setOutput(toolState.output as string);
+          if (toolState.error) setError(toolState.error as string);
+          if (toolState.activeTab) setActiveTab(toolState.activeTab as string);
+        }
+      }, 0);
     }
-  }, []);
+  }, [toolState]);
 
   // Update persistent state whenever local state changes
   useEffect(() => {
@@ -86,13 +93,16 @@ export function NumberBaseConverter({ className }: NumberBaseConverterProps) {
   // Reset local state when tool state is cleared
   useEffect(() => {
     if (isHydrated && (!toolState || Object.keys(toolState).length === 0)) {
-      setOptions(DEFAULT_OPTIONS);
-      setInput('');
-      setOutput('');
-      setError('');
-      setBitVisualization(null);
-      setRangeInfo(null);
-      setActiveTab('converted');
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setOptions(DEFAULT_OPTIONS);
+        setInput('');
+        setOutput('');
+        setError('');
+        setBitVisualization(null);
+        setRangeInfo(null);
+        setActiveTab('converted');
+      }, 0);
     }
   }, [toolState, isHydrated]);
 
@@ -171,11 +181,17 @@ export function NumberBaseConverter({ className }: NumberBaseConverterProps) {
   // Auto-convert on input change
   useEffect(() => {
     if (isHydrated && input.trim()) {
-      handleConvert();
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        handleConvert();
+      }, 0);
     } else if (isHydrated && !input.trim()) {
-      setOutput('');
-      setError('');
-      setBitVisualization(null);
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setOutput('');
+        setError('');
+        setBitVisualization(null);
+      }, 0);
     }
   }, [input, options, isHydrated, handleConvert]);
 

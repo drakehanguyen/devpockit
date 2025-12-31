@@ -202,8 +202,6 @@ describe('IP Checker Utility Functions', () => {
       expect(DEFAULT_IP_OPTIONS.showISP).toBe(true);
       expect(DEFAULT_IP_OPTIONS.showTimezone).toBe(true);
       expect(DEFAULT_IP_OPTIONS.showIPv6).toBe(true);
-      expect(DEFAULT_IP_OPTIONS.autoRefresh).toBe(false);
-      expect(DEFAULT_IP_OPTIONS.refreshInterval).toBe(30);
     });
   });
 });

@@ -200,8 +200,8 @@ export function BaseEncoder({ className }: BaseEncoderProps) {
               {showBase64Variant && (
                 <Select
                   value={options.variant || 'standard'}
-                  onValueChange={(value: BaseEncoderOptions['variant']) =>
-                    setOptions(prev => ({ ...prev, variant: value }))
+                  onValueChange={(value: string) =>
+                    setOptions(prev => ({ ...prev, variant: value as BaseEncoderOptions['variant'] }))
                   }
                 >
                   <SelectTrigger label="Variant:" className="min-w-[200px]">
@@ -221,8 +221,8 @@ export function BaseEncoder({ className }: BaseEncoderProps) {
               {showHexCase && (
                 <Select
                   value={options.hexCase || 'lowercase'}
-                  onValueChange={(value: BaseEncoderOptions['hexCase']) =>
-                    setOptions(prev => ({ ...prev, hexCase: value }))
+                  onValueChange={(value: string) =>
+                    setOptions(prev => ({ ...prev, hexCase: value as BaseEncoderOptions['hexCase'] }))
                   }
                 >
                   <SelectTrigger label="Case:" className="min-w-[180px]">

@@ -316,7 +316,7 @@ export function getBrowserInfo(): BrowserInfo {
       appVersion: navigator.appVersion || 'Unknown',
       platform: navigator.platform || 'Unknown',
       language: navigator.language || 'Unknown',
-      languages: navigator.languages || [],
+      languages: [...(navigator.languages || [])],
       cookieEnabled: navigator.cookieEnabled ?? true,
       onLine: navigator.onLine ?? true,
       javaEnabled: typeof (navigator as any).javaEnabled === 'function'
@@ -555,7 +555,7 @@ export async function getStorageInfo(): Promise<StorageInfo> {
         const estimate = await navigator.storage.estimate();
         quota = estimate.quota ?? null;
         usage = estimate.usage ?? null;
-        usageDetails = estimate.usageDetails ?? null;
+        usageDetails = (estimate as any).usageDetails ?? null;
         available = true;
       } catch (e) {
         // Storage estimate failed
@@ -634,7 +634,7 @@ export async function getPermissionsInfo(): Promise<PermissionsInfo> {
     }
 
     const permissions: Record<string, string> = {};
-    const permissionNames: PermissionName[] = [
+    const permissionNames: (PermissionName | string)[] = [
       'camera',
       'microphone',
       'geolocation',
@@ -645,7 +645,7 @@ export async function getPermissionsInfo(): Promise<PermissionsInfo> {
 
     for (const name of permissionNames) {
       try {
-        const result = await navigator.permissions.query({ name });
+        const result = await navigator.permissions.query({ name: name as PermissionName });
         permissions[name] = result.state;
       } catch (e) {
         permissions[name] = 'not-supported';
@@ -677,7 +677,7 @@ export function getTimeLocaleInfo(): TimeLocaleInfo {
       timezone: dateOptions.timeZone || 'Unknown',
       timezoneOffset: `${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')}`,
       locale: dateOptions.locale || 'Unknown',
-      locales: navigator.languages || [],
+      locales: [...(navigator.languages || [])],
       calendar: dateOptions.calendar || 'gregory',
       numberingSystem: dateOptions.numberingSystem || 'latn',
       dateTime: new Date().toLocaleString(),
@@ -706,10 +706,11 @@ export function getSecurityInfo(): SecurityInfo {
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      if (gl) {
+      if (gl && 'getParameter' in gl) {
+        const webglContext = gl as WebGLRenderingContext;
         webglInfo = {
-          vendor: gl.getParameter((gl as any).VENDOR) || 'Unknown',
-          renderer: gl.getParameter((gl as any).RENDERER) || 'Unknown',
+          vendor: webglContext.getParameter(webglContext.VENDOR) || 'Unknown',
+          renderer: webglContext.getParameter(webglContext.RENDERER) || 'Unknown',
         };
       }
     } catch (e) {

@@ -142,7 +142,8 @@ function encodeBase32Internal(data: Uint8Array, hex: boolean): string {
   let buffer = 0;
   let bitsCollected = 0;
 
-  for (const byte of data) {
+  for (let i = 0; i < data.length; i++) {
+    const byte = data[i];
     buffer = (buffer << 8) | byte;
     bitsCollected += 8;
 
@@ -206,7 +207,8 @@ function encodeBase16Internal(data: Uint8Array, uppercase: boolean): string {
   const alphabet = uppercase ? BASE16_UPPER : BASE16_LOWER;
   let result = '';
 
-  for (const byte of data) {
+  for (let i = 0; i < data.length; i++) {
+    const byte = data[i];
     result += alphabet[byte >> 4];
     result += alphabet[byte & 15];
   }

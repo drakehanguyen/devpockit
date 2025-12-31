@@ -280,13 +280,13 @@ function getXPathForNode(node: Node, doc: Document): string {
       const elementPath = getXPathForElement(element, doc);
       // Check if this is the only text node
       const textNodes = Array.from(element.childNodes).filter(
-        n => n.nodeType === Node.TEXT_NODE && n.textContent?.trim()
+        (n): n is Text => n.nodeType === Node.TEXT_NODE && !!(n as Text).textContent?.trim()
       );
       if (textNodes.length === 1) {
         return `${elementPath}/text()`;
       }
       // Multiple text nodes - need index
-      const index = textNodes.indexOf(node);
+      const index = textNodes.indexOf(node as Text);
       return `${elementPath}/text()[${index + 1}]`;
     }
   }
@@ -307,7 +307,7 @@ function getXPathForElement(element: Element, doc: Document): string {
 
   while (current && current !== doc.documentElement) {
     const tagName = current.tagName;
-    const parent = current.parentElement;
+    const parent: Element | null = current.parentElement;
 
     if (!parent) {
       parts.unshift(`/${tagName}`);
@@ -316,7 +316,7 @@ function getXPathForElement(element: Element, doc: Document): string {
 
     // Count siblings with same tag name
     const siblings = Array.from(parent.children).filter(
-      child => child.tagName === tagName
+      (child: Element) => child.tagName === tagName
     );
     const index = siblings.indexOf(current);
 
@@ -348,7 +348,7 @@ function evaluateXPathCustom(doc: Document, xpath: string): XPathEvaluationResul
   // Handle simple absolute paths like /root/child
   if (xpath.startsWith('/') && !xpath.startsWith('//')) {
     const parts = xpath.split('/').filter(p => p && p !== '.');
-    let current: Element | null = doc.documentElement;
+    let current: Element | null = doc.documentElement as Element | null;
 
     for (const part of parts) {
       if (!current) break;
@@ -361,11 +361,11 @@ function evaluateXPathCustom(doc: Document, xpath: string): XPathEvaluationResul
 
         if (tagName === '*') {
           // Wildcard - get first child
-          current = current.children[0] || null;
+          current = (current.children[0] as Element) || null;
         } else {
           const children = Array.from(current.children).filter(
-            child => child.tagName === tagName
-          );
+            (child: Element) => child.tagName === tagName
+          ) as Element[];
 
           if (predicate) {
             // Handle predicate
@@ -381,7 +381,7 @@ function evaluateXPathCustom(doc: Document, xpath: string): XPathEvaluationResul
                 const attrValue = attrMatch[2];
                 current =
                   children.find(
-                    child => child.getAttribute(attrName) === attrValue
+                    (child: Element) => child.getAttribute(attrName) === attrValue
                   ) || null;
               }
             } else {
@@ -394,11 +394,11 @@ function evaluateXPathCustom(doc: Document, xpath: string): XPathEvaluationResul
       } else {
         // No predicate
         if (part === '*') {
-          current = current.children[0] || null;
+          current = (current.children[0] as Element) || null;
         } else {
           const child = Array.from(current.children).find(
-            c => c.tagName === part
-          );
+            (c: Element) => c.tagName === part
+          ) as Element | undefined;
           current = child || null;
         }
       }
@@ -566,27 +566,30 @@ function xmlTreeNodeFromElement(element: Element, basePath: string): XmlTreeNode
 
     if (child.nodeType === Node.ELEMENT_NODE) {
       children.push(xmlTreeNodeFromElement(child as Element, ''));
-    } else if (child.nodeType === Node.TEXT_NODE && child.textContent?.trim()) {
+    } else if (child.nodeType === Node.TEXT_NODE && (child as Text).textContent?.trim()) {
+      const textNode = child as Text;
       children.push({
         type: 'text',
         name: '#text',
-        value: child.textContent.trim(),
+        value: textNode.textContent.trim(),
         xpath: `${xpath}/text()`,
         children: []
       });
     } else if (child.nodeType === Node.CDATA_SECTION_NODE) {
+      const cdataNode = child as CDATASection;
       children.push({
         type: 'cdata',
         name: '#cdata',
-        value: child.textContent || '',
+        value: cdataNode.textContent || '',
         xpath: `${xpath}/#cdata`,
         children: []
       });
     } else if (child.nodeType === Node.COMMENT_NODE) {
+      const commentNode = child as Comment;
       children.push({
         type: 'comment',
         name: '#comment',
-        value: child.textContent || '',
+        value: commentNode.textContent || '',
         xpath: `${xpath}/#comment`,
         children: []
       });
