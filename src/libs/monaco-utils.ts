@@ -175,6 +175,10 @@ export interface MonacoEditorOptions {
   scrollBeyondLastLine?: boolean;
   formatOnPaste?: boolean;
   formatOnType?: boolean;
+  quickSuggestions?: boolean | { other: boolean; comments: boolean; strings: boolean };
+  suggestOnTriggerCharacters?: boolean;
+  acceptSuggestionOnCommitCharacter?: boolean;
+  tabCompletion?: 'on' | 'off' | 'onlySnippets';
   scrollbar?: {
     alwaysConsumeMouseWheel?: boolean;
   };
@@ -209,6 +213,10 @@ export function createMonacoOptions(
     scrollBeyondLastLine: false,
     formatOnPaste: false,
     formatOnType: false,
+    quickSuggestions: false, // Disable auto-complete by default
+    suggestOnTriggerCharacters: false, // Disable suggestions on trigger characters by default
+    acceptSuggestionOnCommitCharacter: false, // Disable auto-accept suggestions by default
+    tabCompletion: 'off', // Disable tab completion by default
     scrollbar: {
       alwaysConsumeMouseWheel: false, // Allow page scrolling when editor reaches end
     },

@@ -110,6 +110,7 @@ export function CodePanel({
   const [renderWhitespace, setRenderWhitespace] = useState(false);
   const [renderControlCharacters, setRenderControlCharacters] = useState(false);
   const [lineNumbers, setLineNumbers] = useState(showLineNumbers);
+  const [autoComplete, setAutoComplete] = useState(false); // Disabled by default
   // For tabbed mode: store editors by tab ID. For single mode: use 'single' as key
   const [editorInstances, setEditorInstances] = useState<Map<string, Monaco.editor.IStandaloneCodeEditor>>(new Map());
 
@@ -200,6 +201,10 @@ export function CodePanel({
       renderWhitespace: renderWhitespace ? 'all' : 'none',
       renderControlCharacters: renderControlCharacters,
       lineNumbers: lineNumbers ? 'on' : 'off',
+      quickSuggestions: autoComplete,
+      suggestOnTriggerCharacters: autoComplete,
+      acceptSuggestionOnCommitCharacter: autoComplete,
+      tabCompletion: autoComplete ? 'on' : 'off',
     });
     // Call the original onEditorMount if provided
     onEditorMount?.(editor, monaco);
@@ -221,10 +226,14 @@ export function CodePanel({
           renderWhitespace: renderWhitespace ? 'all' : 'none',
           renderControlCharacters: renderControlCharacters,
           lineNumbers: lineNumbers ? 'on' : 'off',
+          quickSuggestions: autoComplete,
+          suggestOnTriggerCharacters: autoComplete,
+          acceptSuggestionOnCommitCharacter: autoComplete,
+          tabCompletion: autoComplete ? 'on' : 'off',
         });
       });
     }
-  }, [editorInstances, stickyScroll, renderWhitespace, renderControlCharacters, lineNumbers]);
+  }, [editorInstances, stickyScroll, renderWhitespace, renderControlCharacters, lineNumbers, autoComplete]);
 
   // Settings change handlers
   const handleStickyScrollChange = (enabled: boolean) => {
@@ -242,6 +251,10 @@ export function CodePanel({
   const handleShowLineNumbersChange = (enabled: boolean) => {
     setLineNumbers(enabled);
     onShowLineNumbersChange?.(enabled);
+  };
+
+  const handleAutoCompleteChange = (enabled: boolean) => {
+    setAutoComplete(enabled);
   };
 
   const handleZoomIn = () => {
@@ -430,6 +443,8 @@ export function CodePanel({
                 onRenderControlCharactersChange={handleRenderControlCharactersChange}
                 showLineNumbers={lineNumbers}
                 onShowLineNumbersChange={handleShowLineNumbersChange}
+                autoComplete={autoComplete}
+                onAutoCompleteChange={handleAutoCompleteChange}
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}
                 onResetZoom={handleResetZoom}
