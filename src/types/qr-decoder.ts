@@ -34,29 +34,6 @@ export interface QrDecoderOptions {
   showPosition: boolean;
 }
 
-export interface QrDecoderState {
-  isScanning: boolean;
-  hasCamera: boolean;
-  cameraPermission: CameraPermissionState;
-  results: QrDecoderResult[];
-  error: string | null;
-  lastScanTime: number | null;
-}
-
-export interface CameraConstraints {
-  width: number;
-  height: number;
-  facingMode: 'user' | 'environment';
-}
-
-export interface QrScannerConfig {
-  preferredCamera: 'environment' | 'user';
-  maxScansPerSecond: number;
-  highlightScanRegion: boolean;
-  highlightCodeOutline: boolean;
-  overlay: HTMLElement | null;
-}
-
 export interface ParsedQrData {
   type: QrCodeFormat;
   data: string;
