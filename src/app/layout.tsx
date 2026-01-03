@@ -21,7 +21,7 @@ const dmSerifText = DM_Serif_Text({
 
 export const metadata: Metadata = {
   title: 'DevPockit - Essential Developer Tools',
-  description: 'A comprehensive collection of developer tools organized by categories. All tools run entirely in your browser for optimal performance and privacy.',
+  description: 'Essential dev tools at your fingertips. Work faster with tools that respect your privacy.',
   keywords: ['developer tools', 'json formatter', 'lorem ipsum', 'yaml converter', 'developer utilities'],
   authors: [{ name: 'DevPockit Team' }],
 }

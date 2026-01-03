@@ -20,7 +20,7 @@ export function WelcomePage({ onToolSelect, activeToolIds = [] }: WelcomePagePro
             DevPockit
           </h1>
           <p className="font-normal text-lg leading-7 text-pretty">
-            A comprehensive collection of developer tools organized by categories. All tools run entirely in your browser for optimal performance and privacy.
+            Essential dev tools at your fingertips. Work faster with tools that respect your privacy.
           </p>
         </div>
       </div>
