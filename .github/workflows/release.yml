@@ -4,6 +4,16 @@ on:
   push:
     tags:
       - 'v*'  # Triggers on version tags like v0.1.0, v1.0.0, etc.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.1.0)'
+        required: true
+        type: string
+      tag:
+        description: 'Tag name (e.g., v0.1.0). If empty, will use v{version}'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -20,11 +30,24 @@ jobs:
       - name: Extract version from tag
         id: tag_version
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "📦 Creating release for version: $VERSION (tag: $TAG_NAME)"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger - use inputs
+            VERSION="${{ inputs.version }}"
+            TAG_NAME="${{ inputs.tag }}"
+            if [ -z "$TAG_NAME" ]; then
+              TAG_NAME="v$VERSION"
+            fi
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "📦 Creating release for version: $VERSION (tag: $TAG_NAME) [Manual Trigger]"
+          else
+            # Automatic trigger from tag push
+            VERSION=${GITHUB_REF#refs/tags/v}
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "📦 Creating release for version: $VERSION (tag: $TAG_NAME) [Tag Push]"
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
