@@ -34,10 +34,11 @@ import { useEffect, useRef, useState } from 'react';
 
 interface QrCodeGeneratorProps {
   className?: string;
+  instanceId: string;
 }
 
-export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
-  const { toolState, updateToolState } = useToolState('qr-code-generator');
+export function QrCodeGenerator({ className, instanceId }: QrCodeGeneratorProps) {
+  const { toolState, updateToolState } = useToolState('qr-code-generator', instanceId);
 
   const [options, setOptions] = useState<QrCodeOptions>(
     (toolState?.options as QrCodeOptions) || DEFAULT_QR_OPTIONS

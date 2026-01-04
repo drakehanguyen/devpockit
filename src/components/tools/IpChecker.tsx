@@ -13,10 +13,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface IpCheckerProps {
   className?: string;
+  instanceId: string;
 }
 
-export function IpChecker({ className }: IpCheckerProps) {
-  const { toolState, updateToolState } = useToolState('ip-checker');
+export function IpChecker({ className, instanceId }: IpCheckerProps) {
+  const { toolState, updateToolState } = useToolState('ip-checker', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<IpCheckerOptions>(DEFAULT_IP_OPTIONS);

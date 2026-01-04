@@ -15,10 +15,11 @@ import { useEffect, useRef, useState } from 'react';
 
 interface UrlDecoderToolProps {
   className?: string;
+  instanceId: string;
 }
 
-export function UrlDecoderTool({ className }: UrlDecoderToolProps) {
-  const { toolState, updateToolState } = useToolState('url-decoder-tool');
+export function UrlDecoderTool({ className, instanceId }: UrlDecoderToolProps) {
+  const { toolState, updateToolState } = useToolState('url-decoder-tool', instanceId);
 
   const [options, setOptions] = useState<UrlEncoderOptions>(DEFAULT_URL_OPTIONS);
   const [input, setInput] = useState<string>('');

@@ -14,10 +14,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface LoremIpsumGeneratorProps {
   className?: string;
+  instanceId: string;
 }
 
-export function LoremIpsumGenerator({ className }: LoremIpsumGeneratorProps) {
-  const { toolState, updateToolState } = useToolState('lorem-ipsum');
+export function LoremIpsumGenerator({ className, instanceId }: LoremIpsumGeneratorProps) {
+  const { toolState, updateToolState } = useToolState('lorem-ipsum', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<LoremOptions>(DEFAULT_OPTIONS);

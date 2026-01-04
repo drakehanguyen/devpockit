@@ -141,9 +141,7 @@ export function CodePanel({
 
       // Use custom copy handler if provided
       if (customOnCopy) {
-        console.log('Using custom copy handler');
         const customContent = await customOnCopy();
-        console.log('Custom content received:', customContent ? `Length: ${customContent.length}` : 'null/empty');
         if (customContent !== null && customContent !== '') {
           textToCopy = customContent;
         } else if (customContent === null && currentValue) {
@@ -151,7 +149,6 @@ export function CodePanel({
           textToCopy = currentValue;
         } else {
           // Custom handler returned empty or null with no currentValue
-          console.warn('Nothing to copy - custom handler returned empty/null and no currentValue');
           return; // Nothing to copy
         }
       } else {
@@ -163,11 +160,9 @@ export function CodePanel({
       }
 
       if (!textToCopy) {
-        console.warn('Nothing to copy - textToCopy is empty');
         return; // Nothing to copy
       }
 
-      console.log('Copying text, length:', textToCopy.length);
       await navigator.clipboard.writeText(textToCopy);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);

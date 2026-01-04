@@ -24,10 +24,11 @@ import { useEffect, useState } from 'react';
 
 interface UuidGeneratorProps {
   className?: string;
+  instanceId: string;
 }
 
-export function UuidGenerator({ className }: UuidGeneratorProps) {
-  const { toolState, updateToolState } = useToolState('uuid-generator');
+export function UuidGenerator({ className, instanceId }: UuidGeneratorProps) {
+  const { toolState, updateToolState } = useToolState('uuid-generator', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<UuidGenerationOptions>(DEFAULT_UUID_OPTIONS);

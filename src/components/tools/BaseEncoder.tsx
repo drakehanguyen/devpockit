@@ -15,10 +15,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface BaseEncoderProps {
   className?: string;
+  instanceId: string;
 }
 
-export function BaseEncoder({ className }: BaseEncoderProps) {
-  const { toolState, updateToolState } = useToolState('base-encoder');
+export function BaseEncoder({ className, instanceId }: BaseEncoderProps) {
+  const { toolState, updateToolState } = useToolState('base-encoder', instanceId);
 
   const [mode, setMode] = useState<'encode' | 'decode'>('encode');
   const [options, setOptions] = useState<BaseEncoderOptions>(DEFAULT_BASE_OPTIONS);

@@ -20,10 +20,11 @@ import { useEffect, useState } from 'react';
 
 interface SchemaConverterProps {
   className?: string;
+  instanceId: string;
 }
 
-export function SchemaConverter({ className }: SchemaConverterProps) {
-  const { toolState, updateToolState } = useToolState('schema-converter');
+export function SchemaConverter({ className, instanceId }: SchemaConverterProps) {
+  const { toolState, updateToolState } = useToolState('schema-converter', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<SchemaConverterOptions>(DEFAULT_SCHEMA_CONVERTER_OPTIONS);

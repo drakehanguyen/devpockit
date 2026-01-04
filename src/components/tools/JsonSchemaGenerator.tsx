@@ -24,10 +24,11 @@ import { useEffect, useMemo, useState } from 'react';
 
 interface JsonSchemaGeneratorProps {
   className?: string;
+  instanceId: string;
 }
 
-export function JsonSchemaGenerator({ className }: JsonSchemaGeneratorProps) {
-  const { toolState, updateToolState } = useToolState('json-schema-generator');
+export function JsonSchemaGenerator({ className, instanceId }: JsonSchemaGeneratorProps) {
+  const { toolState, updateToolState } = useToolState('json-schema-generator', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<JsonSchemaGeneratorOptions>(DEFAULT_SCHEMA_OPTIONS);

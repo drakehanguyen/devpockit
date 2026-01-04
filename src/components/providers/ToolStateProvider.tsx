@@ -14,11 +14,10 @@ export interface ToolState {
 // Define the context type
 interface ToolStateContextType {
   toolStates: Record<string, ToolState>;
-  updateToolState: (toolId: string, state: Partial<ToolState>) => void;
-  getToolState: (toolId: string) => ToolState | undefined;
-  clearToolState: (toolId: string) => void;
+  updateToolState: (toolId: string, instanceId: string, state: Partial<ToolState>) => void;
+  getToolState: (toolId: string, instanceId: string) => ToolState | undefined;
+  clearToolState: (toolId: string, instanceId: string) => void;
   clearAllToolStates: () => void;
-  clearedTools: Set<string>;
 }
 
 // Create the context
@@ -31,51 +30,46 @@ interface ToolStateProviderProps {
 
 export function ToolStateProvider({ children }: ToolStateProviderProps) {
   const [toolStates, setToolStates] = useState<Record<string, ToolState>>({});
-  const [clearedTools, setClearedTools] = useState<Set<string>>(new Set());
 
-  const updateToolState = useCallback((toolId: string, state: Partial<ToolState>) => {
+  const updateToolState = useCallback((toolId: string, instanceId: string, state: Partial<ToolState>) => {
+    // Create composite key: toolId:instanceId
+    const stateKey = `${toolId}:${instanceId}`;
+
     setToolStates(prev => {
-      const currentState = prev[toolId] || {};
+      const currentState = prev[stateKey] || {};
       const newState = { ...currentState, ...state };
 
       // Only update if the state actually changed
       if (JSON.stringify(currentState) !== JSON.stringify(newState)) {
         return {
           ...prev,
-          [toolId]: newState
+          [stateKey]: newState
         };
       }
       return prev;
     });
-
-    // Remove from cleared tools when state is updated
-    setClearedTools(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(toolId);
-      return newSet;
-    });
   }, []);
 
-  const getToolState = useCallback((toolId: string): ToolState | undefined => {
-    return toolStates[toolId];
+  const getToolState = useCallback((toolId: string, instanceId: string): ToolState | undefined => {
+    // Create composite key: toolId:instanceId
+    const stateKey = `${toolId}:${instanceId}`;
+    return toolStates[stateKey];
   }, [toolStates]);
 
-  const clearToolState = useCallback((toolId: string) => {
+  const clearToolState = useCallback((toolId: string, instanceId: string) => {
+    // Create composite key: toolId:instanceId
+    const stateKey = `${toolId}:${instanceId}`;
+
     setToolStates(prev => {
       const newStates = { ...prev };
-      delete newStates[toolId];
+      delete newStates[stateKey];
       return newStates;
     });
-
-    // Add to cleared tools
-    setClearedTools(prev => new Set(prev).add(toolId));
   }, []);
 
   const clearAllToolStates = useCallback(() => {
     setToolStates({});
-    // Mark all tools as cleared
-    setClearedTools(new Set(Object.keys(toolStates)));
-  }, [toolStates]);
+  }, []);
 
   const value: ToolStateContextType = {
     toolStates,
@@ -83,7 +77,6 @@ export function ToolStateProvider({ children }: ToolStateProviderProps) {
     getToolState,
     clearToolState,
     clearAllToolStates,
-    clearedTools
   };
 
   return (
@@ -94,7 +87,7 @@ export function ToolStateProvider({ children }: ToolStateProviderProps) {
 }
 
 // Custom hook to use the tool state context
-export function useToolState(toolId: string) {
+export function useToolState(toolId: string, instanceId: string) {
   const context = useContext(ToolStateContext);
 
   if (context === undefined) {
@@ -105,16 +98,19 @@ export function useToolState(toolId: string) {
 
   // Memoize wrapper functions to prevent unnecessary re-renders
   const memoizedUpdateToolState = useCallback(
-    (state: Partial<ToolState>) => updateToolState(toolId, state),
-    [toolId, updateToolState]
+    (state: Partial<ToolState>) => updateToolState(toolId, instanceId, state),
+    [toolId, instanceId, updateToolState]
   );
 
   const memoizedClearToolState = useCallback(
-    () => clearToolState(toolId),
-    [toolId, clearToolState]
+    () => clearToolState(toolId, instanceId),
+    [toolId, instanceId, clearToolState]
   );
 
-  const toolState = useMemo(() => getToolState(toolId), [toolId, getToolState]);
+  const toolState = useMemo(
+    () => getToolState(toolId, instanceId),
+    [toolId, instanceId, getToolState]
+  );
 
   return {
     toolState,

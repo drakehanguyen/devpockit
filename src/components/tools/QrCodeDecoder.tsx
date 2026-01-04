@@ -31,11 +31,12 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 
 interface QrCodeDecoderProps {
   className?: string;
+  instanceId: string;
   onResult?: (result: QrDecoderResult) => void;
   onError?: (error: string) => void;
 }
 
-export function QrCodeDecoder({ className, onResult, onError }: QrCodeDecoderProps) {
+export function QrCodeDecoder({ className, instanceId, onResult, onError }: QrCodeDecoderProps) {
   // State management
   const [files, setFiles] = useState<File[]>([]);
   const [results, setResults] = useState<QrDecoderResult[]>([]);
@@ -59,7 +60,7 @@ export function QrCodeDecoder({ className, onResult, onError }: QrCodeDecoderPro
   const onErrorRef = useRef<((error: string) => void) | undefined>(undefined);
 
   // Tool state management
-  const { toolState, updateToolState, clearToolState } = useToolState('qr-code-decoder');
+  const { toolState, updateToolState, clearToolState } = useToolState('qr-code-decoder', instanceId);
 
   useEffect(() => {
     setIsHydrated(true);

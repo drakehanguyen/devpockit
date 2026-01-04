@@ -14,10 +14,11 @@ import { useEffect, useMemo, useState } from 'react';
 
 interface JwtDecoderProps {
   className?: string;
+  instanceId: string;
 }
 
-export function JwtDecoder({ className }: JwtDecoderProps) {
-  const { toolState, updateToolState } = useToolState('jwt-decoder');
+export function JwtDecoder({ className, instanceId }: JwtDecoderProps) {
+  const { toolState, updateToolState } = useToolState('jwt-decoder', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [token, setToken] = useState<string>('');

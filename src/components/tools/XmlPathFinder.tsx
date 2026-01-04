@@ -27,10 +27,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface XmlPathFinderProps {
   className?: string;
+  instanceId: string;
 }
 
-export function XmlPathFinder({ className }: XmlPathFinderProps) {
-  const { toolState, updateToolState } = useToolState('xml-path-finder');
+export function XmlPathFinder({ className, instanceId }: XmlPathFinderProps) {
+  const { toolState, updateToolState } = useToolState('xml-path-finder', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<XmlPathFinderOptions>(DEFAULT_XML_PATH_OPTIONS);
@@ -258,16 +259,12 @@ export function XmlPathFinder({ className }: XmlPathFinderProps) {
       if (getExpandedXml) {
         try {
           const xml = getExpandedXml();
-          console.log('Copying expanded XML, length:', xml?.length || 0);
           return xml || '';
-        } catch (err) {
-          console.error('Failed to get expanded XML:', err);
+        } catch {
           return null;
         }
       }
-      console.warn('getExpandedXml function not available');
       // Function not ready yet, but button should still be enabled
-      // Return empty string so button is clickable
       return '';
     }
     return null; // Use default copy behavior for other tabs

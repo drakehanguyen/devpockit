@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react';
 
 interface TimestampConverterProps {
   className?: string;
+  instanceId: string;
 }
 
 function getRelativeTime(date: Date): string {
@@ -144,8 +145,8 @@ Leap Year:    ${new Date(date.getFullYear(), 1, 29).getDate() === 29 ? 'Yes' : '
   return result;
 }
 
-export function TimestampConverter({ className }: TimestampConverterProps) {
-  const { toolState, updateToolState } = useToolState('timestamp-converter');
+export function TimestampConverter({ className, instanceId }: TimestampConverterProps) {
+  const { toolState, updateToolState } = useToolState('timestamp-converter', instanceId);
 
   const [input, setInput] = useState<string>('');
   const [inputFormat, setInputFormat] = useState<InputFormat>(DEFAULT_OPTIONS.inputFormat);

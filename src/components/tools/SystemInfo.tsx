@@ -32,10 +32,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface SystemInfoProps {
   className?: string;
+  instanceId: string;
 }
 
-export function SystemInfo({ className }: SystemInfoProps) {
-  const { toolState, updateToolState } = useToolState('system-info');
+export function SystemInfo({ className, instanceId }: SystemInfoProps) {
+  const { toolState, updateToolState } = useToolState('system-info', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<SystemInfoOptions>(DEFAULT_SYSTEM_INFO_OPTIONS);

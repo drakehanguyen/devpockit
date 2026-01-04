@@ -24,10 +24,11 @@ import { useEffect, useMemo, useState } from 'react';
 
 interface ListConverterProps {
   className?: string;
+  instanceId: string;
 }
 
-export function ListConverter({ className }: ListConverterProps) {
-  const { toolState, updateToolState } = useToolState('list-converter');
+export function ListConverter({ className, instanceId }: ListConverterProps) {
+  const { toolState, updateToolState } = useToolState('list-converter', instanceId);
 
   // State
   const [input, setInput] = useState<string>('');

@@ -22,10 +22,11 @@ import { useEffect, useState } from 'react';
 
 interface HashGeneratorProps {
   className?: string;
+  instanceId: string;
 }
 
-export function HashGenerator({ className }: HashGeneratorProps) {
-  const { toolState, updateToolState } = useToolState('hash-generator');
+export function HashGenerator({ className, instanceId }: HashGeneratorProps) {
+  const { toolState, updateToolState } = useToolState('hash-generator', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<HashGenerationOptions>(DEFAULT_HASH_OPTIONS);

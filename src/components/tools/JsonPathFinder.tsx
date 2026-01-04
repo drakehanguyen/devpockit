@@ -27,10 +27,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface JsonPathFinderProps {
   className?: string;
+  instanceId: string;
 }
 
-export function JsonPathFinder({ className }: JsonPathFinderProps) {
-  const { toolState, updateToolState } = useToolState('json-path-finder');
+export function JsonPathFinder({ className, instanceId }: JsonPathFinderProps) {
+  const { toolState, updateToolState } = useToolState('json-path-finder', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<JsonPathFinderOptions>(DEFAULT_JSON_PATH_OPTIONS);
@@ -266,16 +267,12 @@ export function JsonPathFinder({ className }: JsonPathFinderProps) {
       if (getExpandedJson) {
         try {
           const json = getExpandedJson();
-          console.log('Copying expanded JSON, length:', json?.length || 0);
           return json || '';
-        } catch (err) {
-          console.error('Failed to get expanded JSON:', err);
+        } catch {
           return null;
         }
       }
-      console.warn('getExpandedJson function not available');
       // Function not ready yet, but button should still be enabled
-      // Return empty string so button is clickable
       return '';
     }
     return null; // Use default copy behavior for other tabs

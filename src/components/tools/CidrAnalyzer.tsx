@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react';
 
 interface CidrAnalyzerProps {
   className?: string;
+  instanceId: string;
 }
 
 const CIDR_EXAMPLES = [
@@ -36,8 +37,8 @@ const CIDR_EXAMPLES = [
   { label: 'Link Local', value: '169.254.0.0/16' },
 ];
 
-export function CidrAnalyzer({ className }: CidrAnalyzerProps) {
-  const { toolState, updateToolState } = useToolState('cidr-analyzer');
+export function CidrAnalyzer({ className, instanceId }: CidrAnalyzerProps) {
+  const { toolState, updateToolState } = useToolState('cidr-analyzer', instanceId);
 
   // Initialize with defaults
   const [input, setInput] = useState('');

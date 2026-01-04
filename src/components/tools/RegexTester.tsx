@@ -47,10 +47,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface RegexTesterProps {
   className?: string;
+  instanceId: string;
 }
 
-export function RegexTester({ className }: RegexTesterProps) {
-  const { toolState, updateToolState } = useToolState('regex-tester');
+export function RegexTester({ className, instanceId }: RegexTesterProps) {
+  const { toolState, updateToolState } = useToolState('regex-tester', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<RegexTesterOptions>(DEFAULT_REGEX_OPTIONS);
