@@ -3,9 +3,8 @@ name: Deploy DevPockit to GitHub Pages
 on:
   push:
     branches: [ main ]
-  # Deploy on version tags (e.g., v0.1.0, v1.0.0)
-  tags:
-    - 'v*'
+    tags:
+      - 'v*'  # Deploy on version tags (e.g., v0.1.0, v1.0.0)
   pull_request:
     branches: [ main ]
 
