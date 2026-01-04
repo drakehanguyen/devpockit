@@ -1,0 +1,134 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for DevPockit
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please fill out the form below to help us understand your request.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Feature Type
+      description: What type of feature are you requesting?
+      options:
+        - "New Tool"
+        - "Enhancement to Existing Tool"
+        - "UI/UX Improvement"
+        - "Performance Improvement"
+        - "Accessibility Feature"
+        - "Documentation"
+        - "Other"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tool
+    attributes:
+      label: Which tool (if applicable)?
+      description: Select the tool this feature relates to (or "N/A" if not tool-specific)
+      options:
+        - "N/A - General Feature"
+        - "Lorem Ipsum Generator"
+        - "Regex Tester"
+        - "Diff Checker"
+        - "JSON Formatter"
+        - "XML Formatter"
+        - "UUID Generator"
+        - "JWT Decoder"
+        - "JWT Encoder"
+        - "Hash Generator"
+        - "QR Code Generator"
+        - "QR Code Decoder"
+        - "QR Code Scanner"
+        - "URL Encoder"
+        - "URL Decoder"
+        - "Base Encoder/Decoder"
+        - "Cron Expression Parser"
+        - "Data Format Converter"
+        - "Timestamp Converter"
+        - "List Format Converter"
+        - "Schema Converter"
+        - "Number Base Converter"
+        - "CIDR Analyzer"
+        - "IP to CIDR Converter"
+        - "IP Address Lookup"
+        - "System Information"
+        - "List Comparison"
+        - "JSON Path Finder"
+        - "XML Path Finder"
+        - "YAML Path Finder"
+        - "JSON/YAML Schema Generator"
+    validations:
+      required: false
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: A clear and concise description of what you want to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you've considered
+      placeholder: A clear and concise description of any alternative solutions or features you've considered
+    validations:
+      required: false
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: Describe a specific use case for this feature
+      placeholder: How would you use this feature? What problem does it solve for you?
+    validations:
+      required: false
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups/Screenshots
+      description: If applicable, add mockups or screenshots to help visualize your feature
+      placeholder: Drag and drop images here or paste image URLs
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - "Nice to have"
+        - "Would be helpful"
+        - "Important"
+        - "Critical"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues to ensure this feature has not already been requested
+          required: true
+        - label: I have provided all the information requested above
+          required: true
+

@@ -314,3 +314,11 @@ dmypy.json
 
 # Plan documents
 .plan/
+
+# SSL/TLS Certificates (for local HTTPS development)
+certificates/*.pem
+certificates/*.key
+certificates/*.crt
+certificates/*.p12
+certificates/*.pfx
+!certificates/.gitkeep
