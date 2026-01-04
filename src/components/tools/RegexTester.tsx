@@ -496,9 +496,9 @@ export function RegexTester({ className }: RegexTesterProps) {
               <DropdownMenu open={flagsDropdownOpen} onOpenChange={setFlagsDropdownOpen} modal={false}>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="inline-flex h-10 items-center justify-between rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 min-w-[200px]"
+                    className="inline-flex h-10 items-center justify-between rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 min-w-[200px]"
                   >
-                    <div className="flex items-end text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
+                    <div className="flex items-end text-sm leading-normal tracking-[0.07px] flex-1 min-w-0">
                       <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">Flags:</span>
                       <span className="text-neutral-900 dark:text-neutral-100 truncate ml-2">
                         {flagsToString(options.flags) || 'None'}

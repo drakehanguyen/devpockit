@@ -116,7 +116,7 @@ export function MobileTopBar({ onToolSelect, onHomeClick }: MobileTopBarProps) {
                 className={cn(
                   'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
                   mounted && theme === 'light'
-                    ? 'bg-white dark:bg-neutral-900 shadow-sm'
+                    ? 'bg-white dark:bg-neutral-900 shadow-xs'
                     : 'bg-transparent'
                 )}
                 title="Light mode"
@@ -128,7 +128,7 @@ export function MobileTopBar({ onToolSelect, onHomeClick }: MobileTopBarProps) {
                 className={cn(
                   'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
                   mounted && theme === 'dark'
-                    ? 'bg-white dark:bg-neutral-900 shadow-sm'
+                    ? 'bg-white dark:bg-neutral-900 shadow-xs'
                     : 'bg-transparent'
                 )}
                 title="Dark mode"

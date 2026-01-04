@@ -553,7 +553,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
 
             {/* Size Input with inline label */}
             <div className="inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700 w-[160px]">
-              <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
+              <div className="flex items-center gap-3 text-sm leading-normal tracking-[0.07px] flex-1 min-w-0">
                 <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">Size:</span>
                 <input
                   type="number"
@@ -562,7 +562,7 @@ export function QrCodeGenerator({ className }: QrCodeGeneratorProps) {
                   value={sizeInput}
                   onChange={(e) => handleSizeChange(e.target.value)}
                   onBlur={handleSizeBlur}
-                  className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-hidden flex-1 min-w-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400 text-xs">px</span>
               </div>

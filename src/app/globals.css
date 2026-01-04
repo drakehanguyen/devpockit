@@ -1,70 +1,264 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
+@variant dark (&:where(.dark, .dark *));
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+*/
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 0 0% 90%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 0 0% 9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 0 0% 9%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 0 0% 9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 20%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
   }
 }
 
+/* ============================================
+   THEME CONFIGURATION - CSS-first approach
+   ============================================ */
+@theme {
+  /* Border Radius */
+  --radius-lg: 0.5rem;
+  --radius-md: calc(var(--radius-lg) - 2px);
+  --radius-sm: calc(var(--radius-lg) - 4px);
+
+  /* Font Families */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --font-serif: var(--font-dm-serif), Georgia, Cambria, 'Times New Roman', Times,
+    serif;
+
+  /* Custom Colors using CSS variables for light/dark mode support */
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  /* Primary */
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  /* Secondary */
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  /* Destructive */
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  /* Muted */
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  /* Accent */
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  /* Popover */
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  /* Card */
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  /* Sidebar */
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  /* Category Colors - Blue */
+  --color-category-blue-50: #f0f9ff;
+  --color-category-blue-100: #e0f2fe;
+  --color-category-blue-200: #bae6fd;
+  --color-category-blue-300: #7dd3fc;
+  --color-category-blue-400: #38bdf8;
+  --color-category-blue-500: #0ea5e9;
+  --color-category-blue-600: #0284c7;
+  --color-category-blue-700: #0369a1;
+  --color-category-blue-800: #075985;
+  --color-category-blue-900: #0c4a6e;
+  --color-category-blue-950: #082f49;
+
+  /* Category Colors - Green */
+  --color-category-green-50: #f0fdf4;
+  --color-category-green-100: #dcfce7;
+  --color-category-green-200: #bbf7d0;
+  --color-category-green-300: #86efac;
+  --color-category-green-400: #4ade80;
+  --color-category-green-500: #10b981;
+  --color-category-green-600: #059669;
+  --color-category-green-700: #047857;
+  --color-category-green-800: #065f46;
+  --color-category-green-900: #064e3b;
+  --color-category-green-950: #022c22;
+
+  /* Category Colors - Purple */
+  --color-category-purple-50: #faf5ff;
+  --color-category-purple-100: #f3e8ff;
+  --color-category-purple-200: #e9d5ff;
+  --color-category-purple-300: #d8b4fe;
+  --color-category-purple-400: #c084fc;
+  --color-category-purple-500: #8b5cf6;
+  --color-category-purple-600: #7c3aed;
+  --color-category-purple-700: #6d28d9;
+  --color-category-purple-800: #5b21b6;
+  --color-category-purple-900: #4c1d95;
+  --color-category-purple-950: #2e1065;
+
+  /* Category Colors - Red */
+  --color-category-red-50: #fef2f2;
+  --color-category-red-100: #fee2e2;
+  --color-category-red-200: #fecaca;
+  --color-category-red-300: #fca5a5;
+  --color-category-red-400: #f87171;
+  --color-category-red-500: #ef4444;
+  --color-category-red-600: #dc2626;
+  --color-category-red-700: #b91c1c;
+  --color-category-red-800: #991b1b;
+  --color-category-red-900: #7f1d1d;
+  --color-category-red-950: #450a0a;
+
+  /* Category Colors - Orange */
+  --color-category-orange-50: #fff7ed;
+  --color-category-orange-100: #ffedd5;
+  --color-category-orange-200: #fed7aa;
+  --color-category-orange-300: #fdba74;
+  --color-category-orange-400: #fb923c;
+  --color-category-orange-500: #f97316;
+  --color-category-orange-600: #ea580c;
+  --color-category-orange-700: #c2410c;
+  --color-category-orange-800: #9a3412;
+  --color-category-orange-900: #7c2d12;
+  --color-category-orange-950: #431407;
+
+  /* Category Colors - Teal */
+  --color-category-teal-50: #f0fdfa;
+  --color-category-teal-100: #ccfbf1;
+  --color-category-teal-200: #99f6e4;
+  --color-category-teal-300: #5eead4;
+  --color-category-teal-400: #2dd4bf;
+  --color-category-teal-500: #14b8a6;
+  --color-category-teal-600: #0d9488;
+  --color-category-teal-700: #0f766e;
+  --color-category-teal-800: #115e59;
+  --color-category-teal-900: #134e4a;
+  --color-category-teal-950: #042f2e;
+
+  /* Category Colors - Indigo */
+  --color-category-indigo-50: #eef2ff;
+  --color-category-indigo-100: #e0e7ff;
+  --color-category-indigo-200: #c7d2fe;
+  --color-category-indigo-300: #a5b4fc;
+  --color-category-indigo-400: #818cf8;
+  --color-category-indigo-500: #6366f1;
+  --color-category-indigo-600: #4f46e5;
+  --color-category-indigo-700: #4338ca;
+  --color-category-indigo-800: #3730a3;
+  --color-category-indigo-900: #312e81;
+  --color-category-indigo-950: #1e1b4b;
+
+  /* Animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/* ============================================
+   CSS VARIABLES FOR LIGHT/DARK MODE
+   ============================================ */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 0 0% 90%;
+  --accent-foreground: 222.2 84% 4.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+.dark {
+  --background: 0 0% 9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 0 0% 20%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 0 0% 20%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 0 0% 9%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 212.7 26.8% 83.9%;
+  --sidebar-background: 0 0% 9%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-primary: 224.3 76.3% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 20%;
+  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-border: 0 0% 20%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
 @layer base {
   * {
     @apply border-border;
@@ -77,48 +271,51 @@
   }
 }
 
-@layer utilities {
+/* ============================================
+   CUSTOM UTILITIES
+   ============================================ */
+@utility custom-scrollbar {
   /* Custom scrollbar styles */
-  .custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
-  }
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
 
-  .custom-scrollbar::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-track {
+  &::-webkit-scrollbar-track {
     background: hsl(var(--muted) / 0.5);
     border-radius: 4px;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
     background-color: hsl(var(--muted-foreground) / 0.4);
     border-radius: 4px;
     border: 1px solid hsl(var(--muted) / 0.8);
     transition: all 0.2s ease;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  &::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--muted-foreground) / 0.6);
     border-color: hsl(var(--muted-foreground) / 0.3);
   }
 
-  .custom-scrollbar::-webkit-scrollbar-corner {
+  &::-webkit-scrollbar-corner {
     background: hsl(var(--muted) / 0.5);
   }
+}
 
+@utility monaco-editor {
   /* Monaco Editor - Reduce line number gutter width and center alignment */
   /* This complements the lineNumbersMinChars option for tighter control */
-  .monaco-editor .margin {
+  & .margin {
     min-width: 36px !important;
     border-right: 1px solid hsl(var(--muted-foreground) / 0.2) !important;
     padding-right: 0 !important;
   }
 
-  .monaco-editor .line-numbers {
+  & .line-numbers {
     min-width: 36px !important;
     text-align: center !important;
     padding-right: 0 !important;
@@ -127,114 +324,271 @@
   }
 
   /* Remove any spacing from line number cells and containers */
-  .monaco-editor .line-numbers .line-number {
+  & .line-numbers .line-number {
     padding-right: 0 !important;
     margin-right: 0 !important;
   }
 
-  .monaco-editor .margin-view-overlays {
+  & .margin-view-overlays {
     padding-right: 0 !important;
   }
 
-  .monaco-editor .margin-view-zones {
+  & .margin-view-zones {
     padding-right: 0 !important;
   }
 
-  .monaco-editor .glyph-margin {
+  & .glyph-margin {
     padding-right: 0 !important;
     margin-right: 0 !important;
   }
 
   /* Center line number text */
-  .monaco-editor .line-numbers span {
+  & .line-numbers span {
     text-align: center !important;
     display: inline-block;
     width: 100%;
   }
 
-  .monaco-editor .current-line ~ .line-numbers span {
+  & .current-line ~ .line-numbers span {
     text-align: right !important;
   }
 
-  /* Add padding between vertical line and code */
-  /* .monaco-editor .view-lines {
-    padding-left: 8px !important;
-  } */
-
   /* Dark mode border color - more subtle */
-  .dark .monaco-editor .margin {
+  .dark & .margin {
     border-right-color: hsl(var(--muted-foreground) / 0.15) !important;
   }
 
   /* Regex match highlighting in Monaco editor */
-  .monaco-editor .regex-match-highlight {
+  & .regex-match-highlight {
     background-color: rgba(255, 235, 59, 0.3) !important;
     border-bottom: 2px solid rgba(255, 193, 7, 0.6) !important;
   }
 
-  .dark .monaco-editor .regex-match-highlight {
+  .dark & .regex-match-highlight {
     background-color: rgba(255, 193, 7, 0.2) !important;
     border-bottom: 2px solid rgba(255, 235, 59, 0.5) !important;
   }
 
   /* Regex group highlighting - different colors for each group */
-  .monaco-editor .regex-group-highlight {
+  & .regex-group-highlight {
     border-bottom: 2px solid !important;
     position: relative;
     z-index: 1;
   }
 
   /* Group 1 - Blue */
-  .monaco-editor .regex-group-1 {
+  & .regex-group-1 {
     background-color: rgba(33, 150, 243, 0.4) !important;
     border-bottom-color: rgba(33, 150, 243, 0.8) !important;
   }
 
-  .dark .monaco-editor .regex-group-1 {
+  .dark & .regex-group-1 {
     background-color: rgba(33, 150, 243, 0.25) !important;
     border-bottom-color: rgba(100, 181, 246, 0.7) !important;
   }
 
   /* Group 2 - Green */
-  .monaco-editor .regex-group-2 {
+  & .regex-group-2 {
     background-color: rgba(76, 175, 80, 0.4) !important;
     border-bottom-color: rgba(76, 175, 80, 0.8) !important;
   }
 
-  .dark .monaco-editor .regex-group-2 {
+  .dark & .regex-group-2 {
     background-color: rgba(76, 175, 80, 0.25) !important;
     border-bottom-color: rgba(129, 199, 132, 0.7) !important;
   }
 
   /* Group 3 - Purple */
-  .monaco-editor .regex-group-3 {
+  & .regex-group-3 {
     background-color: rgba(156, 39, 176, 0.4) !important;
     border-bottom-color: rgba(156, 39, 176, 0.8) !important;
   }
 
-  .dark .monaco-editor .regex-group-3 {
+  .dark & .regex-group-3 {
     background-color: rgba(156, 39, 176, 0.25) !important;
     border-bottom-color: rgba(186, 104, 200, 0.7) !important;
   }
 
   /* Group 4 - Orange */
-  .monaco-editor .regex-group-4 {
+  & .regex-group-4 {
     background-color: rgba(255, 152, 0, 0.4) !important;
     border-bottom-color: rgba(255, 152, 0, 0.8) !important;
   }
 
-  .dark .monaco-editor .regex-group-4 {
+  .dark & .regex-group-4 {
     background-color: rgba(255, 152, 0, 0.25) !important;
     border-bottom-color: rgba(255, 183, 77, 0.7) !important;
   }
 
   /* Group 5 - Teal */
-  .monaco-editor .regex-group-5 {
+  & .regex-group-5 {
     background-color: rgba(0, 188, 212, 0.4) !important;
     border-bottom-color: rgba(0, 188, 212, 0.8) !important;
   }
 
-  .dark .monaco-editor .regex-group-5 {
+  .dark & .regex-group-5 {
+    background-color: rgba(0, 188, 212, 0.25) !important;
+    border-bottom-color: rgba(77, 208, 225, 0.7) !important;
+  }
+}
+
+@utility margin {
+  /* Monaco Editor - Reduce line number gutter width and center alignment */
+  /* This complements the lineNumbersMinChars option for tighter control */
+  .monaco-editor & {
+    min-width: 36px !important;
+    border-right: 1px solid hsl(var(--muted-foreground) / 0.2) !important;
+    padding-right: 0 !important;
+  }
+
+  /* Dark mode border color - more subtle */
+  .dark .monaco-editor & {
+    border-right-color: hsl(var(--muted-foreground) / 0.15) !important;
+  }
+}
+
+@utility line-numbers {
+  .monaco-editor & {
+    min-width: 36px !important;
+    text-align: center !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Remove any spacing from line number cells and containers */
+  .monaco-editor & .line-number {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Center line number text */
+  .monaco-editor & span {
+    text-align: center !important;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .monaco-editor .current-line ~ & span {
+    text-align: right !important;
+  }
+}
+
+@utility line-number {
+  /* Remove any spacing from line number cells and containers */
+  .monaco-editor .line-numbers & {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
+@utility margin-view-overlays {
+  .monaco-editor & {
+    padding-right: 0 !important;
+  }
+}
+
+@utility margin-view-zones {
+  .monaco-editor & {
+    padding-right: 0 !important;
+  }
+}
+
+@utility glyph-margin {
+  .monaco-editor & {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
+@utility current-line {
+  .monaco-editor & ~ .line-numbers span {
+    text-align: right !important;
+  }
+}
+
+@utility regex-match-highlight {
+  /* Regex match highlighting in Monaco editor */
+  .monaco-editor & {
+    background-color: rgba(255, 235, 59, 0.3) !important;
+    border-bottom: 2px solid rgba(255, 193, 7, 0.6) !important;
+  }
+
+  .dark .monaco-editor & {
+    background-color: rgba(255, 193, 7, 0.2) !important;
+    border-bottom: 2px solid rgba(255, 235, 59, 0.5) !important;
+  }
+}
+
+@utility regex-group-highlight {
+  /* Regex group highlighting - different colors for each group */
+  .monaco-editor & {
+    border-bottom: 2px solid !important;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@utility regex-group-1 {
+  /* Group 1 - Blue */
+  .monaco-editor & {
+    background-color: rgba(33, 150, 243, 0.4) !important;
+    border-bottom-color: rgba(33, 150, 243, 0.8) !important;
+  }
+
+  .dark .monaco-editor & {
+    background-color: rgba(33, 150, 243, 0.25) !important;
+    border-bottom-color: rgba(100, 181, 246, 0.7) !important;
+  }
+}
+
+@utility regex-group-2 {
+  /* Group 2 - Green */
+  .monaco-editor & {
+    background-color: rgba(76, 175, 80, 0.4) !important;
+    border-bottom-color: rgba(76, 175, 80, 0.8) !important;
+  }
+
+  .dark .monaco-editor & {
+    background-color: rgba(76, 175, 80, 0.25) !important;
+    border-bottom-color: rgba(129, 199, 132, 0.7) !important;
+  }
+}
+
+@utility regex-group-3 {
+  /* Group 3 - Purple */
+  .monaco-editor & {
+    background-color: rgba(156, 39, 176, 0.4) !important;
+    border-bottom-color: rgba(156, 39, 176, 0.8) !important;
+  }
+
+  .dark .monaco-editor & {
+    background-color: rgba(156, 39, 176, 0.25) !important;
+    border-bottom-color: rgba(186, 104, 200, 0.7) !important;
+  }
+}
+
+@utility regex-group-4 {
+  /* Group 4 - Orange */
+  .monaco-editor & {
+    background-color: rgba(255, 152, 0, 0.4) !important;
+    border-bottom-color: rgba(255, 152, 0, 0.8) !important;
+  }
+
+  .dark .monaco-editor & {
+    background-color: rgba(255, 152, 0, 0.25) !important;
+    border-bottom-color: rgba(255, 183, 77, 0.7) !important;
+  }
+}
+
+@utility regex-group-5 {
+  /* Group 5 - Teal */
+  .monaco-editor & {
+    background-color: rgba(0, 188, 212, 0.4) !important;
+    border-bottom-color: rgba(0, 188, 212, 0.8) !important;
+  }
+
+  .dark .monaco-editor & {
     background-color: rgba(0, 188, 212, 0.25) !important;
     border-bottom-color: rgba(77, 208, 225, 0.7) !important;
   }

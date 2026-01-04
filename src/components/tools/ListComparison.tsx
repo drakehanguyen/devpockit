@@ -513,7 +513,7 @@ export function ListComparison({ className }: ListComparisonProps) {
                       placeholder="Search results..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-8 pr-3 py-1.5 text-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent w-48"
+                      className="pl-8 pr-3 py-1.5 text-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-md focus:outline-hidden focus:ring-2 focus:ring-orange-500 focus:border-transparent w-48"
                     />
                   </div>
                 </div>
@@ -588,7 +588,7 @@ export function ListComparison({ className }: ListComparisonProps) {
                             bgColor
                           )}
                         >
-                          <Check className={cn('h-4 w-4 flex-shrink-0', textColor)} />
+                          <Check className={cn('h-4 w-4 shrink-0', textColor)} />
                           <span className={cn('font-mono text-sm flex-1', textColor)}>{item.originalValue}</span>
                           <span className={cn('text-xs font-medium', textColor)}>{badgeText}</span>
                         </div>

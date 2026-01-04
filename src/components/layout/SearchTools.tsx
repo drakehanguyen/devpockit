@@ -51,7 +51,7 @@ const SearchResult = ({ tool, onSelect, onClose, isSelected = false }: SearchRes
             {/* Icon Section */}
             <div
               className={cn(
-                'flex items-center justify-center w-6 h-6 rounded transition-colors duration-200 flex-shrink-0',
+                'flex items-center justify-center w-6 h-6 rounded transition-colors duration-200 shrink-0',
                 isHovered || isSelected
                   ? 'bg-orange-50 dark:bg-orange-950'
                   : 'bg-neutral-100 dark:bg-neutral-900'

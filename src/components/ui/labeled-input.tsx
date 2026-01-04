@@ -18,7 +18,7 @@ export const LabeledInput = React.forwardRef<HTMLInputElement, LabeledInputProps
           containerClassName || 'w-full'
         )}
       >
-        <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
+        <div className="flex items-center gap-3 text-sm leading-normal tracking-[0.07px] flex-1 min-w-0">
           <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">{label}</span>
           <input
             ref={ref}
@@ -27,7 +27,7 @@ export const LabeledInput = React.forwardRef<HTMLInputElement, LabeledInputProps
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             className={cn(
-              'font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 placeholder:text-muted-foreground',
+              'font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-hidden flex-1 min-w-0 placeholder:text-muted-foreground',
               inputClassName,
               className
             )}
