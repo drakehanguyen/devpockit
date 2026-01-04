@@ -2,7 +2,31 @@
   "name": "devpockit-frontend",
   "version": "0.1.0",
   "description": "DevPockit Frontend - Developer Tools Web App",
-  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hypkey/devpockit.git"
+  },
+  "homepage": "https://devpockit.hypkey.com/",
+  "bugs": {
+    "url": "https://github.com/hypkey/devpockit/issues"
+  },
+  "keywords": [
+    "developer-tools",
+    "nextjs",
+    "typescript",
+    "json-formatter",
+    "uuid-generator",
+    "jwt-decoder",
+    "regex-tester",
+    "cron-parser",
+    "yaml-converter",
+    "xml-formatter",
+    "url-encoder",
+    "qr-code",
+    "web-app",
+    "open-source"
+  ],
   "scripts": {
     "dev": "next dev",
     "dev:https": "next dev --experimental-https",
