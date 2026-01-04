@@ -60,7 +60,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@shikijs/monaco": "^1.29.2",
+    "@shikijs/monaco": "^3.20.0",
     "@types/qrcode": "^1.5.6",
     "@types/react-window": "^2.0.0",
     "@types/uuid": "^11.0.0",
