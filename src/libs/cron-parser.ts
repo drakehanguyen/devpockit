@@ -1,4 +1,4 @@
-import { parseExpression } from 'cron-parser';
+import CronExpressionParser from 'cron-parser';
 
 export interface CronParseResult {
   isValid: boolean;
@@ -25,7 +25,7 @@ export function parseCronExpression(expression: string, nextRunCount: number = 5
     if (timezone && timezone !== 'local') {
       options.tz = timezone;
     }
-    const interval = parseExpression(expression, options);
+    const interval = CronExpressionParser.parse(expression, options);
 
     // Generate human-readable description
     const humanReadable = generateHumanReadable(expression);
@@ -34,7 +34,10 @@ export function parseCronExpression(expression: string, nextRunCount: number = 5
     const nextRuns: string[] = [];
     for (let i = 0; i < nextRunCount; i++) {
       const next = interval.next();
-      nextRuns.push(next.toISOString());
+      const isoString = next.toISOString();
+      if (isoString) {
+        nextRuns.push(isoString);
+      }
     }
 
     return {
@@ -57,7 +60,7 @@ export function parseCronExpression(expression: string, nextRunCount: number = 5
  */
 export function validateCronExpression(expression: string): boolean {
   try {
-    parseExpression(expression);
+    CronExpressionParser.parse(expression);
     return true;
   } catch {
     return false;
@@ -69,7 +72,7 @@ export function validateCronExpression(expression: string): boolean {
  */
 export function getNextCronRun(expression: string): Date | null {
   try {
-    const interval = parseExpression(expression);
+    const interval = CronExpressionParser.parse(expression);
     return interval.next().toDate();
   } catch {
     return null;
@@ -81,7 +84,7 @@ export function getNextCronRun(expression: string): Date | null {
  */
 export function getNextCronRuns(expression: string, count: number = 5): Date[] {
   try {
-    const interval = parseExpression(expression);
+    const interval = CronExpressionParser.parse(expression);
     const runs: Date[] = [];
 
     for (let i = 0; i < count; i++) {

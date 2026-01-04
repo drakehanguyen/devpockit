@@ -1,5 +1,5 @@
-import { parseExpression } from 'cron-parser';
-import type { CronParserOptions, CronFieldValue } from '@/config/cron-parser-config';
+import type { CronFieldValue, CronParserOptions } from '@/config/cron-parser-config';
+import CronExpressionParser from 'cron-parser';
 
 /**
  * Build a cron expression from parser options
@@ -60,7 +60,7 @@ function buildFieldExpression(field: CronFieldValue, min: number, max: number): 
 export function validateCronExpression(expression: string): { isValid: boolean; error?: string } {
   try {
     // Try to parse it to ensure it's actually valid
-    parseExpression(expression);
+    CronExpressionParser.parse(expression);
     return { isValid: true };
   } catch (error) {
     return {

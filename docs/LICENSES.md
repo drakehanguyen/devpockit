@@ -53,7 +53,7 @@ All dependencies use licenses that are compatible with MIT:
 
 ### Tool-Specific Libraries
 - **jose** (^6.1.3) - MIT License (JWT encoding/decoding)
-- **cron-parser** (^4.9.0) - MIT License
+- **cron-parser** (^5.4.0) - MIT License
 - **diff** (^8.0.2) - BSD-3-Clause License
 - **ipaddr.js** (^2.2.0) - MIT License
 - **qrcode** (^1.5.4) - MIT License
