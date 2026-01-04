@@ -1,4 +1,4 @@
-name: Create Release
+name: Create Release and Deploy
 
 on:
   push:
@@ -17,10 +17,14 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -99,7 +103,24 @@ jobs:
             echo "❌ Main index.html not found in build output!"
             exit 1
           fi
+          if [ ! -d "out/tools" ]; then
+            echo "❌ Tools directory not found in build output!"
+            exit 1
+          fi
           echo "✅ Build output verification passed"
+
+      - name: Test static file serving
+        run: |
+          python3 -m http.server 8080 --directory out &
+          SERVER_PID=$!
+          sleep 3
+          if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep -q "200"; then
+            echo "✅ Static file serving test passed"
+          else
+            echo "❌ Static file serving test failed"
+            exit 1
+          fi
+          kill $SERVER_PID 2>/dev/null || true
 
       - name: Generate release notes from CHANGELOG
         id: release_notes
@@ -157,6 +178,15 @@ jobs:
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
       - name: Upload build artifacts (optional)
         uses: actions/upload-artifact@v4
