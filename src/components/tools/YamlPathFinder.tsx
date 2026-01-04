@@ -29,10 +29,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface YamlPathFinderProps {
   className?: string;
+  instanceId: string;
 }
 
-export function YamlPathFinder({ className }: YamlPathFinderProps) {
-  const { toolState, updateToolState } = useToolState('yaml-path-finder');
+export function YamlPathFinder({ className, instanceId }: YamlPathFinderProps) {
+  const { toolState, updateToolState } = useToolState('yaml-path-finder', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<YamlPathFinderOptions>(DEFAULT_YAML_PATH_OPTIONS);
@@ -295,19 +296,16 @@ export function YamlPathFinder({ className }: YamlPathFinderProps) {
           try {
             const jsonData = JSON.parse(json);
             const yaml = stringify(jsonData, { indent: 2, lineWidth: 0 });
-            console.log('Copying expanded YAML, length:', yaml?.length || 0);
             return yaml;
-          } catch (parseErr) {
+          } catch {
             // If JSON parsing fails, return the JSON string as-is
-            console.warn('Failed to parse JSON for YAML conversion:', parseErr);
             return json;
           }
-        } catch (err) {
-          console.error('Failed to get expanded JSON:', err);
+        } catch {
           return null;
         }
       }
-      console.warn('getExpandedJson function not available');
+      // Function not ready yet, but button should still be enabled
       return '';
     } else if (activeTab === 'results') {
       // For results tab, convert JSON output to YAML

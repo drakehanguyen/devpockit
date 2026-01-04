@@ -38,10 +38,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface NumberBaseConverterProps {
   className?: string;
+  instanceId: string;
 }
 
-export function NumberBaseConverter({ className }: NumberBaseConverterProps) {
-  const { toolState, updateToolState } = useToolState('number-base-converter');
+export function NumberBaseConverter({ className, instanceId }: NumberBaseConverterProps) {
+  const { toolState, updateToolState } = useToolState('number-base-converter', instanceId);
 
   const [options, setOptions] = useState<NumberBaseOptions>(DEFAULT_OPTIONS);
   const [input, setInput] = useState<string>('');

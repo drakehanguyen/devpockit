@@ -27,10 +27,11 @@ import { useEffect, useState } from 'react';
 
 interface DataFormatConverterProps {
   className?: string;
+  instanceId: string;
 }
 
-export function DataFormatConverter({ className }: DataFormatConverterProps) {
-  const { toolState, updateToolState } = useToolState('data-format-converter');
+export function DataFormatConverter({ className, instanceId }: DataFormatConverterProps) {
+  const { toolState, updateToolState } = useToolState('data-format-converter', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<MultiFormatOptions>(DEFAULT_MULTI_FORMAT_OPTIONS);

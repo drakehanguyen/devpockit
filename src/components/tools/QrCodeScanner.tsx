@@ -31,11 +31,12 @@ import { QR_SCANNER_CONFIG } from '../../config/qr-code-scanner-config';
 
 interface QrCodeScannerProps {
   className?: string;
+  instanceId: string;
   onResult?: (result: QrDecoderResult) => void;
   onError?: (error: string) => void;
 }
 
-export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerProps) {
+export function QrCodeScanner({ className, instanceId, onResult, onError }: QrCodeScannerProps) {
   // State management
   const [isScanning, setIsScanning] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -59,7 +60,7 @@ export function QrCodeScanner({ className, onResult, onError }: QrCodeScannerPro
   const prevStateRef = useRef<any>(null);
 
   // Tool state management
-  const { toolState, updateToolState, clearToolState } = useToolState('qr-code-scanner');
+  const { toolState, updateToolState, clearToolState } = useToolState('qr-code-scanner', instanceId);
 
   useEffect(() => {
     startTransition(() => {

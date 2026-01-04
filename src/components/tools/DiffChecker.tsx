@@ -15,6 +15,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface DiffCheckerProps {
   className?: string;
+  instanceId: string;
 }
 
 interface DiffOptions {
@@ -37,8 +38,8 @@ interface InlineDecoration {
   type: 'added' | 'removed';
 }
 
-export function DiffChecker({ className }: DiffCheckerProps) {
-  const { toolState, updateToolState } = useToolState('diff-checker');
+export function DiffChecker({ className, instanceId }: DiffCheckerProps) {
+  const { toolState, updateToolState } = useToolState('diff-checker', instanceId);
 
   // State
   const [originalText, setOriginalText] = useState<string>('');
@@ -284,9 +285,12 @@ export function DiffChecker({ className }: DiffCheckerProps) {
     }
   }, [originalText, modifiedText, options.ignoreWhitespace]);
 
+  // Apply decorations when diff calculation changes OR when editors become ready
   useEffect(() => {
-    calculateDiffAndDecorate();
-  }, [calculateDiffAndDecorate]);
+    if (editorsReady) {
+      calculateDiffAndDecorate();
+    }
+  }, [calculateDiffAndDecorate, editorsReady]);
 
   // Scroll sync between editors
   useEffect(() => {
@@ -408,9 +412,7 @@ export function DiffChecker({ className }: DiffCheckerProps) {
 
   const handleOriginalEditorMount = (editor: any) => {
     originalEditorRef.current = editor;
-    // Trigger decoration after mount
-    setTimeout(calculateDiffAndDecorate, 100);
-    // Check if both editors are ready
+    // Check if both editors are ready - the effect will handle decorations
     if (modifiedEditorRef.current) {
       setEditorsReady(true);
     }
@@ -418,9 +420,7 @@ export function DiffChecker({ className }: DiffCheckerProps) {
 
   const handleModifiedEditorMount = (editor: any) => {
     modifiedEditorRef.current = editor;
-    // Trigger decoration after mount
-    setTimeout(calculateDiffAndDecorate, 100);
-    // Check if both editors are ready
+    // Check if both editors are ready - the effect will handle decorations
     if (originalEditorRef.current) {
       setEditorsReady(true);
     }

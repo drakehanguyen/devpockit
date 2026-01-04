@@ -14,10 +14,11 @@ import { useEffect, useState } from 'react';
 
 interface JsonFormatterProps {
   className?: string;
+  instanceId: string;
 }
 
-export function JsonFormatter({ className }: JsonFormatterProps) {
-  const { toolState, updateToolState } = useToolState('json-formatter');
+export function JsonFormatter({ className, instanceId }: JsonFormatterProps) {
+  const { toolState, updateToolState } = useToolState('json-formatter', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<JsonFormatOptions>(DEFAULT_JSON_OPTIONS);

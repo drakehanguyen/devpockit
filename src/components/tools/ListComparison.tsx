@@ -29,10 +29,11 @@ import { stringify } from 'yaml';
 
 interface ListComparisonProps {
   className?: string;
+  instanceId: string;
 }
 
-export function ListComparison({ className }: ListComparisonProps) {
-  const { toolState, updateToolState } = useToolState('list-comparison');
+export function ListComparison({ className, instanceId }: ListComparisonProps) {
+  const { toolState, updateToolState } = useToolState('list-comparison', instanceId);
 
   // State
   const [listAText, setListAText] = useState<string>('');

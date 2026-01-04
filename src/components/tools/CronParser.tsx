@@ -25,10 +25,11 @@ import { useEffect, useState } from 'react';
 
 interface CronParserProps {
   className?: string;
+  instanceId: string;
 }
 
-export function CronParser({ className }: CronParserProps) {
-  const { toolState, updateToolState } = useToolState('cron-parser');
+export function CronParser({ className, instanceId }: CronParserProps) {
+  const { toolState, updateToolState } = useToolState('cron-parser', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<CronParserOptions>(DEFAULT_CRON_PARSER_OPTIONS);

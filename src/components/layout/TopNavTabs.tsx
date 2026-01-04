@@ -6,41 +6,49 @@ import { useRef, useState } from 'react';
 
 export interface ActiveTab {
   toolId: string;
+  instanceId: string;  // REQUIRED - always present
   toolName: string;
   category: string;
   isActive: boolean;
+  displayName: string;  // "JSON Formatter" or "JSON Formatter (2)"
+  customName?: string;  // Optional: User-renamed tab name
 }
 
 interface TopNavTabsProps {
   tabs: ActiveTab[];
-  activeTab?: string;
-  onTabSelect: (toolId: string) => void;
-  onTabClose: (toolId: string) => void;
+  activeTab?: string;  // toolId of active tab
+  onTabSelect: (toolId: string, instanceId: string) => void;
+  onTabClose: (toolId: string, instanceId: string) => void;
   onCloseAll?: () => void;
   onTabsReorder?: (tabs: ActiveTab[]) => void;
   className?: string;
 }
 
 export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAll, onTabsReorder, className }: TopNavTabsProps) {
-  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
-  const [draggedTab, setDraggedTab] = useState<string | null>(null);
-  const [dragOverTab, setDragOverTab] = useState<string | null>(null);
+  const [hoveredTab, setHoveredTab] = useState<string | null>(null);  // key: toolId:instanceId
+  const [draggedTab, setDraggedTab] = useState<string | null>(null);  // key: toolId:instanceId
+  const [dragOverTab, setDragOverTab] = useState<string | null>(null);  // key: toolId:instanceId
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Helper to create unique tab key
+  const getTabKey = (toolId: string, instanceId: string) => `${toolId}:${instanceId}`;
 
   if (tabs.length === 0) {
     return null;
   }
 
-  const handleDragStart = (e: React.DragEvent, toolId: string) => {
-    setDraggedTab(toolId);
+  const handleDragStart = (e: React.DragEvent, toolId: string, instanceId: string) => {
+    const tabKey = getTabKey(toolId, instanceId);
+    setDraggedTab(tabKey);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', toolId);
+    e.dataTransfer.setData('text/plain', tabKey);
   };
 
-  const handleDragOver = (e: React.DragEvent, toolId: string) => {
+  const handleDragOver = (e: React.DragEvent, toolId: string, instanceId: string) => {
     e.preventDefault();
-    if (draggedTab && draggedTab !== toolId) {
-      setDragOverTab(toolId);
+    const tabKey = getTabKey(toolId, instanceId);
+    if (draggedTab && draggedTab !== tabKey) {
+      setDragOverTab(tabKey);
     }
   };
 
@@ -48,16 +56,17 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
     setDragOverTab(null);
   };
 
-  const handleDrop = (e: React.DragEvent, targetToolId: string) => {
+  const handleDrop = (e: React.DragEvent, targetToolId: string, targetInstanceId: string) => {
     e.preventDefault();
-    if (!draggedTab || draggedTab === targetToolId) {
+    const targetTabKey = getTabKey(targetToolId, targetInstanceId);
+    if (!draggedTab || draggedTab === targetTabKey) {
       setDraggedTab(null);
       setDragOverTab(null);
       return;
     }
 
-    const draggedIndex = tabs.findIndex(t => t.toolId === draggedTab);
-    const targetIndex = tabs.findIndex(t => t.toolId === targetToolId);
+    const draggedIndex = tabs.findIndex(t => getTabKey(t.toolId, t.instanceId) === draggedTab);
+    const targetIndex = tabs.findIndex(t => getTabKey(t.toolId, t.instanceId) === targetTabKey);
 
     if (draggedIndex !== -1 && targetIndex !== -1) {
       const newTabs = [...tabs];
@@ -87,20 +96,23 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
         style={{ scrollbarWidth: 'thin' }}
       >
         {tabs.map((tab) => {
-          const isSelected = tab.toolId === activeTab;
-          const isHovered = hoveredTab === tab.toolId;
-          const isDragging = draggedTab === tab.toolId;
-          const isDragOver = dragOverTab === tab.toolId;
+          const tabKey = getTabKey(tab.toolId, tab.instanceId);
+          const isSelected = tab.toolId === activeTab && tab.isActive;
+          const isHovered = hoveredTab === tabKey;
+          const isDragging = draggedTab === tabKey;
+          const isDragOver = dragOverTab === tabKey;
           const showCloseIcon = isSelected || isHovered;
+          // Use customName if available, otherwise use displayName
+          const tabLabel = tab.customName || tab.displayName;
 
           return (
             <div
-              key={tab.toolId}
+              key={tabKey}
               draggable
-              onDragStart={(e) => handleDragStart(e, tab.toolId)}
-              onDragOver={(e) => handleDragOver(e, tab.toolId)}
+              onDragStart={(e) => handleDragStart(e, tab.toolId, tab.instanceId)}
+              onDragOver={(e) => handleDragOver(e, tab.toolId, tab.instanceId)}
               onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, tab.toolId)}
+              onDrop={(e) => handleDrop(e, tab.toolId, tab.instanceId)}
               onDragEnd={handleDragEnd}
               className={cn(
                 'flex items-center gap-2 pl-4 pr-3 py-3 border-r border-neutral-200 dark:border-neutral-700 cursor-pointer group transition-all shrink-0',
@@ -108,15 +120,15 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
                 isDragging && 'opacity-50',
                 isDragOver && 'border-l-2 border-l-primary'
               )}
-              onMouseEnter={() => setHoveredTab(tab.toolId)}
+              onMouseEnter={() => setHoveredTab(tabKey)}
               onMouseLeave={() => setHoveredTab(null)}
-              onClick={() => onTabSelect(tab.toolId)}
+              onClick={() => onTabSelect(tab.toolId, tab.instanceId)}
             >
               <h2 className={cn(
                 "text-sm font-normal tracking-normal whitespace-nowrap select-none",
                 isSelected ? "text-neutral-900 dark:text-neutral-100" : "text-foreground"
               )}>
-                {tab.toolName}
+                {tabLabel}
               </h2>
               <button
                 className={cn(
@@ -125,7 +137,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
                 )}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onTabClose(tab.toolId);
+                  onTabClose(tab.toolId, tab.instanceId);
                 }}
                 title="Close tool"
               >

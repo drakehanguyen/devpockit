@@ -14,10 +14,11 @@ import { useEffect, useState } from 'react';
 
 interface XmlFormatterProps {
   className?: string;
+  instanceId: string;
 }
 
-export function XmlFormatter({ className }: XmlFormatterProps) {
-  const { toolState, updateToolState } = useToolState('xml-formatter');
+export function XmlFormatter({ className, instanceId }: XmlFormatterProps) {
+  const { toolState, updateToolState } = useToolState('xml-formatter', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<XmlFormatOptions>(DEFAULT_XML_OPTIONS);

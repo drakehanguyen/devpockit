@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 
 interface IpToCidrConverterProps {
   className?: string;
+  instanceId: string;
 }
 
 const IP_EXAMPLES = [
@@ -29,8 +30,8 @@ const IP_EXAMPLES = [
   { label: 'Cloudflare DNS', value: '1.1.1.1' },
 ];
 
-export function IpToCidrConverter({ className }: IpToCidrConverterProps) {
-  const { toolState, updateToolState } = useToolState('ip-to-cidr-converter');
+export function IpToCidrConverter({ className, instanceId }: IpToCidrConverterProps) {
+  const { toolState, updateToolState } = useToolState('ip-to-cidr-converter', instanceId);
 
   // Initialize with defaults
   const [input, setInput] = useState('');

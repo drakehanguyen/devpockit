@@ -72,12 +72,14 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   selectedTool?: string
   onToolSelect?: (toolId: string) => void
   onHomeClick?: () => void
+  onLogoClick?: () => void  // Clears all state and navigates home
 }
 
 export function AppSidebar({
   selectedTool,
   onToolSelect,
   onHomeClick,
+  onLogoClick,
   ...props
 }: AppSidebarProps) {
   const router = useRouter()
@@ -136,6 +138,14 @@ export function AppSidebar({
     }
   }
 
+  const handleLogoClick = () => {
+    if (onLogoClick) {
+      onLogoClick()
+    } else {
+      router.push('/')
+    }
+  }
+
   const handleCategoryToggle = (categoryId: string, isOpen: boolean) => {
     setOpenCategories(prev => {
       const newSet = new Set(prev)
@@ -163,7 +173,7 @@ export function AppSidebar({
                 )}
                 onMouseEnter={() => setIsLogoHovered(true)}
                 onMouseLeave={() => setIsLogoHovered(false)}
-                onClick={isCollapsed ? toggleSidebar : handleHomeClick}
+                onClick={isCollapsed ? toggleSidebar : handleLogoClick}
               >
                 {isCollapsed && isLogoHovered ? (
                   <PanelLeft className="h-4 w-4 text-sidebar-foreground" />
@@ -190,7 +200,7 @@ export function AppSidebar({
           </Tooltip>
           <div
             className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden cursor-pointer"
-            onClick={handleHomeClick}
+            onClick={handleLogoClick}
           >
             <div className="font-serif text-[24px] leading-[24px] tracking-normal text-sidebar-foreground hover:opacity-80 transition-opacity">
               DevPockit

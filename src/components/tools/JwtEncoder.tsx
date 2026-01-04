@@ -22,10 +22,11 @@ import { useEffect, useMemo, useState } from 'react';
 
 interface JwtEncoderProps {
   className?: string;
+  instanceId: string;
 }
 
-export function JwtEncoder({ className }: JwtEncoderProps) {
-  const { toolState, updateToolState } = useToolState('jwt-encoder');
+export function JwtEncoder({ className, instanceId }: JwtEncoderProps) {
+  const { toolState, updateToolState } = useToolState('jwt-encoder', instanceId);
 
   // Initialize with defaults to avoid hydration mismatch
   const [options, setOptions] = useState<JwtEncoderOptions>(DEFAULT_JWT_ENCODER_OPTIONS);
