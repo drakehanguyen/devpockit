@@ -4,7 +4,7 @@
  */
 
 import type { CodeEditorTheme } from '@/config/code-editor-themes';
-import { getHighlighter, type Highlighter } from 'shiki';
+import { createHighlighter, type Highlighter } from 'shiki';
 
 /**
  * Cached highlighter instance (singleton pattern)
@@ -93,7 +93,7 @@ export async function initializeShiki(): Promise<Highlighter> {
       ];
 
       // Initialize highlighter with core themes first
-      const highlighter = await getHighlighter({
+      const highlighter = await createHighlighter({
         themes: coreThemes as any,
         langs: REQUIRED_LANGUAGES as any,
       });

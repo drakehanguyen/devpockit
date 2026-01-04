@@ -197,7 +197,7 @@ function TreeNodeItem({
         onClick={handleToggle}
         disabled={!hasChildren}
         className={cn(
-          'flex-shrink-0 w-4 h-4 flex items-center justify-center rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
+          'shrink-0 w-4 h-4 flex items-center justify-center rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
           !hasChildren && 'opacity-0 cursor-default'
         )}
         aria-label={isExpanded ? 'Collapse' : 'Expand'}
@@ -214,7 +214,7 @@ function TreeNodeItem({
       {/* Type Badge */}
       <span
         className={cn(
-          'flex-shrink-0 px-1.5 py-0.5 text-xs font-mono rounded',
+          'shrink-0 px-1.5 py-0.5 text-xs font-mono rounded',
           getTypeBg(node.type),
           getTypeColor(node.type)
         )}
@@ -244,7 +244,7 @@ function TreeNodeItem({
       {/* Copy Button */}
       <button
         onClick={handleCopy}
-        className="flex-shrink-0 p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors opacity-0 group-hover:opacity-100"
+        className="shrink-0 p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors opacity-0 group-hover:opacity-100"
         aria-label="Copy XPath"
       >
         {isCopied ? (

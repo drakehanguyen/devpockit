@@ -66,7 +66,7 @@ const ListInput = React.forwardRef<HTMLInputElement, ListInputProps>(
           containerClassName
         )}
       >
-        <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
+        <div className="flex items-center gap-3 text-sm leading-normal tracking-[0.07px] flex-1 min-w-0">
           <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">{label}</span>
           <input
             ref={ref}
@@ -75,7 +75,7 @@ const ListInput = React.forwardRef<HTMLInputElement, ListInputProps>(
             onChange={(e) => handleChange(e.target.value)}
             onBlur={handleBlur}
             placeholder="e.g., 1,5,10"
-            className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 placeholder:text-muted-foreground"
+            className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-hidden flex-1 min-w-0 placeholder:text-muted-foreground"
           />
         </div>
       </div>

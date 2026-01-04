@@ -44,7 +44,7 @@ export function SecretInput({
   return (
     <div className={cn('flex-1 min-w-0', containerClassName)}>
       <div className="flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700 w-full">
-        <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
+        <div className="flex items-center gap-3 text-sm leading-normal tracking-[0.07px] flex-1 min-w-0">
           <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">{label}</span>
           <input
             type={showSecret ? 'text' : 'password'}
@@ -57,11 +57,11 @@ export function SecretInput({
             data-form-type="other"
             name={name}
             id={id}
-            className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 placeholder:text-muted-foreground"
+            className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-hidden flex-1 min-w-0 placeholder:text-muted-foreground"
           />
           {/* Verification Status */}
           {verificationStatus && !isVerifying && (
-            <div className="flex items-center gap-1.5 flex-shrink-0 pr-1">
+            <div className="flex items-center gap-1.5 shrink-0 pr-1">
               {verificationStatus.isValid ? (
                 <>
                   <CheckCircleIcon className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
@@ -78,7 +78,7 @@ export function SecretInput({
           <button
             type="button"
             onClick={() => setShowSecret(!showSecret)}
-            className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors flex-shrink-0"
+            className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors shrink-0"
             aria-label={showSecret ? 'Hide secret' : 'Show secret'}
           >
             {showSecret ? (

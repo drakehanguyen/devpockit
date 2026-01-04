@@ -155,13 +155,13 @@ export function IpToCidrConverter({ className }: IpToCidrConverterProps) {
             {/* Input Row */}
             <div className="flex items-center gap-3">
               <div className="inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-background pl-3 pr-2 py-[9.5px] text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 dark:border-neutral-700 flex-1">
-                <div className="flex items-center gap-3 text-sm leading-[1.5] tracking-[0.07px] flex-1 min-w-0">
+                <div className="flex items-center gap-3 text-sm leading-normal tracking-[0.07px] flex-1 min-w-0">
                   <span className="text-neutral-500 whitespace-nowrap dark:text-neutral-400">IP Address:</span>
                   <input
                     placeholder="e.g., 192.168.1.1"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-none flex-1 min-w-0 placeholder:text-muted-foreground"
+                    className="font-mono bg-transparent text-neutral-900 dark:text-neutral-100 outline-hidden flex-1 min-w-0 placeholder:text-muted-foreground"
                   />
                 </div>
               </div>

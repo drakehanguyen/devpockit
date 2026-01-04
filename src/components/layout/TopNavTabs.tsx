@@ -103,7 +103,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
               onDrop={(e) => handleDrop(e, tab.toolId)}
               onDragEnd={handleDragEnd}
               className={cn(
-                'flex items-center gap-2 pl-4 pr-3 py-3 border-r border-neutral-200 dark:border-neutral-700 cursor-pointer group transition-all flex-shrink-0',
+                'flex items-center gap-2 pl-4 pr-3 py-3 border-r border-neutral-200 dark:border-neutral-700 cursor-pointer group transition-all shrink-0',
                 isSelected ? 'bg-white dark:bg-neutral-900' : 'bg-transparent hover:bg-accent',
                 isDragging && 'opacity-50',
                 isDragOver && 'border-l-2 border-l-primary'
@@ -138,7 +138,7 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
 
       {/* Close All button - fixed on the right */}
       {tabs.length > 2 && onCloseAll && (
-        <div className="flex-shrink-0 flex items-center px-4 py-3 border-l border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800">
+        <div className="shrink-0 flex items-center px-4 py-3 border-l border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800">
           <button
             className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             onClick={onCloseAll}

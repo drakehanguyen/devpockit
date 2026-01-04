@@ -309,7 +309,7 @@ export function CodePanel({
                 key={tab.id}
                 onClick={() => onTabChange?.(tab.id)}
                 className={cn(
-                  'px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] transition-colors border-b-2 -mb-[1px]',
+                  'px-2 py-2.5 text-sm font-medium leading-normal tracking-[0.07px] transition-colors border-b-2 -mb-px',
                   activeTab === tab.id
                     ? 'text-foreground border-orange-600'
                     : 'text-neutral-600 dark:text-neutral-400 border-transparent hover:text-foreground'
@@ -320,7 +320,7 @@ export function CodePanel({
             ))
           ) : (
             title && (
-              <div className="px-2 py-2.5 text-sm font-medium leading-[1.5] tracking-[0.07px] text-foreground">
+              <div className="px-2 py-2.5 text-sm font-medium leading-normal tracking-[0.07px] text-foreground">
                 {title}
               </div>
             )
