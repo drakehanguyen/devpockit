@@ -427,7 +427,7 @@ export function AppSidebar({
                 value={codeEditorTheme}
                 onValueChange={(value) => setCodeEditorTheme(value as CodeEditorTheme)}
               >
-                <SelectTrigger className="h-[35px] w-full text-xs bg-neutral-100 dark:bg-neutral-800">
+                <SelectTrigger borderless className="h-[35px] w-full text-xs bg-neutral-100 dark:bg-neutral-800">
                 <div className="flex items-center gap-2">
                   <Code className="h-3.5 w-3.5 text-neutral-600 dark:text-neutral-400" />
                   <SelectValue />

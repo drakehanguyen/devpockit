@@ -161,8 +161,7 @@ export function EditorSettingsMenu({
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors',
-            'text-neutral-900 dark:text-neutral-300',
+            'flex items-center justify-center h-6 w-6 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-muted-foreground hover:text-foreground hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             className
           )}
@@ -170,7 +169,7 @@ export function EditorSettingsMenu({
           aria-label="Editor settings"
           title="Editor settings"
         >
-          <ChevronUp className="h-4 w-4" />
+          <ChevronUp className="h-3.5 w-3.5" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

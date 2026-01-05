@@ -44,7 +44,7 @@ export function AboutPage() {
               <div>
                 <div className="font-semibold">Contribute & Star</div>
                 <p className="text-sm text-muted-foreground">
-                  Since we&apos;re open-source, you can check out the code or contribute a new tool on GitHub.
+                  View source, report bugs, or submit a PR.
                 </p>
               </div>
             </Link>
@@ -59,7 +59,7 @@ export function AboutPage() {
               <div>
                 <div className="font-semibold">Suggest a Tool</div>
                 <p className="text-sm text-muted-foreground">
-                  Have an idea for a feature that would save you 5 minutes a day? We&apos;re all ears!
+                  Open an issue with your idea.
                 </p>
               </div>
             </Link>
@@ -74,8 +74,7 @@ export function AboutPage() {
               <div>
                 <div className="font-semibold">Buy Us a Coffee</div>
                 <p className="text-sm text-muted-foreground">
-                  If DevPockit has made your life a little easier, you can buy us a coffee.
-                  It helps cover the hosting costs and keeps us caffeinated for the next update.
+                  Fuel for late-night bug fixes.
                 </p>
               </div>
             </Link>

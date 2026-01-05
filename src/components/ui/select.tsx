@@ -17,12 +17,14 @@ const SelectTrigger = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
     label?: string;
     valueAlign?: 'left' | 'right' | 'center';
+    borderless?: boolean;
   }
->(({ className, children, label, valueAlign = 'center', ...props }, ref) => (
+>(({ className, children, label, valueAlign = 'center', borderless = false, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
       "inline-flex h-10 items-center justify-between rounded-lg bg-background pl-3 pr-2 py-[9.5px] text-sm focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+      !borderless && "border border-neutral-200 dark:border-neutral-700",
       className
     )}
     {...props}
