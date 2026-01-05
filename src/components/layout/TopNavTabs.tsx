@@ -1,8 +1,14 @@
 'use client';
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/libs/utils';
-import { X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { ChevronDown, X } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
 
 export interface ActiveTab {
   toolId: string;
@@ -28,10 +34,28 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);  // key: toolId:instanceId
   const [draggedTab, setDraggedTab] = useState<string | null>(null);  // key: toolId:instanceId
   const [dragOverTab, setDragOverTab] = useState<string | null>(null);  // key: toolId:instanceId
+  // Ref for potential future programmatic scrolling
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Helper to create unique tab key
   const getTabKey = (toolId: string, instanceId: string) => `${toolId}:${instanceId}`;
+
+  // Calculate dynamic width based on longest tab name
+  const dropdownWidth = useMemo(() => {
+    if (tabs.length === 0) return 224; // Default width (w-56 = 224px)
+
+    const longestTabName = tabs.reduce((longest, tab) => {
+      const tabLabel = tab.customName || tab.displayName;
+      return tabLabel.length > longest.length ? tabLabel : longest;
+    }, '');
+
+    // Estimate: ~8px per character for text-sm, plus padding (16px left + 16px right),
+    // plus space for X button (24px) and gap (8px), plus some buffer (32px)
+    const estimatedWidth = longestTabName.length * 8 + 16 + 16 + 24 + 8 + 32;
+
+    // Clamp between min (200px) and max (500px)
+    return Math.max(200, Math.min(500, estimatedWidth));
+  }, [tabs]);
 
   if (tabs.length === 0) {
     return null;
@@ -148,9 +172,9 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
         })}
       </div>
 
-      {/* Close All button - fixed on the right */}
-      {tabs.length > 2 && onCloseAll && (
-        <div className="shrink-0 flex items-center px-4 py-3 border-l border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800">
+      {/* Close All and Dropdown buttons - fixed on the right */}
+      {tabs.length > 1 && onCloseAll && (
+        <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-l border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800">
           <button
             className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             onClick={onCloseAll}
@@ -158,6 +182,57 @@ export function TopNavTabs({ tabs, activeTab, onTabSelect, onTabClose, onCloseAl
           >
             Close All
           </button>
+          <div className="h-4 w-px bg-neutral-300 dark:bg-neutral-600" />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex items-center justify-center h-6 w-6 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-muted-foreground hover:text-foreground hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors"
+                title="Show all tabs"
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="max-h-[300px] overflow-y-auto"
+              style={{ width: `${dropdownWidth}px`, minWidth: '200px', maxWidth: '500px' }}
+            >
+              {tabs.map((tab) => {
+                const tabKey = getTabKey(tab.toolId, tab.instanceId);
+                const isActive = tab.toolId === activeTab && tab.isActive;
+                const tabLabel = tab.customName || tab.displayName;
+
+                return (
+                  <DropdownMenuItem
+                    key={tabKey}
+                    onClick={() => onTabSelect(tab.toolId, tab.instanceId)}
+                    className={cn(
+                      "flex items-center justify-between gap-2 cursor-pointer",
+                      isActive && "bg-neutral-100 dark:bg-neutral-700 font-semibold"
+                    )}
+                  >
+                    <span className={cn(
+                      "flex-1 text-sm truncate min-w-0",
+                      isActive && "text-neutral-900 dark:text-neutral-100"
+                    )}>
+                      {tabLabel}
+                    </span>
+                    <button
+                      className="shrink-0 p-1 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors opacity-70 hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTabClose(tab.toolId, tab.instanceId);
+                      }}
+                      title="Close tab"
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      <X className="h-3.5 w-3.5 text-foreground" />
+                    </button>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
     </div>

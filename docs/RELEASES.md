@@ -42,7 +42,7 @@ Before creating a release, update:
 3. **next.config.js**: Update version in environment variables (if needed)
    ```javascript
    env: {
-     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0',
+     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || 'dev',
    }
    ```
 

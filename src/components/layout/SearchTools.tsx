@@ -3,6 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { getCategoryById, searchTools, toolIcons } from '@/libs/tools-data';
 import { cn } from '@/libs/utils';
 import { type Tool } from '@/types/tools';
@@ -14,6 +15,7 @@ interface SearchToolsProps {
   onToolSelect: (toolId: string) => void;
   className?: string;
   hideShortcut?: boolean;
+  onSearchClick?: () => void;
 }
 
 interface SearchResultProps {
@@ -95,11 +97,12 @@ const SearchResult = ({ tool, onSelect, onClose, isSelected = false }: SearchRes
   );
 };
 
-export function SearchTools({ onToolSelect, className, hideShortcut = false }: SearchToolsProps) {
+export function SearchTools({ onToolSelect, className, hideShortcut = false, onSearchClick }: SearchToolsProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Tool[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const keyboardShortcut = useKeyboardShortcut();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -119,18 +122,7 @@ export function SearchTools({ onToolSelect, className, hideShortcut = false }: S
     }
   }, [query]);
 
-  // Handle ⌘K keyboard shortcut
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  // Note: Global ⌘K/Ctrl+K handler is in AppLayout.tsx (opens command palette)
 
   const handleClear = () => {
     setQuery('');
@@ -164,6 +156,12 @@ export function SearchTools({ onToolSelect, className, hideShortcut = false }: S
     }
   };
 
+  const handleInputClick = () => {
+    if (onSearchClick) {
+      onSearchClick();
+    }
+  };
+
   return (
     <div className={cn('relative', className)}>
       <div className="relative bg-white dark:bg-[#0a0a0a] border border-[#e5e5e5] dark:border-[#262626] rounded-lg min-h-[36px] flex items-center">
@@ -175,14 +173,15 @@ export function SearchTools({ onToolSelect, className, hideShortcut = false }: S
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
+          onClick={handleInputClick}
           className={cn(
-            "h-[36px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0",
+            "h-[36px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer",
             hideShortcut ? "pl-8 pr-2" : "pl-8 pr-12"
           )}
         />
-        {!hideShortcut && (
+        {!hideShortcut && keyboardShortcut && (
           <div className="absolute right-2 text-sm font-medium text-[#111827] dark:text-[#e5e5e5] leading-[20px] tracking-normal">
-            ⌘K
+            {keyboardShortcut}
           </div>
         )}
       </div>
