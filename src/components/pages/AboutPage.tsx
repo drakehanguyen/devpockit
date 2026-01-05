@@ -65,7 +65,7 @@ export function AboutPage() {
             </Link>
 
             <Link
-              href="https://buymeacoffee.com/devpockit"
+              href="https://buymeacoffee.com/hypkey"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-4 rounded-lg border border-border hover:bg-accent transition-colors"

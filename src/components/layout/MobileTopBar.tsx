@@ -3,17 +3,18 @@
 import { SearchTools } from '@/components/layout/SearchTools';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CODE_EDITOR_THEMES, type CodeEditorTheme } from '@/config/code-editor-themes';
 import { useCodeEditorTheme } from '@/hooks/useCodeEditorTheme';
 import { cn } from '@/libs/utils';
-import { Menu, Moon, Sun } from 'lucide-react';
+import { Heart, Info, Menu, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -137,6 +138,20 @@ export function MobileTopBar({ onToolSelect, onHomeClick }: MobileTopBarProps) {
               </button>
             </div>
           </div>
+
+          <DropdownMenuSeparator />
+
+          {/* About and Support Us */}
+          <DropdownMenuItem onClick={() => router.push('/about')}>
+            <Info className="h-4 w-4 mr-2" />
+            About
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href="https://buymeacoffee.com/hypkey" target="_blank" rel="noopener noreferrer">
+              <Heart className="h-4 w-4 mr-2" />
+              Support Us
+            </a>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

@@ -319,10 +319,12 @@ export function AppSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip={isCollapsed ? "Support us" : undefined}>
-              <Heart className="h-4 w-4" />
-              <span className={cn(isCollapsed && "hidden")}>Support us</span>
-            </SidebarMenuButton>
+            <a href="https://buymeacoffee.com/hypkey" target="_blank" rel="noopener noreferrer">
+              <SidebarMenuButton tooltip={isCollapsed ? "Support us" : undefined}>
+                <Heart className="h-4 w-4" />
+                <span className={cn(isCollapsed && "hidden")}>Support us</span>
+              </SidebarMenuButton>
+            </a>
           </SidebarMenuItem>
         </SidebarMenu>
 
