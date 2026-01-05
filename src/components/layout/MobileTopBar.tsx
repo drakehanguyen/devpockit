@@ -91,7 +91,7 @@ export function MobileTopBar({ onToolSelect, onHomeClick }: MobileTopBarProps) {
               value={codeEditorTheme}
               onValueChange={(value) => setCodeEditorTheme(value as CodeEditorTheme)}
             >
-              <SelectTrigger className="h-8 w-full text-xs">
+              <SelectTrigger borderless className="h-8 w-full text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent container={typeof document !== 'undefined' ? document.body : undefined}>
