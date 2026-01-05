@@ -185,41 +185,32 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Sync package.json version to main branch
+      - name: Verify package.json version matches tag
         if: success()
-        continue-on-error: true  # Don't fail the workflow if this step fails
+        continue-on-error: true
         run: |
           VERSION="${{ steps.tag_version.outputs.version }}"
+          TAG_NAME="${{ steps.tag_version.outputs.tag_name }}"
 
-          # Configure git
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-          # Fetch main branch and check it out
-          git fetch origin main
-          git checkout main
-
-          # Check if package.json needs updating
+          # Check version in package.json from the tag
           CURRENT_VERSION=$(node -p "require('./package.json').version")
+
           if [ "$CURRENT_VERSION" = "$VERSION" ]; then
-            echo "✅ package.json already has version $VERSION, no commit needed"
-            exit 0
+            echo "✅ package.json version ($CURRENT_VERSION) matches release tag ($TAG_NAME)"
+            echo "✅ Version sync verified - following Approach 1 (Update Before Tagging)"
+          else
+            echo "⚠️  WARNING: package.json version ($CURRENT_VERSION) does not match release tag ($TAG_NAME)"
+            echo ""
+            echo "📋 Recommended workflow (Approach 1):"
+            echo "   1. Update package.json version to $VERSION"
+            echo "   2. Commit and push (via PR if branch is protected)"
+            echo "   3. Then create the release tag"
+            echo ""
+            echo "💡 For this release, the tag was created but package.json is out of sync."
+            echo "   Please manually update package.json to $VERSION to keep them in sync."
+            echo ""
+            echo "⚠️  This is a warning only - the release will continue."
           fi
-
-          # Update package.json version
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.version = '$VERSION';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-            console.log('Updated package.json version to', '$VERSION');
-          "
-
-          # Commit and push
-          git add package.json
-          git commit -m "chore: update version to $VERSION [skip ci]"
-          git push origin main
-          echo "✅ Committed and pushed updated package.json to main"
 
       - name: Upload build artifacts
         if: success()

@@ -25,6 +25,24 @@ Before creating a release, update:
    }
    ```
 
+### Version Update Workflow (Approach 1: Update Before Tagging)
+
+This project follows **Approach 1** (Update Before Tagging), the industry standard used by most open-source projects:
+
+**Workflow:**
+1. Update `package.json` version
+2. Commit and push (via PR if branch is protected)
+3. After PR is merged, create the release tag
+
+**Why this approach:**
+- ✅ Tag already includes correct version in package.json
+- ✅ No post-release sync needed
+- ✅ Clean git history
+- ✅ Works perfectly with protected branches
+- ✅ Industry standard (used by React, Next.js, etc.)
+
+**Important:** Always update `package.json` **before** creating the release tag. The workflow will verify version sync and warn if they don't match.
+
 2. **CHANGELOG.md**: Add release notes for the new version
    ```markdown
    ## [0.1.0] - 2026-01-05
@@ -46,15 +64,32 @@ Before creating a release, update:
    }
    ```
 
-### Step 2: Commit Changes
+### Step 2: Commit and Push Version Update
 
+**If your branch is protected (requires PR):**
 ```bash
-git add package.json CHANGELOG.md next.config.js
+# Create a branch for the version update
+git checkout -b chore/bump-version-to-0.1.0
+
+# Commit changes
+git add package.json CHANGELOG.md
+git commit -m "chore: bump version to 0.1.0"
+
+# Push and create PR
+git push origin chore/bump-version-to-0.1.0
+# Then create PR on GitHub and merge it
+```
+
+**If your branch is not protected:**
+```bash
+git add package.json CHANGELOG.md
 git commit -m "chore: bump version to 0.1.0"
 git push origin main
 ```
 
 ### Step 3: Create and Push Version Tag
+
+**Important:** Only create the tag **after** the version update PR is merged (or pushed if not protected).
 
 ```bash
 # Create annotated tag
@@ -220,6 +255,32 @@ These are set automatically during the release build.
 1. Verify tag format: Must start with `v` (e.g., `v0.1.0`)
 2. Check workflow permissions
 3. Verify CHANGELOG.md exists and has the version section
+
+### Version Mismatch Warning
+
+If you see a warning that `package.json` version doesn't match the release tag:
+
+1. **This means**: The tag was created before `package.json` was updated
+2. **Solution**: Update `package.json` manually to match the tag:
+   ```bash
+   # Checkout main branch
+   git checkout main
+
+   # Update package.json version to match tag (e.g., 0.1.0)
+   # Edit package.json: "version": "0.1.0"
+
+   # Commit and push (via PR if branch is protected)
+   git add package.json
+   git commit -m "chore: update version to 0.1.0"
+   git push origin main  # or create PR
+   ```
+
+3. **Prevention**: Always follow the workflow:
+   - Update `package.json` first
+   - Commit and merge PR
+   - Then create the release tag
+
+4. **Note**: The workflow will continue successfully even if versions don't match (warning only), since the git tag is the source of truth for versioning.
 
 ### Build Artifacts
 
