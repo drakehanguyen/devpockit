@@ -14,7 +14,8 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'DevPockit',
-    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0',
+    // Version comes from GitHub release tag (v*) during CI/CD builds, shows 'dev' locally
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || 'dev',
   },
   // HTTPS is handled via the dev:https script in package.json
 }

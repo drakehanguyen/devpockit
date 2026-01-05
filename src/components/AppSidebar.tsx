@@ -206,8 +206,13 @@ export function AppSidebar({
             className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden cursor-pointer"
             onClick={handleLogoClick}
           >
-            <div className="font-serif text-[24px] leading-[24px] tracking-normal text-sidebar-foreground hover:opacity-80 transition-opacity">
-              DevPockit
+            <div className="flex items-baseline gap-2 hover:opacity-80 transition-opacity">
+              <span className="font-serif text-[24px] leading-[24px] tracking-normal text-sidebar-foreground">
+                DevPockit
+              </span>
+              <span className="text-xs text-muted-foreground">
+                v{process.env.NEXT_PUBLIC_APP_VERSION}
+              </span>
             </div>
           </div>
           <SidebarTrigger className={cn("ml-auto", isCollapsed && "hidden")} />

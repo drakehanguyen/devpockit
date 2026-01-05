@@ -125,10 +125,8 @@ jobs:
       - name: Generate release notes from CHANGELOG
         id: release_notes
         run: |
-          # Extract release notes from CHANGELOG.md for this version
           VERSION="${{ steps.tag_version.outputs.version }}"
 
-          # Try to extract changelog section for this version
           if [ -f "CHANGELOG.md" ]; then
             # Extract content between [version] and next version or end of file
             awk "/^## \[$VERSION\]/,/^## \[/ {if (!/^## \[$VERSION\]/ && !/^## \[/) print}" CHANGELOG.md > /tmp/release_notes.md || true
@@ -140,30 +138,29 @@ jobs:
               echo "See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details." >> /tmp/release_notes.md
             fi
 
-            # Add header
-            echo "## 🎉 Release $VERSION" > /tmp/release_body.md
-            echo "" >> /tmp/release_body.md
-            cat /tmp/release_notes.md >> /tmp/release_body.md
-            echo "" >> /tmp/release_body.md
-            echo "---" >> /tmp/release_body.md
-            echo "" >> /tmp/release_body.md
-            # Get the previous tag for comparison
-            PREV_TAG=$(git describe --tags --abbrev=0 ${{ github.ref }}^ 2>/dev/null || echo "")
-            if [ -n "$PREV_TAG" ]; then
-              echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREV_TAG...${{ github.ref }}" >> /tmp/release_body.md
-            else
-              echo "**Full Changelog**: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref }}" >> /tmp/release_body.md
-            fi
+            # Build release body
+            {
+              echo "## 🎉 Release $VERSION"
+              echo ""
+              cat /tmp/release_notes.md
+              echo ""
+              echo "---"
+              echo ""
+              # Get the previous tag for comparison
+              PREV_TAG=$(git describe --tags --abbrev=0 "${{ steps.tag_version.outputs.tag_name }}^" 2>/dev/null || echo "")
+              if [ -n "$PREV_TAG" ]; then
+                echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREV_TAG...${{ steps.tag_version.outputs.tag_name }}"
+              else
+                echo "**Full Changelog**: https://github.com/${{ github.repository }}/releases/tag/${{ steps.tag_version.outputs.tag_name }}"
+              fi
+            } > /tmp/release_body.md
           else
-            echo "## 🎉 Release $VERSION" > /tmp/release_body.md
-            echo "" >> /tmp/release_body.md
-            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.ref }}" >> /tmp/release_body.md
+            {
+              echo "## 🎉 Release $VERSION"
+              echo ""
+              echo "**Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ steps.tag_version.outputs.tag_name }}"
+            } > /tmp/release_body.md
           fi
-
-          # Output for GitHub Actions
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          cat /tmp/release_body.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -188,10 +185,46 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Upload build artifacts (optional)
+      - name: Sync package.json version to main branch
+        if: success()
+        continue-on-error: true  # Don't fail the workflow if this step fails
+        run: |
+          VERSION="${{ steps.tag_version.outputs.version }}"
+
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Fetch main branch and check it out
+          git fetch origin main
+          git checkout main
+
+          # Check if package.json needs updating
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if [ "$CURRENT_VERSION" = "$VERSION" ]; then
+            echo "✅ package.json already has version $VERSION, no commit needed"
+            exit 0
+          fi
+
+          # Update package.json version
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            console.log('Updated package.json version to', '$VERSION');
+          "
+
+          # Commit and push
+          git add package.json
+          git commit -m "chore: update version to $VERSION [skip ci]"
+          git push origin main
+          echo "✅ Committed and pushed updated package.json to main"
+
+      - name: Upload build artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts-${{ steps.tag_version.outputs.version }}
           path: out/
           retention-days: 30
-
