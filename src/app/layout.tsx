@@ -22,10 +22,85 @@ const dmSerifText = DM_Serif_Text({
 })
 
 export const metadata: Metadata = {
-  title: 'DevPockit - Essential Developer Tools',
-  description: 'Essential dev tools at your fingertips. Work faster with tools that respect your privacy.',
-  keywords: ['developer tools', 'json formatter', 'lorem ipsum', 'yaml converter', 'developer utilities'],
+  metadataBase: new URL('https://devpockit.hypkey.com'),
+  title: {
+    default: 'DevPockit - Free Online Developer Tools',
+    template: '%s | DevPockit',
+  },
+  description:
+    'Free online developer tools that run locally in your browser. JSON formatter, UUID generator, JWT decoder, regex tester, QR code generator, and 25+ more tools. Fast, private, no sign-up required.',
+  keywords: [
+    // Primary keywords
+    'developer tools',
+    'online dev tools',
+    'free developer tools',
+    'web developer tools',
+    // Tool-specific keywords
+    'json formatter',
+    'json beautifier',
+    'uuid generator',
+    'jwt decoder',
+    'jwt encoder',
+    'regex tester',
+    'qr code generator',
+    'base64 encoder',
+    'url encoder decoder',
+    'cron expression parser',
+    'timestamp converter',
+    'xml formatter',
+    'yaml converter',
+    'hash generator',
+    'cidr calculator',
+    'diff checker',
+    'lorem ipsum generator',
+    // Feature keywords
+    'browser-based tools',
+    'privacy-focused',
+    'no sign-up',
+    'offline capable',
+  ],
   authors: [{ name: 'DevPockit Team' }],
+  creator: 'DevPockit',
+  publisher: 'DevPockit',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://devpockit.hypkey.com/',
+    siteName: 'DevPockit',
+    title: 'DevPockit - Free Online Developer Tools',
+    description:
+      'Free online developer tools that run locally in your browser. JSON formatter, UUID generator, JWT decoder, and 25+ more tools. Fast, private, no sign-up.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'DevPockit - Developer Tools',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DevPockit - Free Online Developer Tools',
+    description:
+      'Free developer tools in your browser. JSON formatter, UUID generator, JWT decoder & more. Private, fast, no sign-up.',
+    images: ['/og-image.png'],
+  },
+  alternates: {
+    canonical: 'https://devpockit.hypkey.com/',
+  },
+  category: 'technology',
 }
 
 export const viewport: Viewport = {

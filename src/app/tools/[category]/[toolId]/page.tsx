@@ -1,4 +1,5 @@
-import { getToolById, getTools } from '@/libs/tools-data';
+import { getCategoryById, getToolById, getTools } from '@/libs/tools-data';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 interface ToolPageProps {
@@ -21,6 +22,65 @@ export async function generateStaticParams() {
     category: tool.category,
     toolId: tool.id,
   }));
+}
+
+// Generate SEO-optimized metadata for each tool
+export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
+  const { toolId, category } = await params;
+  const tool = getToolById(toolId);
+  const categoryData = getCategoryById(category);
+
+  if (!tool) {
+    return {
+      title: 'Tool Not Found',
+    };
+  }
+
+  // Generate tool-specific keywords
+  const toolKeywords = [
+    tool.name.toLowerCase(),
+    `online ${tool.name.toLowerCase()}`,
+    `free ${tool.name.toLowerCase()}`,
+    `${tool.name.toLowerCase()} online`,
+    `${tool.name.toLowerCase()} tool`,
+    categoryData?.name.toLowerCase() || category,
+    'developer tools',
+    'devpockit',
+  ];
+
+  const title = `${tool.name} - Free Online Tool`;
+  const description = `${tool.description} Free, fast, and runs locally in your browser. No sign-up required.`;
+
+  // Ensure trailing slash for GitHub Pages compatibility
+  const toolUrl = tool.path.endsWith('/') ? tool.path : `${tool.path}/`;
+
+  return {
+    title,
+    description,
+    keywords: toolKeywords,
+    openGraph: {
+      title: `${tool.name} | DevPockit`,
+      description,
+      url: `https://devpockit.hypkey.com${toolUrl}`,
+      type: 'website',
+      images: [
+        {
+          url: '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: tool.name,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${tool.name} | DevPockit`,
+      description,
+    },
+    alternates: {
+      canonical: `https://devpockit.hypkey.com${toolUrl}`,
+    },
+  };
 }
 
 export default async function ToolPage({ params }: ToolPageProps) {
