@@ -47,6 +47,7 @@ import {
   Moon,
   PanelLeft,
   RefreshCw,
+  Search,
   Settings,
   Sun,
   type LucideIcon,
@@ -76,6 +77,8 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onHomeClick?: () => void
   onLogoClick?: () => void  // Clears all state and navigates home
   onAboutClick?: () => void  // Handles About page navigation
+  onSearchClick?: () => void  // Opens command palette
+  onClearAllAndGoHome?: () => void  // Clears all tabs and navigates home
 }
 
 export function AppSidebar({
@@ -84,6 +87,8 @@ export function AppSidebar({
   onHomeClick,
   onLogoClick,
   onAboutClick,
+  onSearchClick,
+  onClearAllAndGoHome,
   ...props
 }: AppSidebarProps) {
   const router = useRouter()
@@ -218,8 +223,27 @@ export function AppSidebar({
           <SidebarTrigger className={cn("ml-auto", isCollapsed && "hidden")} />
         </div>
         <div className="mt-1 group-data-[collapsible=icon]:hidden">
-          <SearchTools onToolSelect={handleToolSelect} />
+          <SearchTools onToolSelect={handleToolSelect} onSearchClick={onSearchClick} />
         </div>
+        {/* Search button for collapsed sidebar */}
+        {isCollapsed && (
+          <div className="mt-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => onSearchClick?.()}
+                  className="w-full h-9 flex items-center justify-center rounded-md hover:bg-sidebar-accent transition-colors"
+                  aria-label="Search tools"
+                >
+                  <Search className="h-4 w-4 text-sidebar-foreground" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                Search tools
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup className="mb-1">
@@ -229,7 +253,13 @@ export function AppSidebar({
                 <SidebarMenuButton
                   tooltip="All tools"
                   isActive={pathname === '/'}
-                  onClick={handleHomeClick}
+                  onClick={() => {
+                    if (onClearAllAndGoHome) {
+                      onClearAllAndGoHome();
+                    } else {
+                      handleHomeClick();
+                    }
+                  }}
                 >
                   <Home className="h-4 w-4" />
                   <span>All tools</span>

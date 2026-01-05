@@ -12,6 +12,7 @@ import { startTransition, useCallback, useEffect, useRef, useState } from 'react
 import { AppSidebar } from '../AppSidebar';
 import { AboutPage } from '../pages/AboutPage';
 import { WelcomePage } from '../pages/WelcomePage';
+import { CommandPalette } from './CommandPalette';
 import { MobileTopBar } from './MobileTopBar';
 import { TopNavTabs, type ActiveTab } from './TopNavTabs';
 
@@ -104,6 +105,7 @@ function AppLayoutInner({ children }: AppLayoutProps) {
   const [previousTool, setPreviousTool] = useState<string | undefined>();
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -252,8 +254,12 @@ function AppLayoutInner({ children }: AppLayoutProps) {
         return;
       }
 
-      // Escape to toggle between current tool and welcome page
+      // Escape key handling - prioritize command palette if open
       if (e.key === 'Escape') {
+        if (isCommandPaletteOpen) {
+          // Command palette will handle its own close via onOpenChange
+          return;
+        }
         e.preventDefault();
         if (selectedTool && selectedInstanceId) {
           setPreviousTool(selectedTool);
@@ -261,21 +267,20 @@ function AppLayoutInner({ children }: AppLayoutProps) {
         } else {
           restorePreviousTool();
         }
+        return;
       }
 
-      // Ctrl+K for search focus
-      if (e.ctrlKey && e.key === 'k') {
+      // Ctrl+K or Cmd+K for command palette
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-        if (searchInput) {
-          searchInput.focus();
-        }
+        setIsCommandPaletteOpen(true);
+        return;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedTool, selectedInstanceId, router, restorePreviousTool]);
+  }, [selectedTool, selectedInstanceId, router, restorePreviousTool, isCommandPaletteOpen]);
 
   const handleToolSelect = (toolId: string) => {
     const tool = getToolById(toolId);
@@ -406,6 +411,8 @@ function AppLayoutInner({ children }: AppLayoutProps) {
             onHomeClick={handleHomeClick}
             onLogoClick={handleClearAllAndGoHome}
             onAboutClick={handleAboutClick}
+            onSearchClick={() => setIsCommandPaletteOpen(true)}
+            onClearAllAndGoHome={handleClearAllAndGoHome}
           />
           <SidebarInset>
             <div className={cn(
@@ -452,6 +459,13 @@ function AppLayoutInner({ children }: AppLayoutProps) {
         title="Maximum Instances Reached"
         message={alertMessage}
         confirmText="OK"
+      />
+
+      {/* Command Palette */}
+      <CommandPalette
+        open={isCommandPaletteOpen}
+        onOpenChange={setIsCommandPaletteOpen}
+        onToolSelect={handleToolSelect}
       />
     </>
   );

@@ -14,6 +14,7 @@ interface SearchToolsProps {
   onToolSelect: (toolId: string) => void;
   className?: string;
   hideShortcut?: boolean;
+  onSearchClick?: () => void;
 }
 
 interface SearchResultProps {
@@ -95,7 +96,7 @@ const SearchResult = ({ tool, onSelect, onClose, isSelected = false }: SearchRes
   );
 };
 
-export function SearchTools({ onToolSelect, className, hideShortcut = false }: SearchToolsProps) {
+export function SearchTools({ onToolSelect, className, hideShortcut = false, onSearchClick }: SearchToolsProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Tool[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -164,6 +165,12 @@ export function SearchTools({ onToolSelect, className, hideShortcut = false }: S
     }
   };
 
+  const handleInputClick = () => {
+    if (onSearchClick) {
+      onSearchClick();
+    }
+  };
+
   return (
     <div className={cn('relative', className)}>
       <div className="relative bg-white dark:bg-[#0a0a0a] border border-[#e5e5e5] dark:border-[#262626] rounded-lg min-h-[36px] flex items-center">
@@ -175,8 +182,9 @@ export function SearchTools({ onToolSelect, className, hideShortcut = false }: S
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
+          onClick={handleInputClick}
           className={cn(
-            "h-[36px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0",
+            "h-[36px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer",
             hideShortcut ? "pl-8 pr-2" : "pl-8 pr-12"
           )}
         />
