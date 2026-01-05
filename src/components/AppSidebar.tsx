@@ -40,7 +40,9 @@ import {
   Code,
   FileText,
   Globe,
+  Heart,
   Home,
+  Info,
   Lock,
   Moon,
   PanelLeft,
@@ -293,58 +295,107 @@ export function AppSidebar({
           )
         })}
       </SidebarContent>
-      <SidebarFooter className="px-2 py-2 group-data-[collapsible=icon]:hidden">
-        <div className="space-y-2">
-          {/* Code Editor Theme Selector */}
-          <div className="bg-neutral-100 dark:bg-neutral-800 rounded-[10px] p-2">
-            <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">
-              Code Editor Theme
-            </div>
-            <Select
-              value={codeEditorTheme}
-              onValueChange={(value) => setCodeEditorTheme(value as CodeEditorTheme)}
-            >
-              <SelectTrigger className="h-8 w-full text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent container={typeof document !== 'undefined' ? document.body : undefined}>
-                {Object.values(CODE_EDITOR_THEMES).map((themeConfig) => (
-                  <SelectItem key={themeConfig.name} value={themeConfig.name}>
-                    {themeConfig.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <SidebarFooter className="px-2 pt-2 pb-5 gap-2 group-data-[collapsible=icon]:items-center">
+        {/* Top Separator */}
+        <SidebarSeparator className="my-1 -mx-2 w-auto self-stretch" />
 
-          {/* Dark/Light Mode Toggle */}
-          <div className="bg-neutral-100 dark:bg-neutral-800 rounded-[10px] p-[3px] flex items-center">
-            <button
-              onClick={() => setTheme('light')}
-              className={cn(
-                'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
-                mounted && theme === 'light'
-                  ? 'bg-white dark:bg-neutral-900 shadow-xs'
-                  : 'bg-transparent'
-              )}
-              title="Light mode"
-            >
-              <Sun className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
-            </button>
-            <button
-              onClick={() => setTheme('dark')}
-              className={cn(
-                'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
-                mounted && theme === 'dark'
-                  ? 'bg-white dark:bg-neutral-900 shadow-xs'
-                  : 'bg-transparent'
-              )}
-              title="Dark mode"
-            >
-              <Moon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
-            </button>
+        {/* About and Support us menu items */}
+        <SidebarMenu className="group-data-[collapsible=icon]:w-auto">
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip={isCollapsed ? "About" : undefined}>
+              <Info className="h-4 w-4" />
+              <span className={cn(isCollapsed && "hidden")}>About</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip={isCollapsed ? "Support us" : undefined}>
+              <Heart className="h-4 w-4" />
+              <span className={cn(isCollapsed && "hidden")}>Support us</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+
+        {/* Separator */}
+        <SidebarSeparator className="my-1 -mx-2 w-auto self-stretch" />
+
+        {/* Theme Toggle - Different layouts for collapsed vs expanded */}
+        {isCollapsed ? (
+          /* Collapsed: Single icon toggle button */
+          <div className="flex justify-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className={cn(
+                    'flex items-center justify-center h-8 w-8 rounded-[8px] transition-colors bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                  )}
+                >
+                  {mounted && theme === 'dark' ? (
+                    <Sun className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                  ) : (
+                    <Moon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {mounted && theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              </TooltipContent>
+            </Tooltip>
           </div>
-        </div>
+        ) : (
+          /* Expanded: Combined Theme Toggle and Code Editor Theme Selector */
+          <div className="flex items-center gap-2 pl-1.5 pr-[8px] pt-1">
+            {/* Dark/Light Mode Toggle */}
+            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-[10px] p-[3px] flex items-center flex-shrink-0">
+              <button
+                onClick={() => setTheme('light')}
+                className={cn(
+                  'flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[8px] transition-colors',
+                  mounted && theme === 'light'
+                    ? 'bg-white dark:bg-neutral-900 shadow-xs'
+                    : 'bg-transparent'
+                )}
+                title="Light mode"
+              >
+                <Sun className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={cn(
+                  'flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[8px] transition-colors',
+                  mounted && theme === 'dark'
+                    ? 'bg-white dark:bg-neutral-900 shadow-xs'
+                    : 'bg-transparent'
+                )}
+                title="Dark mode"
+              >
+                <Moon className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+              </button>
+            </div>
+
+            {/* Code Editor Theme Selector */}
+            <div className="flex-1">
+              <Select
+                value={codeEditorTheme}
+                onValueChange={(value) => setCodeEditorTheme(value as CodeEditorTheme)}
+              >
+                <SelectTrigger className="h-[35px] w-full text-xs bg-neutral-100 dark:bg-neutral-800">
+                <div className="flex items-center gap-2">
+                  <Code className="h-3.5 w-3.5 text-neutral-600 dark:text-neutral-400" />
+                  <SelectValue />
+                </div>
+              </SelectTrigger>
+                <SelectContent container={typeof document !== 'undefined' ? document.body : undefined}>
+                  {Object.values(CODE_EDITOR_THEMES).map((themeConfig) => (
+                    <SelectItem key={themeConfig.name} value={themeConfig.name}>
+                      {themeConfig.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

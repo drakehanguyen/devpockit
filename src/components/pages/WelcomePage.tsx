@@ -13,14 +13,14 @@ export function WelcomePage({ onToolSelect, activeToolIds = [] }: WelcomePagePro
 
   return (
     <div className="h-full overflow-auto">
-      <div className="flex flex-col gap-6 items-start justify-center pb-8 pt-14 px-12 w-full">
+      <div className="flex flex-col gap-6 items-center justify-center pb-12 pt-20 px-12 w-full">
         {/* Hero Section */}
-        <div className="flex flex-col gap-3 items-start justify-center w-full">
-          <h1 className="font-normal text-[48px] leading-[48px] tracking-normal overflow-hidden text-ellipsis">
-            DevPockit
+        <div className="flex flex-col gap-3 items-center justify-center w-full text-center">
+          <h1 className="font-normal text-[64px] leading-[100%] tracking-normal overflow-visible py-4 w-fit h-fit text-center max-w-[678px]">
+            Your <span className="font-serif text-orange-600 dark:text-orange-500 italic" style={{ verticalAlign: 'bottom', marginRight: '6px' }}>essential</span> dev tools at your fingertips
           </h1>
-          <p className="font-normal text-lg leading-7 text-pretty">
-            Essential dev tools at your fingertips. Work faster with tools that respect your privacy.
+          <p className="font-normal text-base leading-7 text-pretty text-center">
+            Everything run locally in your browser for optimal performance and privacy
           </p>
         </div>
       </div>

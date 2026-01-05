@@ -110,11 +110,11 @@ export function MobileTopBar({ onToolSelect, onHomeClick }: MobileTopBarProps) {
             <div className="text-xs font-medium text-muted-foreground mb-1.5 px-1">
               Website Theme
             </div>
-            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-[10px] p-[3px] flex items-center">
+            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-[10px] p-[3px] flex items-center border border-[rgba(229,229,229,1)]">
               <button
                 onClick={() => setTheme('light')}
                 className={cn(
-                  'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
+                  'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[8px] transition-colors',
                   mounted && theme === 'light'
                     ? 'bg-white dark:bg-neutral-900 shadow-xs'
                     : 'bg-transparent'
@@ -126,7 +126,7 @@ export function MobileTopBar({ onToolSelect, onHomeClick }: MobileTopBarProps) {
               <button
                 onClick={() => setTheme('dark')}
                 className={cn(
-                  'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[10px] transition-colors',
+                  'flex-1 flex items-center justify-center min-h-[29px] min-w-[29px] px-2 py-1 rounded-[8px] transition-colors',
                   mounted && theme === 'dark'
                     ? 'bg-white dark:bg-neutral-900 shadow-xs'
                     : 'bg-transparent'

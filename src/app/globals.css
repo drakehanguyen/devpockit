@@ -263,11 +263,27 @@
   * {
     @apply border-border;
   }
+  html {
+    width: 100%;
+    border-width: 0px;
+    border-color: rgba(0, 0, 0, 0);
+    border-style: none;
+    border-image: none;
+  }
   body {
     @apply bg-background text-foreground;
   }
   h1 {
     @apply font-serif;
+  }
+  /* Style Radix SelectValue (Primitive.span) */
+  [data-radix-select-value] {
+    color: var(--color-neutral-800, hsl(0, 0%, 15%));
+    letter-spacing: 0px;
+    font-size: 13px;
+  }
+  .dark [data-radix-select-value] {
+    color: var(--color-neutral-200, hsl(0, 0%, 90%));
   }
 }
 
