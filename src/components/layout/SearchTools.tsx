@@ -3,6 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { getCategoryById, searchTools, toolIcons } from '@/libs/tools-data';
 import { cn } from '@/libs/utils';
 import { type Tool } from '@/types/tools';
@@ -101,6 +102,7 @@ export function SearchTools({ onToolSelect, className, hideShortcut = false, onS
   const [results, setResults] = useState<Tool[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const keyboardShortcut = useKeyboardShortcut();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -120,18 +122,7 @@ export function SearchTools({ onToolSelect, className, hideShortcut = false, onS
     }
   }, [query]);
 
-  // Handle ⌘K keyboard shortcut
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  // Note: Global ⌘K/Ctrl+K handler is in AppLayout.tsx (opens command palette)
 
   const handleClear = () => {
     setQuery('');
@@ -188,9 +179,9 @@ export function SearchTools({ onToolSelect, className, hideShortcut = false, onS
             hideShortcut ? "pl-8 pr-2" : "pl-8 pr-12"
           )}
         />
-        {!hideShortcut && (
+        {!hideShortcut && keyboardShortcut && (
           <div className="absolute right-2 text-sm font-medium text-[#111827] dark:text-[#e5e5e5] leading-[20px] tracking-normal">
-            ⌘K
+            {keyboardShortcut}
           </div>
         )}
       </div>

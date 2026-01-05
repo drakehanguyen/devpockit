@@ -3,19 +3,17 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { getCategoryById, searchTools, toolIcons } from '@/libs/tools-data';
 import { cn } from '@/libs/utils';
 import { type Tool } from '@/types/tools';
 import { Search } from 'lucide-react';
 import { startTransition, useEffect, useRef, useState } from 'react';
-
-// Platform detection for keyboard shortcut display
-const isMac = typeof window !== 'undefined' && /Mac|iPhone|iPod|iPad/i.test(navigator.platform);
-const keyboardShortcut = isMac ? '⌘K' : 'Ctrl+K';
 
 interface CommandPaletteProps {
   open: boolean;
@@ -122,6 +120,7 @@ export function CommandPalette({ open, onOpenChange, onToolSelect }: CommandPale
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Tool[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const keyboardShortcut = useKeyboardShortcut();
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -264,6 +263,9 @@ export function CommandPalette({ open, onOpenChange, onToolSelect }: CommandPale
         aria-label="Command palette for searching tools"
       >
         <DialogTitle className="sr-only">Search Tools</DialogTitle>
+        <DialogDescription className="sr-only">
+          Search for developer tools by name or description. Use arrow keys to navigate and Enter to select.
+        </DialogDescription>
         <div className="px-6 pt-6 pb-0 flex flex-col flex-1 min-h-0">
           {/* Search Input */}
           <div className="relative shrink-0">
@@ -287,9 +289,11 @@ export function CommandPalette({ open, onOpenChange, onToolSelect }: CommandPale
                 aria-expanded={hasResults}
                 aria-activedescendant={hasResults ? `result-${selectedIndex}` : undefined}
               />
-              <div className="absolute right-3 text-xs font-medium text-[#111827] dark:text-[#e5e5e5] leading-[20px] tracking-normal pointer-events-none" aria-hidden="true">
-                {keyboardShortcut}
-              </div>
+              {keyboardShortcut && (
+                <div className="absolute right-3 text-xs font-medium text-[#111827] dark:text-[#e5e5e5] leading-[20px] tracking-normal pointer-events-none" aria-hidden="true">
+                  {keyboardShortcut}
+                </div>
+              )}
             </div>
           </div>
 
@@ -304,9 +308,11 @@ export function CommandPalette({ open, onOpenChange, onToolSelect }: CommandPale
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 text-center">
                   Start typing to search for tools...
                 </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1 text-center">
-                  Press {keyboardShortcut} to open this palette anytime
-                </p>
+                {keyboardShortcut && (
+                  <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1 text-center">
+                    Press {keyboardShortcut} to open this palette anytime
+                  </p>
+                )}
               </div>
             )}
 
@@ -364,4 +370,3 @@ export function CommandPalette({ open, onOpenChange, onToolSelect }: CommandPale
     </Dialog>
   );
 }
-
