@@ -1,6 +1,9 @@
 import { MetadataRoute } from 'next';
 import { toolCategories } from '@/libs/tools-data';
 
+// Required for static export (GitHub Pages)
+export const dynamic = 'force-static';
+
 const BASE_URL = 'https://devpockit.hypkey.com';
 
 // Helper to ensure trailing slash (required for GitHub Pages)
