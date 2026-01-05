@@ -1,7 +1,7 @@
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, DM_Serif_Text } from 'next/font/google'
+import { DM_Serif_Text, Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 
 const geistSans = Geist({
@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 
 const dmSerifText = DM_Serif_Text({
   weight: ['400'],
+  style: ['normal', 'italic'],
   subsets: ['latin'],
   variable: '--font-dm-serif',
 })
