@@ -10,11 +10,14 @@ import { cn } from '@/libs/utils';
 import { usePathname, useRouter } from 'next/navigation';
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
 import { AppSidebar } from '../AppSidebar';
+import { AboutPage } from '../pages/AboutPage';
 import { WelcomePage } from '../pages/WelcomePage';
 import { MobileTopBar } from './MobileTopBar';
 import { TopNavTabs, type ActiveTab } from './TopNavTabs';
 
 const MAX_INSTANCES = 5;
+const ABOUT_TOOL_ID = 'about';
+const ABOUT_INSTANCE_ID = '1';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -84,6 +87,11 @@ function DynamicToolRenderer({ toolId, instanceId }: { toolId: string; instanceI
       <ToolComponent instanceId={instanceId} />
     </div>
   );
+}
+
+// Helper to check if pathname is the about page (handles trailing slash)
+function isAboutPage(pathname: string): boolean {
+  return pathname === '/about' || pathname === '/about/';
 }
 
 // Inner component that has access to ToolStateContext
@@ -191,6 +199,40 @@ function AppLayoutInner({ children }: AppLayoutProps) {
           }
         });
       }
+    } else if (isAboutPage(pathname)) {
+      // About page - treat as a special tool tab with only 1 instance
+      startTransition(() => {
+        setSelectedTool(ABOUT_TOOL_ID);
+        setSelectedInstanceId(ABOUT_INSTANCE_ID);
+        setPreviousTool(ABOUT_TOOL_ID);
+
+        // Update tabs to reflect the About page
+        if (!isMobile) {
+          setActiveTabs(currentTabs => {
+            const existingAboutTab = currentTabs.find(
+              tab => tab.toolId === ABOUT_TOOL_ID && tab.instanceId === ABOUT_INSTANCE_ID
+            );
+
+            if (!existingAboutTab) {
+              // Create new About tab (only 1 instance allowed)
+              const newTab: ActiveTab = {
+                toolId: ABOUT_TOOL_ID,
+                instanceId: ABOUT_INSTANCE_ID,
+                toolName: 'About',
+                category: 'utilities',
+                isActive: true,
+                displayName: 'About',
+              };
+              return [...currentTabs.map(tab => ({ ...tab, isActive: false })), newTab];
+            }
+            // Activate existing About tab
+            return currentTabs.map(tab => ({
+              ...tab,
+              isActive: tab.toolId === ABOUT_TOOL_ID && tab.instanceId === ABOUT_INSTANCE_ID
+            }));
+          });
+        }
+      });
     } else if (isValidCategoryUrl(pathname) || pathname === '/') {
       // Category page or home page - show welcome page
       clearToolSelection();
@@ -264,14 +306,22 @@ function AppLayoutInner({ children }: AppLayoutProps) {
   };
 
   const handleTabSelect = (toolId: string, instanceId: string) => {
-    const tool = getToolById(toolId);
-    if (!tool) return;
+    // Navigate to the correct URL
+    if (toolId === ABOUT_TOOL_ID) {
+      if (!isAboutPage(pathname)) {
+        router.push('/about');
+      }
+    } else {
+      const tool = getToolById(toolId);
+      if (!tool) return;
 
-    const currentToolUrl = `/tools/${tool.category}/${toolId}/${instanceId}`;
-    if (pathname !== currentToolUrl) {
-      router.push(currentToolUrl);
+      const targetUrl = `/tools/${tool.category}/${toolId}/${instanceId}`;
+      if (pathname !== targetUrl) {
+        router.push(targetUrl);
+      }
     }
 
+    // Update active tab state
     setActiveTabs(tabs =>
       tabs.map(tab => ({
         ...tab,
@@ -281,8 +331,10 @@ function AppLayoutInner({ children }: AppLayoutProps) {
   };
 
   const handleTabClose = (toolId: string, instanceId: string) => {
-    // Clear the tool state for this specific instance
-    clearToolState(toolId, instanceId);
+    // Clear the tool state for this specific instance (skip for About page)
+    if (toolId !== ABOUT_TOOL_ID) {
+      clearToolState(toolId, instanceId);
+    }
 
     const updatedTabs = activeTabs.filter(
       tab => !(tab.toolId === toolId && tab.instanceId === instanceId)
@@ -293,9 +345,13 @@ function AppLayoutInner({ children }: AppLayoutProps) {
     if (selectedTool === toolId && selectedInstanceId === instanceId) {
       if (updatedTabs.length > 0) {
         const lastTab = updatedTabs[updatedTabs.length - 1];
-        const tool = getToolById(lastTab.toolId);
-        if (tool) {
-          router.push(`/tools/${tool.category}/${lastTab.toolId}/${lastTab.instanceId}`);
+        if (lastTab.toolId === ABOUT_TOOL_ID) {
+          router.push('/about');
+        } else {
+          const tool = getToolById(lastTab.toolId);
+          if (tool) {
+            router.push(`/tools/${tool.category}/${lastTab.toolId}/${lastTab.instanceId}`);
+          }
         }
       } else {
         clearToolSelection();
@@ -328,6 +384,11 @@ function AppLayoutInner({ children }: AppLayoutProps) {
     }
   };
 
+  const handleAboutClick = () => {
+    // Navigate to About page - the useEffect will handle tab creation/activation
+    router.push('/about');
+  };
+
   return (
     <>
       <div className="h-screen flex flex-col bg-background">
@@ -344,26 +405,34 @@ function AppLayoutInner({ children }: AppLayoutProps) {
             onToolSelect={handleToolSelect}
             onHomeClick={handleHomeClick}
             onLogoClick={handleClearAllAndGoHome}
+            onAboutClick={handleAboutClick}
           />
           <SidebarInset>
             <div className={cn(
               "flex flex-1 flex-col gap-4 pb-4 min-h-0 overflow-hidden",
               isMobile && "pt-14"
             )}>
-              {selectedTool && selectedInstanceId ? (
+              {(selectedTool && selectedInstanceId) || isAboutPage(pathname) ? (
                 <>
                   {/* Tool Header with Tabs (Desktop only) */}
                   {!isMobile && activeTabs.length > 0 && (
                     <TopNavTabs
                       tabs={activeTabs}
-                      activeTab={selectedTool}
+                      activeTab={selectedTool || ABOUT_TOOL_ID}
                       onTabSelect={handleTabSelect}
                       onTabClose={handleTabClose}
                       onCloseAll={handleClearAllAndGoHome}
                       onTabsReorder={setActiveTabs}
                     />
                   )}
-                  <DynamicToolRenderer key={`${selectedTool}:${selectedInstanceId}`} toolId={selectedTool} instanceId={selectedInstanceId} />
+                  {isAboutPage(pathname) || selectedTool === ABOUT_TOOL_ID ? (
+                    // Render About page component
+                    <div className="flex-1 overflow-auto min-h-0">
+                      <AboutPage />
+                    </div>
+                  ) : selectedTool && selectedInstanceId ? (
+                    <DynamicToolRenderer key={`${selectedTool}:${selectedInstanceId}`} toolId={selectedTool} instanceId={selectedInstanceId} />
+                  ) : null}
                 </>
               ) : (
                 <WelcomePage

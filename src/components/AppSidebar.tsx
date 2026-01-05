@@ -75,6 +75,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onToolSelect?: (toolId: string) => void
   onHomeClick?: () => void
   onLogoClick?: () => void  // Clears all state and navigates home
+  onAboutClick?: () => void  // Handles About page navigation
 }
 
 export function AppSidebar({
@@ -82,6 +83,7 @@ export function AppSidebar({
   onToolSelect,
   onHomeClick,
   onLogoClick,
+  onAboutClick,
   ...props
 }: AppSidebarProps) {
   const router = useRouter()
@@ -302,7 +304,16 @@ export function AppSidebar({
         {/* About and Support us menu items */}
         <SidebarMenu className="group-data-[collapsible=icon]:w-auto">
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip={isCollapsed ? "About" : undefined}>
+            <SidebarMenuButton
+              tooltip={isCollapsed ? "About" : undefined}
+              onClick={() => {
+                if (onAboutClick) {
+                  onAboutClick();
+                } else {
+                  router.push('/about');
+                }
+              }}
+            >
               <Info className="h-4 w-4" />
               <span className={cn(isCollapsed && "hidden")}>About</span>
             </SidebarMenuButton>
