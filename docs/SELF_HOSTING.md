@@ -26,13 +26,17 @@ Before building, set these environment variables for self-hosting:
 2. **Enable GitHub Pages:**
    - Go to **Settings → Pages**
    - Under "Build and deployment", set Source to **GitHub Actions**
-3. **Push** to the `main` branch. The workflow will build and deploy automatically.
+3. **Deploy** by going to **Actions → Deploy to GitHub Pages → Run workflow**.
 
 Your site will be available at:
 - **Project site:** `https://<username>.github.io/<repo-name>/`
 - **User/org site:** `https://<username>.github.io/` (when repo name is `username.github.io`)
 
 The deploy workflow sets `NEXT_PUBLIC_BASE_URL` and `BASE_PATH` automatically based on your repository.
+
+### Why syncing your fork is always safe
+
+This project uses a two-branch model: development happens on `develop`, and `main` is only updated when a release is published. When you sync your fork, GitHub syncs `main` — which means you only ever get released, stable code. Tags always point to commits in `main`, so they are present in your fork after a sync.
 
 ### Environment variables (optional)
 

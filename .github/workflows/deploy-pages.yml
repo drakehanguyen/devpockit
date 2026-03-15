@@ -1,10 +1,13 @@
-# Deploy to GitHub Pages on push to main
-# For self-hosting: Fork the repo, enable GitHub Pages (Source: GitHub Actions), push to main
+# Deploy to GitHub Pages (for forks / self-hosting)
+# For self-hosting: Fork the repo, enable GitHub Pages (Source: GitHub Actions)
 # Skipped for upstream repo (hypkey/devpockit) which uses release.yml for tag-based deploys
+#
+# main is always production-ready — development happens on develop.
+# Syncing your fork pulls only released commits, so deploying from main is safe.
 name: Deploy to GitHub Pages
 
 on:
-  workflow_dispatch:  # Manual deploy only (no auto-deploy on push)
+  workflow_dispatch:  # Manual deploy from Actions tab
 
 permissions:
   contents: read
